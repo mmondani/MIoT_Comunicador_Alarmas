@@ -795,6 +795,18 @@
     <Folder Include="src\inc" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\inc\ringBuffer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\uartRB.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\ringBuffer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\uartRB.c">
+      <SubType>compile</SubType>
+    </Compile>
     <None Include="src\asf.h">
       <SubType>compile</SubType>
     </None>
