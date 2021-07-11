@@ -792,6 +792,7 @@
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\" />
     <Folder Include="src\ASF\thirdparty\CMSIS\Lib\GCC\" />
     <Folder Include="src\config\" />
+    <Folder Include="src\inc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\asf.h">
@@ -1643,6 +1644,12 @@
     <None Include="src\config\conf_spi.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\inc\main.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\project.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\main.c">
       <SubType>compile</SubType>
     </Compile>
