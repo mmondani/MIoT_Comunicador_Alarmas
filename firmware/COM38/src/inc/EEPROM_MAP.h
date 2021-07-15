@@ -1,0 +1,86 @@
+#ifndef EEPROM_MAP_H_
+#define EEPROM_MAP_H_
+
+
+/*****************************************************************************/
+//  MAPA DE MEMORIA EEPROM
+/*****************************************************************************/
+
+#define EE_NOMBRE_DISP_ADDR								0
+#define EE_ID_DISPOSITIVO_ADDR							17
+#define EE_SINCRO_INTERNET_ADDR							21
+#define EE_CODIGO_REGION_ADDR							22
+#define EE_RETARDO_P1_ADDR								23
+#define EE_RETARDO_P2_ADDR								24
+#define EE_RETARDO_P3_ADDR								25
+#define EE_RETARDO_P4_ADDR								26
+#define EE_RETARDO_P5_ADDR								27
+#define EE_RETARDO_P6_ADDR								28
+#define EE_RETARDO_P7_ADDR								29
+#define EE_RETARDO_P8_ADDR								30
+//
+#define EE_MONITOREADA									50
+#define EE_APP											51
+//
+#define EE_BROKER_PORT									60
+#define EE_BROKER_URL									62
+//
+#define EE_SERVER_KEY									200
+
+
+#define EE_PROG_HORARIA_1_HORA_ENCENDIDO_ADDR			1024
+#define EE_PROG_HORARIA_1_HORA_APAGADO_ADDR				1026
+#define EE_PROG_HORARIA_1_PARTICION_ADDR				1028
+#define EE_PROG_HORARIA_1_NODOS_ADDR					1029
+//
+#define EE_PROG_HORARIA_16_HORA_ENCENDIDO_ADDR			1174
+#define EE_PROG_HORARIA_16_HORA_APAGADO_ADDR			1176
+#define EE_PROG_HORARIA_16_PARTICION_ADDR				1178
+#define EE_PROG_HORARIA_16_NODOS_ADDR					1179
+
+
+#define EE_FOTOTIMER_1_HORAS_ADDR						1280
+#define EE_FOTOTIMER_1_PARTICION_ADDR					1281
+#define EE_FOTOTIMER_1_NODOS_ADDR						1282
+//
+#define EE_FOTOTIMER_16_HORAS_ADDR						1385
+#define EE_FOTOTIMER_16_PARTICION_ADDR					1386
+#define EE_FOTOTIMER_16_NODOS_ADDR						1387
+
+
+#define EE_NOCHE_1_PARTICION_ADDR						1536
+#define EE_NOCHE_1_NODOS_ADDR							1537
+//
+#define EE_NOCHE_16_PARTICION_ADDR						1626
+#define EE_NOCHE_16_NODOS_ADDR							1627
+
+
+#define EE_SIMULADOR_1_PARTICION_ADDR					1792
+#define EE_SIMULADOR_1_NODOS_ADDR						1793
+//
+#define EE_SIMULADOR_16_PARTICION_ADDR					1882
+#define EE_SIMULADOR_16_NODOS_ADDR						1883
+
+
+#define EE_PARTICIONES_NOMBRES_ADDR						5120
+#define EE_PARTICIONES_NOMBRES_FIRST_PAGE				20
+#define EE_PARTICIONES_NOMBRES_NUMBER_PAGES				1
+
+#define EE_ZONAS_NOMBRES_ADDR							5376
+#define EE_ZONAS_NOMBRES_FIRST_PAGE						21
+#define EE_ZONAS_NOMBRES_NUMBER_PAGES					16
+
+#define EE_USUARIO_NOMBRES_ADDR							9472
+#define EE_USUARIO_NOMBRES_FIRST_PAGE					37
+#define EE_USUARIO_NOMBRES_NUMBER_PAGES					16
+
+#define EE_NODOS_NOMBRES_ADDR							13568
+#define EE_NODOS_NOMBRES_FIRST_PAGE						53
+#define EE_NODOS_NOMBRES_NUMBER_PAGES					64
+
+#define EE_FLAG_ADDR									128000
+#define EE_BYTE_RANDOM_ADDR								128005
+
+#define EE_FIRST_POSITION								EE_ID_DISPOSITIVO_ADDR
+
+#endif /* EEPROM_MAP_H_ */
