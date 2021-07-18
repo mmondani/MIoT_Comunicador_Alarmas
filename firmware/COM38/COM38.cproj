@@ -795,6 +795,9 @@
     <Folder Include="src\inc" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\debounce.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\EE25LCxxxx.c">
       <SubType>compile</SubType>
     </Compile>
@@ -802,6 +805,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\basicDefinitions.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\debounce.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\EE25LCxxxx.h">
@@ -813,19 +819,31 @@
     <Compile Include="src\inc\ext_eeprom.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\mainTimer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\mpxh.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\ringBuffer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\softTimers.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\uartRB.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\mainTimer.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\mpxh.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ringBuffer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\softTimers.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uartRB.c">

@@ -3,8 +3,10 @@
 #include "config/conf_board.h"
 #include "inc/project.h"
 #include "inc/main.h"
-
-
+#include "inc/debounce.h"
+#include "inc/mainTimer.h"
+#include "inc/softTimers.h"
+#include "inc/mpxh.h"
 
 
 #define STRING_EOL    "\r\n"
@@ -97,6 +99,8 @@ int main(void)
 	printf(STRING_HEADER);
 #endif
 
+	mainTimer_init();
+	mpxh_init();
 	init_leds_button();
 	
 	configure_wdt();
@@ -111,5 +115,107 @@ int main(void)
 }
 
 void mainLoop (void) {
+	if (mainTimer_expired(TIMER_4MSEG)) {
+		maintTimer_clearExpired(TIMER_4MSEG);
+
+		port_pin_set_output_level(DUTY_PAL, true);
+
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 17 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_17 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_17 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+		}
+			
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 16 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_16 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_16 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+		}
+			
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 15 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_15 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_15 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+		}
+			
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 12 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_12 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_12 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+		}
+			
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 9 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_9 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_9 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+				
+		}
+			
+		/*****************************************************************************/
+		//  RECEPCIÓN MPXH : 4 bits
+		/*****************************************************************************/
+		if ( mpxh_recibio ( MPXH_BITS_4 ) )
+		{
+			mpxh_clearRecFlag( MPXH_BITS_4 );
+			mpxh_getRecibido( &dataH, &dataL, &dataLayer);
+
+		}
+
+
+		/*****************************************************************************/
+		//  HANDLERS
+		/*****************************************************************************/
+
+
+
+		/*****************************************************************************/
+		//  ACCIONES
+		/*****************************************************************************/
+
+
+			
+		/*****************************************************************************/
+		//  SACARBUF MPXH
+		/*****************************************************************************/
+		if (!mpxh_Ocupado()) {
+				
+			if (mpxh_tiempoIdle(24*MPXH_MSEG)) {
+					
+			}
+		}
+	}
+		
+	if (mainTimer_expired(TIMER_1SEG)) {
+		maintTimer_clearExpired(TIMER_1SEG);
+		
+	}
+
+	if (mainTimer_expired(TIMER_1MIN)) {
+		maintTimer_clearExpired(TIMER_1MIN);
+			
+	}
+
+	if (mainTimer_expired(TIMER_1HORA)) {
+		maintTimer_clearExpired(TIMER_1HORA);
+	}
+
+		
 	wdt_reset_count();
+		
+	port_pin_set_output_level(DUTY_PAL, false);
 }
