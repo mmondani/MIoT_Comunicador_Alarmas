@@ -7,7 +7,10 @@
 #include "inc/mainTimer.h"
 #include "inc/softTimers.h"
 #include "inc/mpxh.h"
-
+#include "inc/pga.h"
+#include "inc/BlinkingLed.h"
+#include "inc/BlinkingPatterns.h"
+#include "inc/displayRAM.h"
 
 #define STRING_EOL    "\r\n"
 #define STRING_HEADER "-- WINC1500 TCP client example --"STRING_EOL \
@@ -195,7 +198,16 @@ void mainLoop (void) {
 		if (!mpxh_Ocupado()) {
 				
 			if (mpxh_tiempoIdle(24*MPXH_MSEG)) {
-					
+				if (displayRAM_hayChar()) {
+					displayRAM_sacarChar();
+				}
+			}
+			else if (mpxh_tiempoIdle(32*MPXH_MSEG)) {
+				if (mpxh_tiempoIdle(60*MPXH_MSEG)) {
+					if (pga_hayqueDumpear()) {
+						pga_dumpByte();
+					}
+				}
 			}
 		}
 	}
@@ -203,6 +215,7 @@ void mainLoop (void) {
 	if (mainTimer_expired(TIMER_1SEG)) {
 		maintTimer_clearExpired(TIMER_1SEG);
 		
+		wdt_reset_count();
 	}
 
 	if (mainTimer_expired(TIMER_1MIN)) {
@@ -214,8 +227,6 @@ void mainLoop (void) {
 		maintTimer_clearExpired(TIMER_1HORA);
 	}
 
-		
-	wdt_reset_count();
-		
+
 	port_pin_set_output_level(DUTY_PAL, false);
 }

@@ -795,7 +795,13 @@
     <Folder Include="src\inc" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\BlinkingLed.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\debounce.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\displayRAM.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\EE25LCxxxx.c">
@@ -807,7 +813,16 @@
     <Compile Include="src\inc\basicDefinitions.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\BlinkingLed.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\BlinkingPatterns.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\debounce.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\displayRAM.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\EE25LCxxxx.h">
@@ -825,6 +840,12 @@
     <Compile Include="src\inc\mpxh.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\pga.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\PGA_Map.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\ringBuffer.h">
       <SubType>compile</SubType>
     </Compile>
@@ -834,10 +855,16 @@
     <Compile Include="src\inc\uartRB.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\utilities.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\mainTimer.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\mpxh.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\pga.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\ringBuffer.c">
@@ -847,6 +874,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uartRB.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\utilities.c">
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\asf.h">
