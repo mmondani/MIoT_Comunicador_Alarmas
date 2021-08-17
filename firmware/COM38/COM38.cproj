@@ -819,6 +819,9 @@
     <Compile Include="src\inc\BlinkingPatterns.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\DateTime_t.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\debounce.h">
       <SubType>compile</SubType>
     </Compile>
@@ -840,6 +843,9 @@
     <Compile Include="src\inc\mpxh.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\mpxhTimeDate.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\pga.h">
       <SubType>compile</SubType>
     </Compile>
@@ -850,6 +856,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\softTimers.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\stopWatch.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\uartRB.h">
@@ -864,6 +873,9 @@
     <Compile Include="src\mpxh.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\mpxhTimeDate.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\pga.c">
       <SubType>compile</SubType>
     </Compile>
@@ -871,6 +883,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\softTimers.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\stopWatch.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uartRB.c">

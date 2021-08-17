@@ -11,6 +11,7 @@
 #include "inc/BlinkingLed.h"
 #include "inc/BlinkingPatterns.h"
 #include "inc/displayRAM.h"
+#include "inc/mpxhTimeDate.h"
 
 #define STRING_EOL    "\r\n"
 #define STRING_HEADER "-- WINC1500 TCP client example --"STRING_EOL \
@@ -196,8 +197,11 @@ void mainLoop (void) {
 		//  SACARBUF MPXH
 		/*****************************************************************************/
 		if (!mpxh_Ocupado()) {
-				
-			if (mpxh_tiempoIdle(24*MPXH_MSEG)) {
+			
+			if (mpxhTimeDate_hayQueSacarFyh()) {
+				mpxhTimeDate_sendNextNibble();
+			}
+			else if (mpxh_tiempoIdle(24*MPXH_MSEG)) {
 				if (displayRAM_hayChar()) {
 					displayRAM_sacarChar();
 				}
