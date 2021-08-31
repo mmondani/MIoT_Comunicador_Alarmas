@@ -40,13 +40,13 @@
 #include <compiler.h>
 
 #define BUTTON_0_PIN		PIN_PA17
-#define LED_VERDE_PIN		PIN_PA10
-#define LED_ROJO_PIN		PIN_PA11
-#define MPXH_ENT			PIN_PA19
-#define MPXH_SAL			PIN_PA18
+#define LED_VERDE_PIN		PIN_PA12
+#define LED_ROJO_PIN		PIN_PA13
+#define MPXH_ENT			PIN_PA15
+#define MPXH_SAL			PIN_PA14
 
-#define DUTY_INT			PIN_PA02
-#define DUTY_PAL			PIN_PA03
+#define DUTY_INT			PIN_PA19
+#define DUTY_PAL			PIN_PA18
 
 /*
 UARTS INVERTIDAS: para que la UART de la consola salga por donde hay pads en el PCB

@@ -46,7 +46,7 @@ void mainTimer_init(void)
 	config.counter_size = TC_COUNTER_SIZE_8BIT;
 	config.clock_source = GCLK_GENERATOR_0;
 	config.clock_prescaler = TC_CLOCK_PRESCALER_DIV8;
-	config.counter_8_bit.period = system_gclk_gen_get_hz(GCLK_GENERATOR_0) / (40000 * 8);
+	config.counter_8_bit.period = system_gclk_gen_get_hz(GCLK_GENERATOR_0) / (40100 * 8);
 	
 	tc_init(&tc_instance, TC5, &config);
 	tc_enable(&tc_instance);
@@ -106,7 +106,7 @@ void tc_callback (struct tc_module *const module_inst)
 		timers1.bits.useg250 = 1;
 		
 		
-		port_pin_set_output_level(DUTY_INT, true);
+		//port_pin_set_output_level(DUTY_INT, true);
 		
 		mpxh_Analizar ();
 
@@ -176,5 +176,5 @@ void tc_callback (struct tc_module *const module_inst)
 		}
 	}
 	
-	port_pin_set_output_level(DUTY_INT, false);
+	//port_pin_set_output_level(DUTY_INT, false);
 }
