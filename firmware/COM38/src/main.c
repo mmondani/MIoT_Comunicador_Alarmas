@@ -26,6 +26,7 @@
 #include "inc/utilities.h"
 #include "inc/fsmProg.h"
 #include "inc/displayRAM.h"
+#include "inc/nodesManager.h"
 
 
 
@@ -171,6 +172,7 @@ int main(void)
 				alarmMonitor_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_17);
 				dateTime_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_17);
 				fsmProg_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_17);
+				nodesManager_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_17);
 			}
 			
 			/*****************************************************************************/
@@ -183,6 +185,7 @@ int main(void)
 
 				alarmMonitor_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_16);
 				dateTime_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_16);
+				nodesManager_analizarMpxh(dataH, dataL, dataLayer, MPXH_BITS_16);
 			}
 			
 			/*****************************************************************************/
@@ -232,12 +235,13 @@ int main(void)
 			/*****************************************************************************/
 			//  RECEPCIÓN IM
 			/*****************************************************************************/
-			if (!alarmMonitor_procesandoMensaje() && 
-				!dateTime_procesandoMensaje()) {
+			if (!alarmMonitor_procesandoMensaje() &&
+			!dateTime_procesandoMensaje() &&
+			!nodesManager_procesandoMensaje()) {
 				imMessage_t* msg = imClient_getMessageToRead(MESSAGE_POOL_FLOW_WCOM);
 				if (msg != NULL && (msg->flow == MESSAGE_POOL_FLOW_WCOM || msg->flow == MESSAGE_POOL_FLOW_WCOM_STRINGS)) {
 					if (alarmMonitor_analizarIm (msg)) {
-					
+						
 					}
 					else if (dateTime_analizarIm(msg)) {
 
@@ -245,11 +249,14 @@ int main(void)
 					else if (configurationManager_analizarIm(msg)) {
 
 					}
+					else if (nodesManager_analizarIm(msg)) {
+						
+					}
 					else if (fsmProg_analizarIm(msg)) {
 						
 					}
 					else
-						imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+					imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
 				}
 			}
 			
@@ -260,12 +267,13 @@ int main(void)
 			//  HANDLERS
 			/*****************************************************************************/
 			dateTime_timeKeepingHandler();
-			
+			nodesManager_handler();
 			
 			fsmProg_handler();
 			
 			alarmMonitor_determinarFinProcesamiento();
 			dateTime_determinarFinProcesamiento();
+			nodesManager_determinarFinProcesamiento();
 
 
 			/*****************************************************************************/
@@ -516,6 +524,9 @@ int main(void)
 					}
 					else if (mpxh_tiempoIdle(32*MPXH_MSEG)) {
 						
+						if (nodesManager_hayQueMandarPorMpxh()) {
+							nodesManager_mandarPorMpxh();
+						}
 						if (mpxh_tiempoIdle(60*MPXH_MSEG)) {
 							if (pga_hayqueDumpear()) {
 								pga_dumpByte();
@@ -533,12 +544,14 @@ int main(void)
 			alarmMonitor_timers1s_handler();
 			dateTime_timers1s_handler();
 			fsmProg_timers1s_handler();
+			nodesManager_timers1s_handler();
 		}
 
 		if (mainTimer_expired(TIMER_1MIN)) {
 			maintTimer_clearExpired(TIMER_1MIN);
 			
 			alarmMonitor_timers1m_handler();
+			nodesManager_timers1m_handler();
 		}
 
 		if (mainTimer_expired(TIMER_1HORA)) {

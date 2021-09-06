@@ -17,9 +17,11 @@
 #include "inc/ext_eeprom.h"
 #include "inc/pga.h"
 #include "inc/dateTime.h"
-#include "inc/displayRAM.h"
+#include "inc/alarmMonitor.h"
+#include "inc/configurationManager.h"
+#include "inc/nodesManager.h"
 #include "inc/fsmProg.h"
-
+#include "inc/displayRAM.h"
 
 
 static blinkingLed_t blinkingLedVerde;
@@ -89,7 +91,6 @@ void mainFsm_analizarMpxh (uint8_t dataH, uint8_t dataL, uint8_t layer, uint8_t 
 
 void mainFsm_handler (void)
 {
-
 	// En la prueba de fábrica los leds son controlados por la FSM de la prueba
 	if (fsmState != mainFsm_pruebaFabrica) {
 		blinkingLed_handler(&blinkingLedVerde);
@@ -119,7 +120,6 @@ void mainFsm_handler (void)
 				if (fsmState_previous != mainFsm_pruebaFabrica) {
 					nm_bsp_init();
 					debouncePin_init(&pinSw0, DEBOUNCE_PIN_BAJO_ACTIVO, BUTTON_0_PIN);
-				
 					
 					wifiManager_init(&pinSw0);
 					socketManager_init();
@@ -130,6 +130,11 @@ void mainFsm_handler (void)
 					pga_checkEeprom();
 					
 					displayRAM_init();
+					fsmProg_init();
+					
+					
+					// Se inicializan los módulos de firmware
+					alarmMonitor_init();
 
 					idBuffer[0] = pgaData[PGA_ID_DISPOSITIVO];
 					idBuffer[1] = pgaData[PGA_ID_DISPOSITIVO+1];
@@ -138,6 +143,8 @@ void mainFsm_handler (void)
 					imClient_init(idBuffer);
 					
 					dateTime_init();
+					configurationManager_init();
+					nodesManager_init();
 				}
 				
 				vino_0d2 = false;
