@@ -30,7 +30,7 @@ void pga_checkEeprom (void)
 
     aux = ext_eeprom_read_byte(EE_FLAG_ADDR);
 
-    if (aux != 0x28)
+    if (aux != 0x29)
     {
 	    defaults();
     }
@@ -216,7 +216,7 @@ void defaults (void)
 {
     u8 i;
 
-	pgaData[PGA_FLAG] = 0x28;
+	pgaData[PGA_FLAG] = 0x29;
 
 /*
 	pgaData[EE_ID_DISPOSITIVO] = 0xFF;
@@ -248,6 +248,32 @@ void defaults (void)
 	
 	pgaData[PGA_BROKER_PORT] = 8884 & 0xFF;
 	pgaData[PGA_BROKER_PORT+1] = (8884 >> 8) & 0xFF;
+	
+	
+	
+	/*
+	pgaData[PGA_BROKER_URL+0] = 'b';
+	pgaData[PGA_BROKER_URL+1] = 'r';
+	pgaData[PGA_BROKER_URL+2] = 'o';
+	pgaData[PGA_BROKER_URL+3] = 'k';
+	pgaData[PGA_BROKER_URL+4] = 'e';
+	pgaData[PGA_BROKER_URL+5] = 'r';
+	pgaData[PGA_BROKER_URL+6] = '.';
+	pgaData[PGA_BROKER_URL+7] = 'c';
+	pgaData[PGA_BROKER_URL+8] = 'l';
+	pgaData[PGA_BROKER_URL+9] = 'o';
+	pgaData[PGA_BROKER_URL+10] = 'u';
+	pgaData[PGA_BROKER_URL+11] = 'd';
+	pgaData[PGA_BROKER_URL+12] = 'x';
+	pgaData[PGA_BROKER_URL+13] = '2';
+	pgaData[PGA_BROKER_URL+14] = '8';
+	pgaData[PGA_BROKER_URL+15] = '.';
+	pgaData[PGA_BROKER_URL+16] = 'c';
+	pgaData[PGA_BROKER_URL+17] = 'o';
+	pgaData[PGA_BROKER_URL+18] = 'm';
+	pgaData[PGA_BROKER_URL+19] = '\0';
+	*/
+	
 	
 	
 	pgaData[PGA_BROKER_URL+0] = 'w';

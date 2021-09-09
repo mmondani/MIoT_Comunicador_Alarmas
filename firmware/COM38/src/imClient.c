@@ -8,6 +8,7 @@
 #include "inc/dateTime.h"
 #include "inc/DateTime_t.h"
 #include "inc/pga.h"
+#include "inc/mqttClient.h"
 
 
 enum{
@@ -17,21 +18,22 @@ enum{
 	FSM_MSG_SEND,
 	RESOLVE_DNS,
 	WAIT_DNS_RESPONSE,
-	FSM_CONNECT_SOCKET,
+	FSM_CONNECT_BROKER,
 	FSM_WAIT_ACK,
 	FSM_WAIT_CONNECTION,
-	FSM_WAIT_LOGIN_RESPONSE
+	FSM_WAIT_CLOSE,
+	FSM_ERROR
 	};
 uint32_t fsmState;	
 
 
-static uint8_t myId[4];
+static struct mqtt_module mqtt_inst;
+static uint8_t clientId[10];
+static uint8_t password[20];
+static bool published;
 
-static socket_t socketIm;
-static socket_config_t socketConfig;
 static SoftTimer_t timerAux;
 static SoftTimer_t timerCheckConnection;
-static SoftTimer_t timerKeepalive;
 static SoftTimer_t timerResponseTimeout;
 static SoftTimer_t timerBuffer;
 static uint8_t sendingError;
@@ -41,20 +43,23 @@ static bool inLoginProcess;
 static bool resetConnection;
 
 
-static uint8_t buffIn[200];
-static uint8_t buffOut[200];
+static uint8_t buffIn[300];
+static uint8_t buffOut[300];
 static uint8_t toAux[4];
+static uint8_t auxBuffer[30];
 
 
-static void socket_connect (SOCKET id, tstrSocketConnectMsg* msg);
-static void socket_sent (SOCKET id);
-static void socket_received (SOCKET id, tstrSocketRecvMsg* msg);
-static void socket_closed (SOCKET id);
+static void callback_connect (bool result);
+static void callback_disconnect (void);
+static void callback_subscribe (void);
+static void callback_unsubscribe (void);
+static void callback_publish (void);
+static void callback_receive (MQTTString* topic, MQTTMessage* msg);
 static void generateFrameToSend (imMessage_t* msg);
 static void parseMessageIn (uint8_t* data);
 
 
-void imClient_init (uint8_t* id)
+void imClient_init (uint8_t* id, uint8_t* pass)
 {
 	fsmState = FSM_INIT;
 	
@@ -63,8 +68,14 @@ void imClient_init (uint8_t* id)
 	softTimer_init(&timerCheckConnection, 1000);
 	
 	for (int i = 0; i < 4; i++) {
-		myId[i] = id[i];
-	}	
+		clientId[2*i] = ((id[i] & 0xF0) >> 4) + '0';
+		clientId[2*i+1] = (id[i] & 0x0F) + '0';	
+	}
+	clientId[8] = '\0';
+	
+	for (int i = 0; i < 16; i++)
+		password[i] = pass[i];
+		
 	
 	needToSendLoginMessage = false;
 	authenticated = false;
@@ -75,7 +86,7 @@ void imClient_init (uint8_t* id)
 
 uint32_t imClient_isClientConnected (void)
 {
-	if (socketManager_isConnected(&socketIm) && authenticated) {
+	if (mqttClient_isConnected()) {
 		return 1;
 	}
 	
@@ -139,16 +150,9 @@ void imClient_send (imMessage_t* msg, uint8_t* to, uint32_t flow, uint8_t cmd, u
 	
 	dateTime_now(&now);
 	
-	
-	for (int i = 0; i < 4; i++) {
-		msg->to[i] = to[i];
-	}
-	
-	msg->flow = flow;
 	msg->cmd = cmd;
 	msg->reg = reg;
 	msg->part = part;
-	msg->qos = qos;
 	msg->timestamp.dia = now.dia;
 	msg->timestamp.mes = now.mes;
 	msg->timestamp.anio = now.anio;
@@ -202,92 +206,56 @@ void imClient_handler (void)
 	switch (fsmState) {
 		
 		case FSM_INIT:
-			socketManager_loadConfigDefaults(&socketConfig);
-			//socketConfig.ip = MAIN_WIFI_M2M_IM_SERVER_IP;
-			//socketConfig.port = MAIN_WIFI_M2M_IM_SERVER_PORT;
-			socketConfig.callback_connect = socket_connect;
-			socketConfig.callback_received = socket_received;
-			socketConfig.callback_sent = socket_sent;
-			socketConfig.callback_closed = socket_closed;
-			socketConfig.isSecure = 1;
-			socketConfig.bufferIn = buffIn;
-			socketConfig.bufferOut = buffOut;
-			socketConfig.bufferIn_len = sizeof(buffIn);
-			socketConfig.bufferOut_len = sizeof(buffOut);
+		{
+			mqttClient_config_t mqtt_conf;
+			int result;
+
+			mqttClient_loadDefaults(&mqtt_conf);
+			mqtt_conf.server = (uint8_t*)&pgaData[PGA_BROKER_URL];
+			mqtt_conf.port = (pgaData[PGA_BROKER_PORT + 1] << 8) | pgaData[PGA_BROKER_PORT];
+			mqtt_conf.isSecure = false;
+			mqtt_conf.cleanSession = true;
+			mqtt_conf.keepalive = 120;
 			
-			softTimer_init(&timerAux, 0);
-			softTimer_init(&timerKeepalive, TIMER_KEEPALIVE);
+			mqtt_conf.clientId = &clientId;
+			mqtt_conf.user = &clientId;
+			mqtt_conf.password = &password;
 			
-			sendingError = 0;
+			mqtt_conf.bufferIn = buffIn;
+			mqtt_conf.bufferOut = buffOut;
+			mqtt_conf.bufferIn_len = 300;
+			mqtt_conf.bufferOut_len = 300;
 			
-			fsmState = FSM_GET_SOCKET;
+			mqtt_conf.callback_connect = callback_connect;
+			mqtt_conf.callback_disconnect = callback_disconnect;
+			mqtt_conf.callback_subscribe = callback_subscribe;
+			mqtt_conf.callback_unsubscribe = callback_unsubscribe;
+			mqtt_conf.callback_publish = callback_publish;
+			mqtt_conf.callback_receive = callback_receive;
 			
-			break;
-		
-		case FSM_GET_SOCKET:
-		
-			if (softTimer_expired(&timerAux)) {
-				if (socketManager_createSocket(&socketIm, &socketConfig) < 0) {
-					softTimer_init(&timerAux, 2000);
-				}
-				else {
-					fsmState = FSM_IDLE;
-				}
-			}
-			
-			break;
-			
-			
-		case RESOLVE_DNS:
-			if (wifiManager_isWiFiConnected() != WIFI_MANAGER_WIFI_CONNECTED || 
-				wifiManager_isProvisioningEnable() == 1 ||
-				socketManager_isConnected(&socketIm) == 1) {
-					
-				fsmState = FSM_IDLE;
+			if (mqttClient_init(&mqtt_conf) < 0) {
+				errores1.bits.errorMqtt = 1;
+				fsmState = FSM_ERROR;
 			}
 			else {
-				socketManager_resolveHostName((uint8*)&(pgaData[PGA_BROKER_URL]));
-			
-				softTimer_init(&timerAux, 5000);
-				fsmState = WAIT_DNS_RESPONSE;
+				sendingError = 0;
+				
+				fsmState = FSM_CONNECT_BROKER;
 			}
 			
 			break;
-			
-			
-		case WAIT_DNS_RESPONSE:
-			if (socketManager_isDnsResolved()) {
-				uint32_t ipAddr = socketManager_getDnsResolution();
-				struct sockaddr_in strAddr;
-				uint32_t port;
-				
-				socketManager_dnsResolvedDismiss();
-				
-				port = (pgaData[PGA_BROKER_PORT + 1] << 8) | pgaData[PGA_BROKER_PORT];
-			
-				socketIm.ip = _ntohl(ipAddr);
-				socketIm.port = port;
-				
-				fsmState = FSM_CONNECT_SOCKET;
-			}
-			else if (softTimer_expired(&timerAux)) {
-				fsmState = FSM_IDLE;
-			}
-			break;
-			
-		case FSM_CONNECT_SOCKET:
+		}
+		
+		case FSM_CONNECT_BROKER:
 		
 			if (wifiManager_isWiFiConnected() == WIFI_MANAGER_WIFI_CONNECTED) {
-				if (socketManager_isConnected(&socketIm) == 0) {
+				if (!mqttClient_isConnected()) {
 					if (wifiManager_isProvisioningEnable() == 0) {
-						if (socketManager_connect(&socketIm) < 0) {
-							socketManager_close(&socketIm);
-							fsmState = FSM_IDLE;
-						}
-						else {
-							softTimer_init(&timerAux, 10000);
-							fsmState = FSM_WAIT_CONNECTION;
-						}
+						// TODO configurar un LWT
+						mqttClient_connect(NULL, NULL, 0, 0, 0);
+						
+						softTimer_init(&timerAux, 20000);
+						fsmState = FSM_WAIT_CONNECTION;
 					}
 					else
 						fsmState = FSM_IDLE;
@@ -295,10 +263,21 @@ void imClient_handler (void)
 				else
 					fsmState = FSM_IDLE;
 			}
-			else fsmState = FSM_IDLE;
+			else 
+				fsmState = FSM_IDLE;
 			
+			break;
 			
-			
+		case FSM_WAIT_CONNECTION:
+				
+			if (mqttClient_isConnected()) {
+				// Se pudo conectar al broker, se va a suscribir al tópico por el que recibe los comandos
+				sprintf(auxBuffer, "%s/cmd", clientId);
+				mqttClient_subscribe(auxBuffer, 0);
+			}
+			else if (softTimer_expired(&timerAux))
+			fsmState = FSM_IDLE;
+				
 			break;
 			
 			
@@ -307,22 +286,7 @@ void imClient_handler (void)
 			if (softTimer_expired(&timerCheckConnection)) {
 				softTimer_init(&timerCheckConnection, 15000);
 				
-				fsmState = RESOLVE_DNS;
-			}
-			else if (softTimer_expired(&timerKeepalive)) {
-				softTimer_restart(&timerKeepalive);
-				
-				if (imClient_isClientConnected() == 1) {
-					msg = messagePool_getFreeSlot();
-				
-					if (msg != NULL) {
-						toAux[0] = 0x00;
-						toAux[1] = 0x00;
-						toAux[2] = 0x00;
-						toAux[3] = 0x00;
-						imClient_send(msg, toAux, 1, IM_CLIENT_CMD_KEEPALIVE, 0, 0, 0);
-					}
-				}
+				fsmState = FSM_CONNECT_BROKER;
 			}
 			else if (messagePool_pendingOutputMessage() == 1) {
 				if (wifiManager_isWiFiConnected() == WIFI_MANAGER_WIFI_CONNECTED) {
@@ -334,8 +298,9 @@ void imClient_handler (void)
 			else if (resetConnection) {
 				resetConnection = false;
 				
-				socketManager_close(&socketIm);
-				fsmState = FSM_GET_SOCKET;
+				mqttClient_disconnect();
+				
+				fsmState = FSM_WAIT_CLOSE;
 			}
 			
 			break;
@@ -344,7 +309,7 @@ void imClient_handler (void)
 		case FSM_MSG_SEND:
 		
 			if (wifiManager_isWiFiConnected() == WIFI_MANAGER_WIFI_CONNECTED) {
-				if (socketManager_isConnected(&socketIm) == 1) {
+				if (mqttClient_isConnected()) {
 					msg = messagePool_peekOutputQueue();
 					generateFrameToSend(msg);
 					
@@ -352,6 +317,7 @@ void imClient_handler (void)
 				}
 			}
 			
+			published = false;
 			fsmState = FSM_WAIT_ACK;
 			
 			break;
@@ -360,262 +326,74 @@ void imClient_handler (void)
 		case FSM_WAIT_ACK:
 			
 			if (softTimer_expired(&timerResponseTimeout)) {
-				// No llegó la respuesta a tiempo
-				if (inLoginProcess) {
-					socketManager_close(&socketIm);
-					inLoginProcess = false;
-				}
-				else {
-					sendingError ++;
-					if (sendingError >= 4) {
-						socketManager_close(&socketIm);
-					}
+				// No llegó el PUBACK a tiempo
+				// TODO hacer algo si falla 4 veces en enviarlo
+				sendingError ++;
+				if (sendingError >= 4) {
+					//socketManager_close(&socketIm);
 				}
 
 				fsmState = FSM_IDLE;
 			}
-			else if (messagePool_pendingInputMessage(MESSAGE_POOL_FLOW_IM_CLIENT)) {
-				// Llegó una respuesta
+			else if (published) {
+				// Llegó un PUBACK
 				msg = messagePool_peekInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
 				
-				if (msg->cmd == IM_CLIENT_CMD_ACK) {
-					messagePool_popOutputQueue();
-					sendingError = 0;
-					
-					if (inLoginProcess) {
-						softTimer_init(&timerResponseTimeout, 3000);
-						messagePool_releaseSlot(msg);
-						fsmState = FSM_WAIT_LOGIN_RESPONSE;
-					}
-					else {
-						fsmState = FSM_IDLE;
-					}
-				}
-				else {
-					// No llegó el ACK.
-					if (inLoginProcess) {
-						socketManager_close(&socketIm);
-						inLoginProcess = false;
-						messagePool_releaseSlot(msg);
-					}
-					else {
-						sendingError ++;
-						if (sendingError >= 4) {
-							socketManager_close(&socketIm);
-						}
-						
-					}
-					
-					fsmState = FSM_IDLE;
-				}
-				
 				messagePool_popInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
-			}
-			
-			
-			break;
-			
-			
-		case FSM_WAIT_CONNECTION:
-		
-			if (socketManager_isConnected(&socketIm) == 1) {
-				uint8_t dataToEncrypt[8];
-				dateTime_t now;
 				
-				
-				msg = messagePool_getFreeSlot();
-				
-				if (msg != NULL) {
-					needToSendLoginMessage = false;
-					
-					dateTime_now(&now);
-					
-					for (int i = 0; i < 4; i++) {
-						msg->to[i] = 0;
-					}
-					
-					msg->flow = MESSAGE_POOL_FLOW_IM_CLIENT;
-					msg->cmd = IM_CLIENT_CMD_LOGIN;
-					msg->reg = 0;
-					msg->part = 0;
-					msg->qos = 0;
-					msg->timestamp.dia = now.dia;
-					msg->timestamp.mes = now.mes;
-					msg->timestamp.anio = now.anio;
-					msg->timestamp.horas = now.horas;
-					msg->timestamp.minutos = now.minutos;
-					msg->timestamp.segundos = now.segundos;
-					
-					generateFrameToSend(msg);
-					
-					inLoginProcess = true;
-					
-					softTimer_init(&timerResponseTimeout, 2000);
-					fsmState = FSM_WAIT_ACK;
-				}
-				else
-					fsmState = FSM_IDLE;
-			}
-			else if (softTimer_expired(&timerAux)) {
-				socketManager_close(&socketIm);
 				fsmState = FSM_IDLE;
 			}
 			
+			
+			break;
+			
+		
+		case FSM_WAIT_CLOSE:
+		
+			if (!mqttClient_isConnected())
+				fsmState = FSM_CONNECT_BROKER;
+			
 			break;
 			
 			
-		case FSM_WAIT_LOGIN_RESPONSE:
-		
-			if (softTimer_expired(&timerResponseTimeout)) {
-				// No llegó la respuesta a tiempo
-				inLoginProcess = false;
-				authenticated = false;
-				socketManager_close(&socketIm);
-
-				fsmState = FSM_IDLE;
-			}
-			else if (messagePool_pendingInputMessage(MESSAGE_POOL_FLOW_IM_CLIENT)) {
-				// Llegó una respuesta
-				msg = messagePool_peekInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
-			
-				if (msg->cmd == IM_CLIENT_CMD_RESP_LOGIN) {
-					sendingError = 0;
-					inLoginProcess = false;
-					authenticated = (msg->payload[0] == 1)? true : false;
-
-					fsmState = FSM_IDLE;
-				}
-				else {
-					// No llegó la Respuesta al LOGIN.
-					inLoginProcess = false;
-					authenticated = false;
-					socketManager_close(&socketIm);
-
-					fsmState = FSM_IDLE;
-				}
-			
-				messagePool_popInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
-			}
-		
+		case FSM_ERROR:
 		
 			break;
 	}
 }
-
-
-
-
-static void socket_connect (SOCKET id, tstrSocketConnectMsg* msg)
-{
-	socket_t* sock = socketManager_getSocketBySocketId(id);
-	
-	if (wifiManager_isProvisioningEnable() == 0) {
-
-		if (msg && msg->s8Error >= 0) {
-#ifdef DEBUG_PRINTF
-			printf("imClient - socket: connect success!\r\n");
-#endif
-			socketManager_startReceiving(sock);
-		}
-		else {
-#ifdef DEBUG_PRINTF
-			printf("imClient - socket: connect error!\r\n");
-#endif
-			socketManager_close(sock);
-		}
-	}
-}
-
-
-static void socket_sent (SOCKET id)
-{
-	socket_t* sock = socketManager_getSocketBySocketId(id);
-	
-#ifdef DEBUG_PRINTF
-	printf("imClient - socket: send success!\r\n");
-#endif
-	
-	socketManager_flushBufferOut (sock);
-}
-
-
-static void socket_received (SOCKET id, tstrSocketRecvMsg* msg)
-{
-	socket_t* sock = socketManager_getSocketBySocketId(id);
-	uint32_t sum = 0;
-	
-	
-	if (msg && msg->s16BufferSize > 0) {
-#ifdef DEBUG_PRINTF
-		printf("imClient - socket: recv success!\r\n");
-#endif
-	
-		// Se chequea si se terminó de recibir el mensaje
-		if (msg->pu8Buffer[msg->s16BufferSize - 1] == 0x85) {
-			
-			// Se chequea el checksum
-			for (int i = 0; i < (msg->s16BufferSize - 1); i++) {
-				sum += msg->pu8Buffer[i];
-			}
-							
-			if ((sum & 0x000000ff) == 0xff) {
-				// Está bien el checksum
-				parseMessageIn(msg->pu8Buffer);	
-				
-			}
-			else {
-				// Hay un error en el checksum
-				
-			}
-			
-			socketManager_flushBufferIn(sock);
-		}
-			
-		socketManager_startReceiving(sock);
-	}
-}
-
-
-static void socket_closed (SOCKET id)
-{
-	socket_t* sock = socketManager_getSocketBySocketId(id);
-
-	sendingError = 0;
-	
-#ifdef DEBUG_PRINTF
-	printf("imClient - socket: socket closed!\r\n");
-#endif
-}
-
 
 
 static void generateFrameToSend (imMessage_t* msg)
 {
 	uint16_t len = msg->payload_ptr;
 	
-	socketManager_bufferOutPutBytes(&socketIm, myId, 4);												// origen
-	socketManager_bufferOutPutBytes(&socketIm, msg->to, 4);												// destino
-	socketManager_bufferOutPutByte(&socketIm, msg->flow);												// flow
-	socketManager_bufferOutPutByte(&socketIm, msg->cmd);												// comando
-	socketManager_bufferOutPutBytes(&socketIm, (uint8_t*)&(msg->reg), 2);								// registro
-	socketManager_bufferOutPutByte(&socketIm, msg->part);												// particion
-	socketManager_bufferOutPutByte(&socketIm, msg->qos);												// QoS
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.dia);										// Fecha: dia
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.mes);										// Fecha: mes
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.anio);										// Fecha: anio
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.horas);									// Hora: horas
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.minutos);									// Hora: minutos
-	socketManager_bufferOutPutByte(&socketIm, msg->timestamp.segundos);									// Hora: segundos
-	socketManager_bufferOutPutBytes(&socketIm, (uint8_t*)&(len), 2);									// largo
-	socketManager_bufferOutPutBytes(&socketIm, msg->payload, msg->payload_ptr);							// payload
-	socketManager_bufferOutPutByte(&socketIm, socketManager_bufferOutGetChecksum(&socketIm));			// checksum
-	socketManager_bufferOutPutByte(&socketIm, 0x85);
+	mqttClient_bufferFlush();
 	
-	//msg->ready = 0;
-	//msg->payload_ptr = 0;
+	mqttClient_bufferPutByte(msg->cmd);												// comando
+	mqttClient_bufferPutBytes((uint8_t*)&(msg->reg), 2);								// registro
+	mqttClient_bufferPutByte(msg->part);												// particion
+	mqttClient_bufferPutByte(msg->timestamp.dia);										// Fecha: dia
+	mqttClient_bufferPutByte(msg->timestamp.mes);										// Fecha: mes
+	mqttClient_bufferPutByte(msg->timestamp.anio);										// Fecha: anio
+	mqttClient_bufferPutByte(msg->timestamp.horas);										// Hora: horas
+	mqttClient_bufferPutByte(msg->timestamp.minutos);									// Hora: minutos
+	mqttClient_bufferPutByte(msg->timestamp.segundos);									// Hora: segundos
+	mqttClient_bufferPutBytes((uint8_t*)&(len), 2);										// largo
+	mqttClient_bufferPutBytes(msg->payload, msg->payload_ptr);							// payload
+	mqttClient_bufferPutByte(mqttClient_bufferGetChecksum());							// checksum
+
+	// TODO definir el QoS
+	if (msg->cmd == IM_CLIENT_CMD_RESP_GET)
+		sprintf(auxBuffer, "%s/resp", clientId); 
+	else
+		sprintf(auxBuffer, "%s/event", clientId);
 	
-	
-	socketManager_send(&socketIm);
+	mqttClient_publish(
+		auxBuffer,
+		mqttClient_getBuffer(),
+		mqttClient_getBufferLen(),
+		0,
+		0);
 }
 
 
@@ -632,17 +410,6 @@ static void parseMessageIn (uint8_t* data)
 
 	if (msg != NULL) {
 		
-		for (index = 0; index < 4; index++) {
-			msg->from[index] = data[index];
-		}
-		
-		for (; index < 8; index++) {
-			msg->to[index - 4] = data[index];
-		}
-		
-		msg->flow = data[index];
-		index ++;
-		
 		msg->cmd = data[index];
 		index ++;
 		
@@ -653,9 +420,6 @@ static void parseMessageIn (uint8_t* data)
 		
 		msg->part = data[index];
 		index++;
-		
-		msg->qos = data[index];
-		index ++;
 		
 		msg->timestamp.dia = data[index];
 		index ++;
@@ -681,11 +445,55 @@ static void parseMessageIn (uint8_t* data)
 		index ++;
 		
 		for (int i = 0; i < MESSAGE_POOL_MESSAGE_MAX_LEN && i < msg->len; i++) {
-			msg->payload[i] = data[i + 22];
+			msg->payload[i] = data[i + 12];
 			index ++;
 		}
 		
 		
-		messagePool_pushInputQueue(msg->flow, msg);
+		messagePool_pushInputQueue(0, msg);
+	}
+}
+
+
+void callback_connect (bool result) {
+	
+}
+
+
+void callback_disconnect (void) {
+	
+}
+
+
+void callback_subscribe (void) {
+	
+}
+
+
+void callback_unsubscribe (void) {
+	
+}
+
+
+void callback_publish (void) {
+	published = true;
+}
+
+
+void callback_receive (MQTTString* topic, MQTTMessage* msg) {
+	uint32_t sum = 0;
+	uint8_t* payload = (uint8_t*)msg->payload;
+	
+	// Se chequea el checksum
+	for (int i = 0; i < (msg->payloadlen - 1); i++) {
+		sum += payload[i];
+	}
+	
+	if ((sum & 0x000000ff) == 0xff) {
+		// Está bien el checksum
+		parseMessageIn(msg->payload);
+	}
+	else {
+		// Hay un error en el checksum
 	}
 }

@@ -140,7 +140,7 @@ void mainFsm_handler (void)
 					idBuffer[1] = pgaData[PGA_ID_DISPOSITIVO+1];
 					idBuffer[2] = pgaData[PGA_ID_DISPOSITIVO+2];
 					idBuffer[3] = pgaData[PGA_ID_DISPOSITIVO+3];
-					imClient_init(idBuffer);
+					imClient_init(idBuffer, (uint8_t*)&pgaData[PGA_SERVER_KEY]);
 					
 					dateTime_init();
 					configurationManager_init();
@@ -437,7 +437,7 @@ void mainFsm_gotoPreviousState (void)
 
 bool mainFsm_hayErrorCritico (void) 
 {
-	return (errores1.bits.errorEeprom || errores1.bits.errorModuloWifi);
+    return (errores1.bits.errorEeprom || errores1.bits.errorModuloWifi || errores1.bits.errorMqtt);
 }
 
 

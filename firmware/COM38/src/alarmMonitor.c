@@ -765,11 +765,6 @@ bool alarmMonitor_analizarIm (imMessage_t* msg)
 {
 	bool ret = false;
 	
-	lastFromIdReceived[0] = msg->from[0];
-	lastFromIdReceived[1] = msg->from[1];
-	lastFromIdReceived[2] = msg->from[2];
-	lastFromIdReceived[3] = msg->from[3];
-	
 	if (msg->cmd == IM_CLIENT_CMD_GET) {
 		if (msg->reg == IM_CLIENT_REG_ESTADO) {
 			alarmMonitor_armarGetEstado(msg->part);

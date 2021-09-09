@@ -239,7 +239,7 @@ int main(void)
 			!dateTime_procesandoMensaje() &&
 			!nodesManager_procesandoMensaje()) {
 				imMessage_t* msg = imClient_getMessageToRead(MESSAGE_POOL_FLOW_WCOM);
-				if (msg != NULL && (msg->flow == MESSAGE_POOL_FLOW_WCOM || msg->flow == MESSAGE_POOL_FLOW_WCOM_STRINGS)) {
+				if (msg != NULL) {
 					if (alarmMonitor_analizarIm (msg)) {
 						
 					}

@@ -14,7 +14,7 @@
 
 
 
-void imClient_init (uint8_t* id);
+void imClient_init (uint8_t* id, uint8_t* pass);
 void imClient_handler (void);
 uint32_t imClient_isClientConnected (void);
 void imClient_resetConnection (void);

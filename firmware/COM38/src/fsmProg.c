@@ -146,11 +146,6 @@ bool fsmProg_analizarIm (imMessage_t* msg)
 	uint8_t toId[4];
 	bool ret = false;
 	
-	toId[0] = msg->from[0];
-	toId[1] = msg->from[1];
-	toId[2] = msg->from[2];
-	toId[3] = msg->from[3];
-	
 	if (msg->cmd == IM_CLIENT_CMD_RESP_RESET_CLAVES) {
 		ap1.bits.ap_resp_reset_claves = 1;
 		imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);

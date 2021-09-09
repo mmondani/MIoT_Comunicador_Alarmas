@@ -30,7 +30,7 @@ union Errores1{
 		uint8_t errorModuloWifi:1;
 		uint8_t errorServerSocket:1;
 		uint8_t errorEeprom:1;
-		uint8_t bit3:1;
+		uint8_t errorMqtt:1;
 		uint8_t bit4:1;
 		uint8_t bit5:1;
 		uint8_t bit6:1;
