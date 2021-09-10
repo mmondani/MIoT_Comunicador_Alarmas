@@ -5,10 +5,10 @@
 #include "inc/EEPROM_MAP.h"
 #include "inc/PGA_Map.h"
 #include "inc/pga.h"
+#include "inc/alarmMonitor.h"
 #include "inc/displayRAM.h"
 #include "inc/imClient_cmds_regs.h"
 #include "inc/utilities.h"
-#include "inc/alarmMonitor.h"
 
 
 
@@ -148,7 +148,7 @@ bool fsmProg_analizarIm (imMessage_t* msg)
 	
 	if (msg->cmd == IM_CLIENT_CMD_RESP_RESET_CLAVES) {
 		ap1.bits.ap_resp_reset_claves = 1;
-		imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+		imClient_removeMessageToRead(0);
 		ret = true;
 	}
 	

@@ -1,4 +1,5 @@
-#include ".//inc/socketManager.h"
+#include "../inc/socketManager.h"
+#include "MQTTClient/Wrapper/mqtt.h"
 
 static socket_t* socketList[MAX_N_SOCKETS];
 
@@ -152,7 +153,7 @@ void socketManager_close (socket_t* sock)
 	sock->socketId = -1;
 	
 	if (sock != NULL && sock->callback_closed != NULL) {
-		sock->callback_closed(sock->socketId);
+		sock->callback_closed(sock);
 	}
 }
 
@@ -345,7 +346,10 @@ uint32_t socketManager_getDnsResolution (void)
  *  - tstrSocketRecvMsg
  */
 static void socket_cb(SOCKET socketId, uint8_t u8Msg, void *pvMsg)
-{	
+{
+	mqtt_socket_event_handler(socketId, u8Msg, pvMsg);
+	
+	
 	socket_t* sock = socketManager_getSocketBySocketId(socketId);
 	
 	if (sock == NULL) {
@@ -465,6 +469,8 @@ static void socket_cb(SOCKET socketId, uint8_t u8Msg, void *pvMsg)
 
 static void dnsCallback(uint8* pu8HostName, uint32 u32ServerIP)
 {
+	mqtt_socket_resolve_handler(pu8HostName, u32ServerIP);
+	
 	if(u32ServerIP != 0)
 	{
 		dnsResolvedIpAddr = u32ServerIP;

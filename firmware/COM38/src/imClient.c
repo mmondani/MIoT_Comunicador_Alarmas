@@ -7,8 +7,10 @@
 #include "inc/imClient_cmds_regs.h"
 #include "inc/dateTime.h"
 #include "inc/DateTime_t.h"
+#include "inc/xtea.h"
 #include "inc/pga.h"
 #include "inc/mqttClient.h"
+#include "inc/utilities.h"
 
 
 enum{
@@ -22,6 +24,7 @@ enum{
 	FSM_WAIT_ACK,
 	FSM_WAIT_CONNECTION,
 	FSM_WAIT_CLOSE,
+	FSM_WAIT_SUBSCRIBE,
 	FSM_ERROR
 	};
 uint32_t fsmState;	
@@ -31,6 +34,8 @@ static struct mqtt_module mqtt_inst;
 static uint8_t clientId[10];
 static uint8_t password[20];
 static bool published;
+static bool subscribed;
+static uint8_t subscribeTopic[15];
 
 static SoftTimer_t timerAux;
 static SoftTimer_t timerCheckConnection;
@@ -68,8 +73,8 @@ void imClient_init (uint8_t* id, uint8_t* pass)
 	softTimer_init(&timerCheckConnection, 1000);
 	
 	for (int i = 0; i < 4; i++) {
-		clientId[2*i] = ((id[i] & 0xF0) >> 4) + '0';
-		clientId[2*i+1] = (id[i] & 0x0F) + '0';	
+		clientId[2*i] = traducirHexaACaracter((id[i] & 0xF0) >> 4);
+		clientId[2*i+1] = traducirHexaACaracter(id[i] & 0x0F);	
 	}
 	clientId[8] = '\0';
 	
@@ -81,6 +86,12 @@ void imClient_init (uint8_t* id, uint8_t* pass)
 	authenticated = false;
 	inLoginProcess = false;
 	resetConnection = false;
+	
+	// El systick es usado por el cliente de MQTT del WINC1500
+	if (SysTick_Config(system_cpu_clock_get_hz() / 1000))
+	{
+		errores1.bits.errorMqtt = 1;
+	}
 }
 
 
@@ -192,6 +203,8 @@ void imClient_handler (void)
 {
 	imMessage_t* msg;
 	
+	if(mqttClient_isConnected())
+		mqttClient_yield();
 	
 	if (softTimer_expired(&timerBuffer)) {
 		if (messagePool_pendingOutputMessage() > 0) {
@@ -215,7 +228,7 @@ void imClient_handler (void)
 			mqtt_conf.port = (pgaData[PGA_BROKER_PORT + 1] << 8) | pgaData[PGA_BROKER_PORT];
 			mqtt_conf.isSecure = false;
 			mqtt_conf.cleanSession = true;
-			mqtt_conf.keepalive = 120;
+			mqtt_conf.keepalive = 60;
 			
 			mqtt_conf.clientId = &clientId;
 			mqtt_conf.user = &clientId;
@@ -233,7 +246,7 @@ void imClient_handler (void)
 			mqtt_conf.callback_publish = callback_publish;
 			mqtt_conf.callback_receive = callback_receive;
 			
-			if (mqttClient_init(&mqtt_conf) < 0) {
+			if (errores1.bits.errorMqtt == 1 || mqttClient_init(&mqtt_conf) < 0) {
 				errores1.bits.errorMqtt = 1;
 				fsmState = FSM_ERROR;
 			}
@@ -248,7 +261,7 @@ void imClient_handler (void)
 		
 		case FSM_CONNECT_BROKER:
 		
-			if (wifiManager_isWiFiConnected() == WIFI_MANAGER_WIFI_CONNECTED) {
+			if (wifiManager_isWiFiConnected()) {
 				if (!mqttClient_isConnected()) {
 					if (wifiManager_isProvisioningEnable() == 0) {
 						// TODO configurar un LWT
@@ -272,11 +285,15 @@ void imClient_handler (void)
 				
 			if (mqttClient_isConnected()) {
 				// Se pudo conectar al broker, se va a suscribir al tópico por el que recibe los comandos
-				sprintf(auxBuffer, "%s/cmd", clientId);
-				mqttClient_subscribe(auxBuffer, 0);
+				sprintf(subscribeTopic, "%s/cmd", clientId);
+				
+				subscribed = false;
+				mqttClient_subscribe(subscribeTopic, 0);
+				
+				fsmState = FSM_WAIT_SUBSCRIBE;
 			}
 			else if (softTimer_expired(&timerAux))
-			fsmState = FSM_IDLE;
+				fsmState = FSM_IDLE;
 				
 			break;
 			
@@ -311,13 +328,14 @@ void imClient_handler (void)
 			if (wifiManager_isWiFiConnected() == WIFI_MANAGER_WIFI_CONNECTED) {
 				if (mqttClient_isConnected()) {
 					msg = messagePool_peekOutputQueue();
-					generateFrameToSend(msg);
 					
+					published = false;
+					generateFrameToSend(msg);
+
 					softTimer_init(&timerResponseTimeout, 2000);
 				}
 			}
 			
-			published = false;
 			fsmState = FSM_WAIT_ACK;
 			
 			break;
@@ -336,10 +354,8 @@ void imClient_handler (void)
 				fsmState = FSM_IDLE;
 			}
 			else if (published) {
-				// Llegó un PUBACK
-				msg = messagePool_peekInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
-				
-				messagePool_popInputQueue(MESSAGE_POOL_FLOW_IM_CLIENT);
+				// Llegó un PUBACK		
+				messagePool_popOutputQueue();
 				
 				fsmState = FSM_IDLE;
 			}
@@ -352,6 +368,14 @@ void imClient_handler (void)
 		
 			if (!mqttClient_isConnected())
 				fsmState = FSM_CONNECT_BROKER;
+			
+			break;
+			
+			
+		case FSM_WAIT_SUBSCRIBE:
+		
+			if (subscribed)
+				fsmState = FSM_IDLE;
 			
 			break;
 			
@@ -466,7 +490,7 @@ void callback_disconnect (void) {
 
 
 void callback_subscribe (void) {
-	
+	subscribed = true;
 }
 
 
@@ -485,7 +509,7 @@ void callback_receive (MQTTString* topic, MQTTMessage* msg) {
 	uint8_t* payload = (uint8_t*)msg->payload;
 	
 	// Se chequea el checksum
-	for (int i = 0; i < (msg->payloadlen - 1); i++) {
+	for (int i = 0; i < msg->payloadlen; i++) {
 		sum += payload[i];
 	}
 	

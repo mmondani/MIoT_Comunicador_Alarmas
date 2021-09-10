@@ -69,6 +69,7 @@ void mqttClient_unsubscribe (char *topic);
 void mqttClient_publish (const char *topic, const char *msg, uint32_t msg_len, uint8_t qos, uint8_t retain);
 
 bool mqttClient_isConnected (void);
+void mqttClient_yield (void);
 int32_t mqttClient_bufferPutByte (uint8_t b);
 int32_t mqttClient_bufferPutBytes (uint8_t* bytes, uint32_t len);
 uint8_t mqttClient_bufferGetChecksum (void);

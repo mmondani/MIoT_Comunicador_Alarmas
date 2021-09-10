@@ -247,14 +247,16 @@ uint8_t traducirHexaACaracter (uint8_t hexa)
 void enableWDT (void)
 {
 	
-	struct wdt_conf config_wdt;
+	struct wdt_conf config_wdt;
+
 	wdt_get_config_defaults(&config_wdt);
 	
 	// GCLK4 tiene por source el oscilador interno de baja potencia de 32kHz
 	// Además tiene un prescaler de 32 (configurado en conf_clocks.h)
 	// Configurando el counter del WDT en 128, el período del WDT es aprox 1024ms.
 	// always_on en false permite cambiar alguna configuración en el WDT mientras corre el programa
-	config_wdt.clock_source = GCLK_GENERATOR_4;	config_wdt.timeout_period = WDT_PERIOD_4096CLK;
+	config_wdt.clock_source = GCLK_GENERATOR_4;
+	config_wdt.timeout_period = WDT_PERIOD_1024CLK;
 	config_wdt.always_on = false;
 	
 	wdt_reset_count();
@@ -266,11 +268,13 @@ void enableWDT (void)
 void disableWDT (void)
 {
 	
-	struct wdt_conf config_wdt;
+	struct wdt_conf config_wdt;
+
 	wdt_get_config_defaults(&config_wdt);
 	
 	config_wdt.enable = false;
-	config_wdt.clock_source = GCLK_GENERATOR_4;	config_wdt.timeout_period = WDT_PERIOD_1024CLK;
+	config_wdt.clock_source = GCLK_GENERATOR_4;
+	config_wdt.timeout_period = WDT_PERIOD_1024CLK;
 	config_wdt.always_on = false;
 	
 	wdt_set_config(&config_wdt);

@@ -9,6 +9,7 @@
 #include "inc/imClient_cmds_regs.h"
 #include "inc/PGA_Map.h"
 #include "inc/pga.h"
+#include "inc/configurationManager.h"
 #include "inc/EEPROM_MAP.h"
 
 
@@ -742,6 +743,7 @@ void dateTime_timers1s_handler (void)
 		timer_mandarEventoConfiguracionTiempo --;
 		
 		if (timer_mandarEventoConfiguracionTiempo == 0) {
+			configurationManager_armarEventoConfiguracionTiempo();
 			
 			if (pgaData[PGA_SINCRO_INTERNET] == 1) {
 				apDateTime2.bits.vinoComandoSincronizar = 1;
@@ -911,45 +913,45 @@ bool dateTime_analizarIm (imMessage_t* msg)
 	if (msg->cmd == IM_CLIENT_CMD_GET) {
 		if (msg->reg == IM_CLIENT_REG_FECHA) {
 			dateTime_armarGetFecha();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_HORA) {
 			dateTime_armarGetHora();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_FECHA_HORA) {
 			dateTime_armarGetFechaHora();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_SET) {
 		if (msg->reg == IM_CLIENT_REG_FECHA) {
 			procesarSetFecha(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_HORA) {
 			procesarSetHora(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_FECHA_HORA) {
 			procesarSetfechaHora(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_SINCRO_FYH) {
 		apDateTime2.bits.vinoComandoSincronizar = 1;
-		imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+		imClient_removeMessageToRead(0);
 		ret = true;
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_RESP_PEDIR_FYH) {
 		procesarRespPedirFechaHora(msg->payload, msg->len);
-		imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+		imClient_removeMessageToRead(0);
 		ret = true;
 	}
 	

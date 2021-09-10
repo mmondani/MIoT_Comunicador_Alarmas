@@ -37,54 +37,54 @@ bool configurationManager_analizarIm (imMessage_t* msg)
 	if (msg->cmd == IM_CLIENT_CMD_GET) {
 		if (msg->reg == IM_CLIENT_REG_CONFIGURACION_TIEMPO) {
 			configurationManager_armarGetConfiguracionTiempo();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_CONFIGURACION_ROBO) {
 			configurationManager_armarGetConfiguracionRobo();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_NOMBRE_COM) {
 			configurationManager_armarGetNombreCom();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_CONFIGURACION_MONITOREO) {
 			configurationManager_armarGetConfiguracionMonitoreo();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_SOCKET_BROKER) {
 			configurationManager_armarGetSocketBroker();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_SET) {
 		if (msg->reg == IM_CLIENT_REG_CONFIGURACION_TIEMPO) {
 			procesarSetTiempo(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_CONFIGURACION_ROBO) {
 			procesarSetRobo(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_NOMBRE_COM) {
 			procesarSetNombreCom(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_CONFIGURACION_MONITOREO) {
 			procesarSetMonitoreo(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_SOCKET_BROKER) {
 			procesarSetSocketBroker(msg->payload, msg->len);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}

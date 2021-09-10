@@ -768,27 +768,27 @@ bool alarmMonitor_analizarIm (imMessage_t* msg)
 	if (msg->cmd == IM_CLIENT_CMD_GET) {
 		if (msg->reg == IM_CLIENT_REG_ESTADO) {
 			alarmMonitor_armarGetEstado(msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_INCLUSION) {
 			alarmMonitor_armarGetInclusion(msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_MEMORIA) {
 			alarmMonitor_armarGetMemoria(msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_ESTADO_ZONAS) {
 			alarmMonitor_armarGetEstadoZonas(msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_SONANDO_READY) {
 			alarmMonitor_armarGetSonandoReady();
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_EVENTOS) {
@@ -813,7 +813,7 @@ bool alarmMonitor_analizarIm (imMessage_t* msg)
 				armarGetEventos(msg->part, 0);
 			}
 			
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_REPLAY) {
@@ -846,24 +846,24 @@ bool alarmMonitor_analizarIm (imMessage_t* msg)
 				armarGetReplay(layerReplay, true);
 			}
 			
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_SET) {
 		if (msg->reg == IM_CLIENT_REG_ESTADO) {
 			procesarSetEstado (msg->payload, msg->len, msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_INCLUSION) {
 			procesarSetInclusion (msg->payload, msg->len, msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 		else if (msg->reg == IM_CLIENT_REG_SONANDO_READY) {
 			procesarSetSonandoReady(msg->payload, msg->len, msg->part);
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
@@ -874,13 +874,13 @@ bool alarmMonitor_analizarIm (imMessage_t* msg)
 					bit_set(mandarBorrarMemoria,msg->part);
 			}
 			
-			imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+			imClient_removeMessageToRead(0);
 			ret = true;
 		}
 	}
 	else if (msg->cmd == IM_CLIENT_CMD_DISPARAR) {
 		procesarComandoDisparar(msg->payload, msg->len, msg->part);
-		imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+		imClient_removeMessageToRead(0);
 		ret = true;
 	}
 	

@@ -238,7 +238,7 @@ int main(void)
 			if (!alarmMonitor_procesandoMensaje() &&
 			!dateTime_procesandoMensaje() &&
 			!nodesManager_procesandoMensaje()) {
-				imMessage_t* msg = imClient_getMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+				imMessage_t* msg = imClient_getMessageToRead(0);
 				if (msg != NULL) {
 					if (alarmMonitor_analizarIm (msg)) {
 						
@@ -256,7 +256,7 @@ int main(void)
 						
 					}
 					else
-					imClient_removeMessageToRead(MESSAGE_POOL_FLOW_WCOM);
+						imClient_removeMessageToRead(0);
 				}
 			}
 			

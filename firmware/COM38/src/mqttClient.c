@@ -125,11 +125,15 @@ bool mqttClient_isConnected (void) {
 	return (mqttClient.connected);
 }
 
+void mqttClient_yield (void) {
+	mqtt_yield(&mqttClient.mqtt_inst, 0);
+}
+
 
 int32_t mqttClient_bufferPutByte (uint8_t b) {
 	
 	if (mqttClient.bufferAux_ptr < mqttClient.bufferAux_len) {
-		mqttClient.bufferOut[mqttClient.bufferAux_ptr] = b;
+		mqttClient.bufferAux[mqttClient.bufferAux_ptr] = b;
 		mqttClient.bufferAux_ptr ++;
 		
 		return 0;
