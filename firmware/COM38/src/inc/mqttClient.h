@@ -64,12 +64,14 @@ void mqttClient_loadDefaults (mqttClient_config_t* config);
 int32_t mqttClient_init (mqttClient_config_t* config);
 void mqttClient_connect (char *will_topic, char *will_msg, uint32_t will_msg_len, uint8_t will_qos, uint8_t will_retain);
 void mqttClient_disconnect (void);
+int mqttClient_getSocketId (void);
 void mqttClient_subscribe (char *topic, uint8_t qos);
 void mqttClient_unsubscribe (char *topic);
 void mqttClient_publish (const char *topic, const char *msg, uint32_t msg_len, uint8_t qos, uint8_t retain);
 
 bool mqttClient_isConnected (void);
 void mqttClient_yield (void);
+void mqttClient_clearSubscriptionHandlers (void);
 int32_t mqttClient_bufferPutByte (uint8_t b);
 int32_t mqttClient_bufferPutBytes (uint8_t* bytes, uint32_t len);
 uint8_t mqttClient_bufferGetChecksum (void);

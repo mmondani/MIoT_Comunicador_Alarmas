@@ -57,7 +57,7 @@
 enum QoS { QOS0, QOS1, QOS2 };
 
 /* all failure return codes must be negative */
-enum returnCode { PINGREQ_SEND_ERROR = -4, CONN_ABORTED = -3, BUFFER_OVERFLOW = -2, FAILURE = -1, SUCCESS = 0 };
+enum returnCode { CONN_ABORTED = -3, BUFFER_OVERFLOW = -2, FAILURE = -1, SUCCESS = 0 };
 
 /* The Platform specific header must define the Network and Timer structures and functions
  * which operate on them.

@@ -1,5 +1,6 @@
-#include "../inc/socketManager.h"
+#include ".//inc/socketManager.h"
 #include "MQTTClient/Wrapper/mqtt.h"
+#include "inc/mqttClient.h"
 
 static socket_t* socketList[MAX_N_SOCKETS];
 
@@ -153,7 +154,7 @@ void socketManager_close (socket_t* sock)
 	sock->socketId = -1;
 	
 	if (sock != NULL && sock->callback_closed != NULL) {
-		sock->callback_closed(sock);
+		sock->callback_closed(sock->socketId);
 	}
 }
 
@@ -349,7 +350,7 @@ static void socket_cb(SOCKET socketId, uint8_t u8Msg, void *pvMsg)
 {
 	mqtt_socket_event_handler(socketId, u8Msg, pvMsg);
 	
-	
+		
 	socket_t* sock = socketManager_getSocketBySocketId(socketId);
 	
 	if (sock == NULL) {

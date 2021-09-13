@@ -21,6 +21,8 @@
 #include "driver/include/m2m_wifi.h"
 #include "socket/include/socket.h"
 #include "string.h"
+#include "asf.h"
+#include "inc/main.h"
 
 #define IPV4_BYTE(val,index) 	((val >> (index * 8)) & 0xFF)
 #define MQTT_RX_POOL_SIZE		256
@@ -158,7 +160,7 @@ static int WINC1500_read(Network* n, unsigned char* buffer, int len, int timeout
 	  }
 	  //call handle_events until we get rx callback 
 	  while (false==gbMQTTBrokerRecvDone){
-		  m2m_wifi_handle_events(NULL);
+		  mainLoop();
 	  }
 	  
 	  //update current FIFO length
@@ -212,7 +214,7 @@ static int WINC1500_write(Network* n, unsigned char* buffer, int len, int timeou
   }
   //wait for send callback
   while (false==gbMQTTBrokerSendDone){
-	  m2m_wifi_handle_events(NULL);
+	  mainLoop();
   }
   
   #ifdef MQTT_PLATFORM_DBG
@@ -253,7 +255,7 @@ int ConnectNetwork(Network* n, char* addr, int port, int TLSFlag){
  
   //wait for resolver callback
   while (false==gbMQTTBrokerIpresolved){
-	  m2m_wifi_handle_events(NULL);
+	  mainLoop();
   }
   
   n->hostIP = gi32MQTTBrokerIp;
@@ -289,7 +291,7 @@ int ConnectNetwork(Network* n, char* addr, int port, int TLSFlag){
   
   /*wait for SOCKET_MSG_CONNECT event */
   while(false==gbMQTTBrokerConnected){
-    m2m_wifi_handle_events(NULL);
+    mainLoop();
   }
   
   /* Success */

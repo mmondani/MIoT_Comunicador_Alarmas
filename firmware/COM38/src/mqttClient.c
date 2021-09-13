@@ -96,6 +96,11 @@ void mqttClient_disconnect (void) {
 }
 
 
+int mqttClient_getSocketId (void) {
+	return mqttClient.mqtt_inst.network.socket;
+}
+
+
 void mqttClient_subscribe (char *topic, uint8_t qos) {
 	mqtt_subscribe(
 	&mqttClient.mqtt_inst,
@@ -126,7 +131,20 @@ bool mqttClient_isConnected (void) {
 }
 
 void mqttClient_yield (void) {
-	mqtt_yield(&mqttClient.mqtt_inst, 0);
+	int rc = mqtt_yield(&mqttClient.mqtt_inst, 0);
+	
+	if (rc == CONN_ABORTED) {
+		// Hubo un problema con la conexión
+		mqttClient.connected = false;
+		
+		if(mqttClient.callback_disconnect != NULL)
+		mqttClient.callback_disconnect();
+	}
+}
+
+
+void mqttClient_clearSubscriptionHandlers (void) {
+	mqtt_clearSubscriptionsHandlers (&mqttClient.mqtt_inst);
 }
 
 
@@ -251,7 +269,7 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 		break;
 
 		case MQTT_CALLBACK_DISCONNECTED:
-		mqttClient.connected = true;
+		mqttClient.connected = false;
 		
 		if(mqttClient.callback_disconnect != NULL)
 		mqttClient.callback_disconnect();

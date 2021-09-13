@@ -7,7 +7,6 @@
 #include "inc/imClient_cmds_regs.h"
 #include "inc/dateTime.h"
 #include "inc/DateTime_t.h"
-#include "inc/xtea.h"
 #include "inc/pga.h"
 #include "inc/mqttClient.h"
 #include "inc/utilities.h"
@@ -228,7 +227,7 @@ void imClient_handler (void)
 			mqtt_conf.port = (pgaData[PGA_BROKER_PORT + 1] << 8) | pgaData[PGA_BROKER_PORT];
 			mqtt_conf.isSecure = false;
 			mqtt_conf.cleanSession = true;
-			mqtt_conf.keepalive = 60;
+			mqtt_conf.keepalive = 30;
 			
 			mqtt_conf.clientId = &clientId;
 			mqtt_conf.user = &clientId;
@@ -264,6 +263,8 @@ void imClient_handler (void)
 			if (wifiManager_isWiFiConnected()) {
 				if (!mqttClient_isConnected()) {
 					if (wifiManager_isProvisioningEnable() == 0) {
+						mqttClient_clearSubscriptionHandlers();
+						
 						// TODO configurar un LWT
 						mqttClient_connect(NULL, NULL, 0, 0, 0);
 						
@@ -286,6 +287,8 @@ void imClient_handler (void)
 			if (mqttClient_isConnected()) {
 				// Se pudo conectar al broker, se va a suscribir al tópico por el que recibe los comandos
 				sprintf(subscribeTopic, "%s/cmd", clientId);
+				
+				
 				
 				subscribed = false;
 				mqttClient_subscribe(subscribeTopic, 0);
