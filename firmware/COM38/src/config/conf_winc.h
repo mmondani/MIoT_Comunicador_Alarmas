@@ -89,6 +89,7 @@ extern "C" {
 
 #define CONF_WINC_DEBUG					(1)
 #define CONF_WINC_PRINTF				printf
+//#define MQTT_PLATFORM_DBG
 
 #ifdef __cplusplus
 }

@@ -17,6 +17,12 @@ typedef struct {
 	uint8_t* user;
 	uint8_t* password;
 	
+	uint8_t* lwTopic;
+	uint8_t* lwMessage;
+	uint8_t lwMessageLen;
+	uint8_t lwQos;
+	uint8_t lwRetain;
+	
 	uint8_t* bufferIn;
 	uint8_t* bufferOut;
 	uint32_t bufferIn_len;

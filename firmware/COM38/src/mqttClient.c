@@ -87,6 +87,12 @@ int32_t mqttClient_init (mqttClient_config_t* config) {
 
 
 void mqttClient_connect (char *will_topic, char *will_msg, uint32_t will_msg_len, uint8_t will_qos, uint8_t will_retain) {
+	mqttClient.lwTopic = will_topic;
+	mqttClient.lwMessage = will_msg;
+	mqttClient.lwMessageLen = will_msg_len;
+	mqttClient.lwQos = will_qos;
+	mqttClient.lwRetain = will_retain;
+	
 	mqtt_connect(&mqttClient.mqtt_inst, mqttClient.server);
 }
 
@@ -226,11 +232,11 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 				mqttClient.user,
 				mqttClient.password,
 				mqttClient.clientId,
-				NULL,
-				NULL,
-				0,
-				0,
-				0);
+				mqttClient.lwTopic,
+				mqttClient.lwMessage,
+				mqttClient.lwMessageLen,
+				mqttClient.lwQos,
+				mqttClient.lwRetain);
 				} else {
 				// Falló la conexión al socket del broker
 				if(mqttClient.callback_connect != NULL)

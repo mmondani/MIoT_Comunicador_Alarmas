@@ -22,8 +22,10 @@ enum{
 	FSM_CONNECT_BROKER,
 	FSM_WAIT_ACK,
 	FSM_WAIT_CONNECTION,
+	FSM_WAIT_STATUS_OFFLINE_ACK,
 	FSM_WAIT_CLOSE,
 	FSM_WAIT_SUBSCRIBE,
+	FSM_WAIT_STATUS_ONLINE_ACK,
 	FSM_ERROR
 	};
 uint32_t fsmState;	
@@ -35,6 +37,8 @@ static uint8_t password[20];
 static bool published;
 static bool subscribed;
 static uint8_t subscribeTopic[15];
+static uint8_t lastWillTopic[15];
+static uint8_t lastWillMessage[15];
 
 static SoftTimer_t timerAux;
 static SoftTimer_t timerCheckConnection;
@@ -225,7 +229,7 @@ void imClient_handler (void)
 			mqttClient_loadDefaults(&mqtt_conf);
 			mqtt_conf.server = (uint8_t*)&pgaData[PGA_BROKER_URL];
 			mqtt_conf.port = (pgaData[PGA_BROKER_PORT + 1] << 8) | pgaData[PGA_BROKER_PORT];
-			mqtt_conf.isSecure = false;
+			mqtt_conf.isSecure = true;
 			mqtt_conf.cleanSession = true;
 			mqtt_conf.keepalive = 30;
 			
@@ -265,8 +269,11 @@ void imClient_handler (void)
 					if (wifiManager_isProvisioningEnable() == 0) {
 						mqttClient_clearSubscriptionHandlers();
 						
-						// TODO configurar un LWT
-						mqttClient_connect(NULL, NULL, 0, 0, 0);
+						// Last will
+						sprintf(lastWillTopic, "%s/status", clientId);
+						sprintf(lastWillMessage, "offline");
+						
+						mqttClient_connect(lastWillTopic, lastWillMessage, 7, 0, 1);
 						
 						softTimer_init(&timerAux, 20000);
 						fsmState = FSM_WAIT_CONNECTION;
@@ -318,9 +325,17 @@ void imClient_handler (void)
 			else if (resetConnection) {
 				resetConnection = false;
 				
-				mqttClient_disconnect();
+				published = false;
 				
-				fsmState = FSM_WAIT_CLOSE;
+				mqttClient_publish(
+					lastWillTopic,
+					"offline",
+					7,
+					0,
+					1);
+				
+				softTimer_init(&timerResponseTimeout, 2000);
+				fsmState = FSM_WAIT_STATUS_OFFLINE_ACK;
 			}
 			
 			break;
@@ -366,6 +381,27 @@ void imClient_handler (void)
 			
 			break;
 			
+			
+		case FSM_WAIT_STATUS_OFFLINE_ACK:
+			if (softTimer_expired(&timerResponseTimeout)) {
+				// No llegó el PUBACK a tiempo
+				// TODO hacer algo si falla 4 veces en enviarlo
+				sendingError ++;
+				if (sendingError >= 4) {
+					//socketManager_close(&socketIm);
+				}
+
+				fsmState = FSM_IDLE;
+			}
+			else if (published) {
+				// Llegó un PUBACK
+				mqttClient_disconnect();
+				
+				fsmState = FSM_WAIT_CLOSE;
+			}
+			
+			break;	
+			
 		
 		case FSM_WAIT_CLOSE:
 		
@@ -377,8 +413,39 @@ void imClient_handler (void)
 			
 		case FSM_WAIT_SUBSCRIBE:
 		
-			if (subscribed)
+			if (subscribed) {
+				published = false;
+				
+				mqttClient_publish(
+					lastWillTopic,
+					"online",
+					6,
+					0,
+					1);
+					
+				softTimer_init(&timerResponseTimeout, 2000);
+				fsmState = FSM_WAIT_STATUS_ONLINE_ACK;
+			}
+			
+			break;
+			
+			
+		case FSM_WAIT_STATUS_ONLINE_ACK:
+		
+			if (softTimer_expired(&timerResponseTimeout)) {
+				// No llegó el PUBACK a tiempo
+				// TODO hacer algo si falla 4 veces en enviarlo
+				sendingError ++;
+				if (sendingError >= 4) {
+					//socketManager_close(&socketIm);
+				}
+
 				fsmState = FSM_IDLE;
+			}
+			else if (published) {
+				// Llegó un PUBACK
+				fsmState = FSM_IDLE;
+			}
 			
 			break;
 			

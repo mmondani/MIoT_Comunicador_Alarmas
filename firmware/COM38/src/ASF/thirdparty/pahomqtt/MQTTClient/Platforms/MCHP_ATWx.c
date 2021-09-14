@@ -34,6 +34,7 @@ static bool gbMQTTBrokerIpresolved=false;
 static bool gbMQTTBrokerConnected=false;
 static bool gbMQTTBrokerSendDone=false;
 static bool gbMQTTBrokerRecvDone=false;
+static bool gbMQTTBrokerConnectionClosed=false;
 static unsigned char gcMQTTRxFIFO[MQTT_RX_POOL_SIZE];
 static uint32_t gu32MQTTRxFIFOPtr=0;
 static uint32_t gu32MQTTRxFIFOLen=0;
@@ -94,6 +95,9 @@ void tcpClientSocketEventHandler(SOCKET sock, uint8_t u8Msg, void *pvMsg)
 				tstrSocketRecvMsg* pstrRx = (tstrSocketRecvMsg*)pvMsg;
 				gi32MQTTBrokerRxLen = pstrRx->s16BufferSize;
 				if((gi32MQTTBrokerRxLen<0) && (gi32MQTTBrokerRxLen!=SOCK_ERR_TIMEOUT)) {
+					if (gi32MQTTBrokerRxLen == SOCK_ERR_CONN_ABORTED)
+						gbMQTTBrokerConnectionClosed = true;
+						
 					#ifdef MQTT_PLATFORM_DBG
 					printf("ERROR >> Receive error for broker socket (Err=%ld).\r\n",gi32MQTTBrokerRxLen);
 					#endif
@@ -205,30 +209,43 @@ static int WINC1500_read(Network* n, unsigned char* buffer, int len, int timeout
 
 
 static int WINC1500_write(Network* n, unsigned char* buffer, int len, int timeout_ms) {
-  gbMQTTBrokerSendDone=false;
-  if (SOCK_ERR_NO_ERROR!=send(n->socket,buffer,len,0)){
-	  #ifdef MQTT_PLATFORM_DBG
-	  printf("ERROR >> send error");
-	  #endif
-	  return -1;
-  }
-  //wait for send callback
-  while (false==gbMQTTBrokerSendDone){
-	  mainLoop();
-  }
+	Timer send_timer;
+	
+	gbMQTTBrokerSendDone=false;
+	if (SOCK_ERR_NO_ERROR!=send(n->socket,buffer,len,0)){
+		#ifdef MQTT_PLATFORM_DBG
+		printf("ERROR >> send error");
+		#endif
+		return -1;
+	}
   
-  #ifdef MQTT_PLATFORM_DBG
-  printf("DEBUG >> sent data through socket: \r\n");
-  int i=0;
-  for(i=0;i<len;i++)
-	  printf("0x%x ",buffer[i]);
-  printf("\r\n");	
-  #endif
+  
+	TimerInit(&send_timer);
+	TimerCountdownMS(&send_timer, timeout_ms);
+  
+	gbMQTTBrokerConnectionClosed = false;
+	//wait for send callback
+	while (false==gbMQTTBrokerSendDone){
+		mainLoop();
+		
+		if (TimerIsExpired(&send_timer) || gbMQTTBrokerConnectionClosed) {
+			len = -1;
+			break;
+		}
+	}
+  
+	#ifdef MQTT_PLATFORM_DBG
+	printf("DEBUG >> sent data through socket: \r\n");
+	int i=0;
+	for(i=0;i<len;i++)
+		printf("0x%x ",buffer[i]);
+	printf("\r\n");	
+	#endif
 
-  //TODO: figure out how to get actual send length from callback
-  //this length will be updated in the callback
-  //return gu32MQTTBrokerSendLen;
-  return len;
+	//TODO: figure out how to get actual send length from callback
+	//this length will be updated in the callback
+	//return gu32MQTTBrokerSendLen;
+	return len;
 }
 
 
@@ -270,7 +287,6 @@ int ConnectNetwork(Network* n, char* addr, int port, int TLSFlag){
   if(n->socket < 0)
 	n->socket = socket(AF_INET, SOCK_STREAM, TLSFlag);
   
-  /* Check if socket was created successfully */
   if (n->socket == -1) {
    #ifdef MQTT_PLATFORM_DBG
    printf("ERROR >> socket error.\r\n");
