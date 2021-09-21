@@ -877,7 +877,13 @@
     <Compile Include="src\ASF\thirdparty\pahomqtt\MQTTPacket\StackTrace.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\BG96.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\BlinkingLed.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\cellularManager.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\configurationManager.c">
@@ -910,10 +916,22 @@
     <Compile Include="src\inc\basicDefinitions.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\inc\BG96.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\BG96_apn.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\BG96_commands.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\inc\BlinkingLed.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\BlinkingPatterns.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\cellularManager.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\configurationManager.h">
