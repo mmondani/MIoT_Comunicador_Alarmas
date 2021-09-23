@@ -24,6 +24,7 @@
 #include "inc/displayRAM.h"
 
 
+
 static blinkingLed_t blinkingLedVerde;
 static blinkingLed_t blinkingLedRojo;
 
@@ -40,10 +41,7 @@ typedef enum    {
 	mainFsm_init_state = 0,
 	mainFsm_desconectado,
 	mainFsm_pruebaFabrica,
-	mainFsm_esperandoConexion,
-	mainFsm_modoWps,
-	mainFsm_esperandoServerIm,
-	mainFsm_conectadoServerIm,
+	mainFsm_conectado,
 	mainFsm_programacion,
 	mainFsm_error,
 	mainFsm_deinit
@@ -69,8 +67,8 @@ void mainFsm_init (struct usart_module * uart)
 	fsmState = mainFsm_init_state;
 	fsmState_previous = mainFsm_init_state;
 	
-	blinkingLed_init(&blinkingLedVerde, LED_VERDE_PIN);
-	blinkingLed_init(&blinkingLedRojo, LED_ROJO_PIN);
+	blinkingLed_init(&blinkingLedVerde, LED_STATUS_VERDE_PIN);
+	blinkingLed_init(&blinkingLedRojo, LED_STATUS_ROJO_PIN);
 
 
 	uart_module = uart;
@@ -99,8 +97,7 @@ void mainFsm_handler (void)
 	
 	
 	if (fsmState == mainFsm_init_state || fsmState == mainFsm_desconectado ||
-		fsmState == mainFsm_esperandoConexion || fsmState == mainFsm_modoWps ||
-		fsmState == mainFsm_esperandoServerIm || fsmState == mainFsm_conectadoServerIm) {
+		fsmState == mainFsm_conectado) {
 			if (errores1.w != 0)
 				mainFsm_gotoState(mainFsm_error);
 			else if (fsmProg_enProgramacion())
@@ -120,7 +117,8 @@ void mainFsm_handler (void)
 				if (fsmState_previous != mainFsm_pruebaFabrica) {
 					nm_bsp_init();
 					debouncePin_init(&pinSw0, DEBOUNCE_PIN_BAJO_ACTIVO, BUTTON_0_PIN);
-					
+				
+				
 					wifiManager_init(&pinSw0);
 					socketManager_init();
 				
@@ -152,7 +150,7 @@ void mainFsm_handler (void)
 				softTimer_init(&timerState, 2000);
 				
 				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_NO_PATTERN, BLINKING_NO_PATTERN_LEN, BLINKING_NO_PATTERN_BASE);
-				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_INIT, BLINKING_INIT_LEN, BLINKING_INIT_BASE);
+				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_MAIN_INIT, BLINKING_MAIN_INIT_LEN, BLINKING_MAIN_INIT_BASE);
             }
 
             //**********************************************************************************************
@@ -185,16 +183,13 @@ void mainFsm_handler (void)
 				
 				softTimer_init(&timerState, 5000);
 				
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_DESCONECTADO, BLINKING_DESCONECTADO_LEN, BLINKING_DESCONECTADO_BASE);
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_MAIN_ESPERANDO_IM_VERDE, BLINKING_MAIN_ESPERANDO_IM_VERDE_LEN, BLINKING_MAIN_ESPERANDO_IM_VERDE_BASE);
+				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_MAIN_ESPERANDO_IM_ROJO, BLINKING_MAIN_ESPERANDO_IM_ROJO_LEN, BLINKING_MAIN_ESPERANDO_IM_ROJO_BASE);
             }
 
             //**********************************************************************************************
-			if (wifiManager_isWiFiConnected()) {
-				mainFsm_gotoState(mainFsm_esperandoServerIm);
-			}
-			else if (softTimer_expired(&timerState)) {
-				mainFsm_gotoState(mainFsm_esperandoConexion);
-			}
+			if (imClient_isClientConnected())
+				mainFsm_gotoState(mainFsm_conectado);
 
             //**********************************************************************************************
             if (stateOut)
@@ -213,9 +208,6 @@ void mainFsm_handler (void)
                 stateOut = false;
 				
 				bit_set(mandarPiruPiru,0);
-				
-				//softTimer_init(&timerState, 10000);
-				
             }
 
             //**********************************************************************************************
@@ -230,106 +222,19 @@ void mainFsm_handler (void)
 			break;
 			
 			
-		case mainFsm_esperandoConexion:
+		case mainFsm_conectado:
 			if (stateIn)
             {
                 stateIn = false;
                 stateOut = false;
 				
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_ESCUCHANDO, BLINKING_ESCUCHANDO_LEN, BLINKING_ESCUCHANDO_BASE);
-            }
-
-            //**********************************************************************************************
-			if (wifiManager_isProvisioningEnable()) {
-				mainFsm_gotoState(mainFsm_modoWps);
-			}
-			else if (wifiManager_isWiFiConnected()) {
-				mainFsm_gotoState(mainFsm_esperandoServerIm);
-			}
-
-            //**********************************************************************************************
-            if (stateOut)
-            {
-                stateIn = true;
-                stateOut = false;
-            }
-
-			break;
-			
-			
-		case mainFsm_modoWps:
-			if (stateIn)
-            {
-                stateIn = false;
-                stateOut = false;
-				
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_MODO_WPS, BLINKING_MODO_WPS_LEN, BLINKING_MODO_WPS_BASE);
-            }
-
-            //**********************************************************************************************
-			if (wifiManager_isWiFiConnected()) {
-				mainFsm_gotoState(mainFsm_esperandoServerIm);
-			}
-			else if (!wifiManager_isProvisioningEnable()) {
-				mainFsm_gotoState(mainFsm_esperandoConexion);
-			}
-
-            //**********************************************************************************************
-            if (stateOut)
-            {
-                stateIn = true;
-                stateOut = false;
-            }
-
-			break;
-			
-			
-		case mainFsm_esperandoServerIm:
-			if (stateIn)
-            {
-                stateIn = false;
-                stateOut = false;
-				
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_ESPERANDO_IM_VERDE, BLINKING_ESPERANDO_IM_VERDE_LEN, BLINKING_ESPERANDO_IM_VERDE_BASE);
-				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_ESPERANDO_IM_ROJO, BLINKING_ESPERANDO_IM_ROJO_LEN, BLINKING_ESPERANDO_IM_ROJO_BASE);
-            }
-
-            //**********************************************************************************************
-			if (!wifiManager_isWiFiConnected()) {
-				mainFsm_gotoState(mainFsm_esperandoConexion);
-			}
-			else if (imClient_isClientConnected()) {
-				mainFsm_gotoState(mainFsm_conectadoServerIm);
-			}
-
-            //**********************************************************************************************
-            if (stateOut)
-            {
-                stateIn = true;
-                stateOut = false;
-				
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_MAIN_CONECTADO, BLINKING_MAIN_CONECTADO_LEN, BLINKING_MAIN_CONECTADO_BASE);
 				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_NO_PATTERN, BLINKING_NO_PATTERN_LEN, BLINKING_NO_PATTERN_BASE);
             }
 
-			break;
-			
-			
-		case mainFsm_conectadoServerIm:
-			if (stateIn)
-            {
-                stateIn = false;
-                stateOut = false;
-				
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_CONECTADO, BLINKING_CONECTADO_LEN, BLINKING_CONECTADO_BASE);
-            }
-
             //**********************************************************************************************
-			if (!wifiManager_isWiFiConnected()) {
-				mainFsm_gotoState(mainFsm_esperandoConexion);
-			}
-			else if (imClient_isClientConnected() == 0) {
-				mainFsm_gotoState(mainFsm_esperandoServerIm);
-			}
+			if (!imClient_isClientConnected())
+				mainFsm_gotoState(mainFsm_desconectado);
 
             //**********************************************************************************************
             if (stateOut)
@@ -348,7 +253,7 @@ void mainFsm_handler (void)
                 stateOut = false;
 				
 				blinkingLed_setPattern(&blinkingLedRojo, BLINKING_NO_PATTERN, BLINKING_NO_PATTERN_LEN, BLINKING_NO_PATTERN_BASE);
-				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_PROGRAMACION, BLINKING_PROGRAMACION_LEN, BLINKING_PROGRAMACION_BASE);
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_MAIN_PROGRAMACION, BLINKING_MAIN_PROGRAMACION_LEN, BLINKING_MAIN_PROGRAMACION_BASE);
             }
 
             //**********************************************************************************************
@@ -374,9 +279,9 @@ void mainFsm_handler (void)
 				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_NO_PATTERN, BLINKING_NO_PATTERN_LEN, BLINKING_NO_PATTERN_BASE);
 				
 				if (errores1.bits.errorEeprom)
-					blinkingLed_setPattern(&blinkingLedRojo, BLINKING_ERROR_EEPROM, BLINKING_ERROR_EEPROM_LEN, BLINKING_ERROR_EEPROM_BASE);
+					blinkingLed_setPattern(&blinkingLedRojo, BLINKING_MAIN_ERROR_EEPROM, BLINKING_MAIN_ERROR_EEPROM_LEN, BLINKING_MAIN_ERROR_EEPROM_BASE);
 				else if (errores1.bits.errorModuloWifi)
-					blinkingLed_setPattern(&blinkingLedRojo, BLINKING_ERROR_MODULO_WIFI, BLINKING_ERROR_MODULO_WIFI_LEN, BLINKING_ERROR_MODULO_WIFI_BASE);
+					blinkingLed_setPattern(&blinkingLedRojo, BLINKING_MAIN_ERROR_MODULO_WIFI, BLINKING_MAIN_ERROR_MODULO_WIFI_LEN, BLINKING_MAIN_ERROR_MODULO_WIFI_BASE);
             }
 
             //**********************************************************************************************
@@ -437,7 +342,7 @@ void mainFsm_gotoPreviousState (void)
 
 bool mainFsm_hayErrorCritico (void) 
 {
-    return (errores1.bits.errorEeprom || errores1.bits.errorModuloWifi || errores1.bits.errorMqtt);
+	return (errores1.bits.errorEeprom || errores1.bits.errorModuloWifi || errores1.bits.errorMqtt);
 }
 
 

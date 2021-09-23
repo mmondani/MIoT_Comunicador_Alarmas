@@ -2376,6 +2376,7 @@ void bg96_initModule (void) {
 void bg96_resetModule (void) {
 	flags.bits.moduleOn = 0;
 	flags2.bits.initModule = 1;
+	flags.bits.registred = 0;
 	
 	module_gotoState(module_idle, module_null);
 }

@@ -92,6 +92,8 @@ void wifiManager_init (debouncePin_t* button)
 	
 	pushButton = button;
 	
+	blinkingLed_init(&blinkingLedVerde, LED_WIFI_PIN);
+	
 	
 	/* Initialize Wi-Fi parameters structure. */
 	memset((uint8_t *)&param, 0, sizeof(tstrWifiInitParam));
@@ -285,6 +287,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 {
 	
 	if (!mainFsm_estaEnPruebaFabrica()) {
+		blinkingLed_handler(&blinkingLedVerde);
+		
 		debouncePin_handler(pushButton);
 	
 		// Se chequea si la teclita se presionó por más de 5 segundos.
@@ -321,6 +325,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - init\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_INIT, BLINKING_WIFI_INIT_LEN, BLINKING_WIFI_INIT_BASE);
             }
 
             //**********************************************************************************************
@@ -358,6 +364,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - chequea wifi previo\n\r");
 #endif
+		
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_ESCUCHANDO, BLINKING_WIFI_ESCUCHANDO_LEN, BLINKING_WIFI_ESCUCHANDO_BASE);
             }
 
             //**********************************************************************************************
@@ -389,6 +397,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - desconectado\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_DESCONECTADO, BLINKING_WIFI_DESCONECTADO_LEN, BLINKING_WIFI_DESCONECTADO_BASE);
             }
 
             //**********************************************************************************************
@@ -445,6 +455,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - escuchando conexiones\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_ESCUCHANDO, BLINKING_WIFI_ESCUCHANDO_LEN, BLINKING_WIFI_ESCUCHANDO_BASE);
             }
 
             //**********************************************************************************************
@@ -512,6 +524,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - conectado\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_CONECTADO, BLINKING_WIFI_CONECTADO_LEN, BLINKING_WIFI_CONECTADO_BASE);
             }
 
             //**********************************************************************************************
@@ -550,6 +564,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - esperando datos wifi\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_ESCUCHANDO, BLINKING_WIFI_ESCUCHANDO_LEN, BLINKING_WIFI_ESCUCHANDO_BASE);
             }
 
             //**********************************************************************************************
@@ -595,6 +611,8 @@ void wifiManager_ProvisioningFsmHandler (void)
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - modo WPS\n\r");
 #endif
+
+				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_WIFI_MODO_WPS, BLINKING_WIFI_MODO_WPS_LEN, BLINKING_WIFI_MODO_WPS_BASE);
             }
 
             //**********************************************************************************************

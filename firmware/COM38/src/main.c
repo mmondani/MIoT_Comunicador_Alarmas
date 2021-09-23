@@ -96,14 +96,16 @@ static void init_leds_button (void)
 	
 	pin_conf.direction  = PORT_PIN_DIR_OUTPUT;
 	pin_conf.input_pull = SYSTEM_PINMUX_PIN_PULL_NONE;
-	port_pin_set_config(LED_VERDE_PIN, &pin_conf);
-	port_pin_set_output_level(LED_VERDE_PIN, false);
-	port_pin_set_config(LED_ROJO_PIN, &pin_conf);
-	port_pin_set_output_level(LED_ROJO_PIN, false);
-	port_pin_set_config(DUTY_INT, &pin_conf);
-	port_pin_set_output_level(DUTY_INT, false);
-	port_pin_set_config(DUTY_PAL, &pin_conf);
-	port_pin_set_output_level(DUTY_PAL, false);
+    port_pin_set_config(LED_STATUS_VERDE_PIN, &pin_conf);
+    port_pin_set_output_level(LED_STATUS_VERDE_PIN, false);
+    port_pin_set_config(LED_STATUS_ROJO_PIN, &pin_conf);
+    port_pin_set_output_level(LED_STATUS_ROJO_PIN, false);
+    port_pin_set_config(LED_WIFI_PIN, &pin_conf);
+    port_pin_set_output_level(LED_WIFI_PIN, false);
+    port_pin_set_config(LED_WIFI_PIN, &pin_conf);
+    port_pin_set_output_level(LED_WIFI_PIN, false);
+    port_pin_set_config(LED_CELULAR_PIN, &pin_conf);
+    port_pin_set_output_level(LED_CELULAR_PIN, false);
 }
 
 

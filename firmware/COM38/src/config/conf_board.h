@@ -39,13 +39,15 @@
 
 #include <compiler.h>
 
-#define BUTTON_0_PIN		PIN_PA17
-#define LED_VERDE_PIN		PIN_PA10
-#define LED_ROJO_PIN		PIN_PA11
-#define MPXH_ENT			PIN_PA19
-#define MPXH_SAL			PIN_PA18
+#define BUTTON_0_PIN				PIN_PA17
+#define LED_STATUS_VERDE_PIN		PIN_PA10
+#define LED_STATUS_ROJO_PIN			PIN_PA11
+#define LED_WIFI_PIN				PIN_PA09
+#define LED_CELULAR_PIN				PIN_PA02
 
-#define DUTY_INT			PIN_PA02
+#define MPXH_ENT					PIN_PA19
+#define MPXH_SAL					PIN_PA18
+
 #define DUTY_PAL			PIN_PA03
 
 #define BG96_POWER_KEY_PIN		PIN_PB22

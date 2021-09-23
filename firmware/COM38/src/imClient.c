@@ -375,6 +375,8 @@ void imClient_handler (void)
 				// Llegó un PUBACK		
 				messagePool_popOutputQueue();
 				
+				sendingError = 0;
+				
 				fsmState = FSM_IDLE;
 			}
 			
