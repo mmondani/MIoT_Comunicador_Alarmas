@@ -39,13 +39,16 @@ void ringBuffer_put (ringBuffer_t* rb, uint8_t data)
 
 uint8_t ringBuffer_remove (ringBuffer_t* rb)
 {
-	uint8_t data = 0;
+	static uint8_t data = 0;
 	
 	if (ringBuffer_getPending(rb) > 0)
 	{
 		data = rb->buffer[rb->ptrOut];
 		
+		cpu_irq_disable();
 		rb->count --;
+		cpu_irq_enable();
+		
 		rb->ptrOut ++;
 		if (rb->ptrOut >= rb->len)
 		rb->ptrOut = 0;
@@ -57,7 +60,7 @@ uint8_t ringBuffer_remove (ringBuffer_t* rb)
 
 uint8_t ringBuffer_peek (ringBuffer_t* rb)
 {
-	uint8_t data = 0;
+	static uint8_t data = 0;
 	
 	if (ringBuffer_getPending(rb) > 0)
 	{

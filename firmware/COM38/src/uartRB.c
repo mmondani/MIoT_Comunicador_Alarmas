@@ -172,8 +172,8 @@ void uartRB_txHandler (uartRB_t* uartRB)
 
 void uartRB_rxHandler (uartRB_t* uartRB)
 {
-	usart_read_buffer_job(uartRB->usart_instance, (uint8_t *)&(uartRB->rxChar), 1);
 	ringBuffer_put(uartRB->rbRx, uartRB->rxChar);
+	usart_read_buffer_job(uartRB->usart_instance, (uint8_t *)&(uartRB->rxChar), 1);
 }
 
 

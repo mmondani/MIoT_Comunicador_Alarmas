@@ -572,12 +572,28 @@ void bg96_init (struct usart_module* uart, bool catM, bool bands4g, uint8_t* pin
 	pin_conf.input_pull = SYSTEM_PINMUX_PIN_PULL_NONE;
 	port_pin_set_config(BG96_POWER_KEY, &pin_conf);
 	port_pin_set_output_level(BG96_POWER_KEY, false);
+	nop();
+	nop();
+	nop();
+	nop();
 	port_pin_set_config(BG96_POWER, &pin_conf);
 	port_pin_set_output_level(BG96_POWER, false);
+	nop();
+	nop();
+	nop();
+	nop();
 	port_pin_set_config(BG96_RESET, &pin_conf);
 	port_pin_set_output_level(BG96_RESET, false);
+	nop();
+	nop();
+	nop();
+	nop();
 	port_pin_set_config(BG96_DTR, &pin_conf);
 	port_pin_set_output_level(BG96_DTR, false);
+	nop();
+	nop();
+	nop();
+	nop();
 	port_pin_set_config(BG96_RTS, &pin_conf);
 	port_pin_set_output_level(BG96_RTS, false);
 	
@@ -690,8 +706,16 @@ void bg96_handler (void) {
 				case module_init_waitPowerOff:
 					if (softTimer_expired(&timerModuleFsm)) {
 						// Se alimenta el módulo
-						port_pin_set_output_level(BG96_POWER, false);			
+						port_pin_set_output_level(BG96_POWER, false);	
+						nop();
+						nop();
+						nop();
+						nop();		
 						port_pin_set_output_level(BG96_POWER_KEY, false);
+						nop();
+						nop();
+						nop();
+						nop();
 						port_pin_set_output_level(BG96_DTR, false);
 						
 						flags.bits.simAvailable = 0;
@@ -3747,16 +3771,18 @@ void readSerialPort (void) {
 								
 									// pdpdeact
 									else if (buffAux[0] == 'p' && buffAux[1] == 'd' && buffAux[2] == 'p') {
-										pdpContexts[aux - 1].opened = false;
-								
-										if (moduleCallback != NULL) {
-											contextStateChangePayload.state = module_states_context_closed;
-											contextStateChangePayload.contextId = getPdpContextArrayIndex(aux);
-											contextStateChangePayload.isSsl = false;
-											moduleCallback(bg96_module_contextStateChange, (void*)&contextStateChangePayload);
+										if (!pdpContexts[aux - 1].free) {
+											pdpContexts[aux - 1].opened = false;
+											
+											if (moduleCallback != NULL) {
+												contextStateChangePayload.state = module_states_context_closed;
+												contextStateChangePayload.contextId = getPdpContextArrayIndex(aux);
+												contextStateChangePayload.isSsl = false;
+												moduleCallback(bg96_module_contextStateChange, (void*)&contextStateChangePayload);
+											}
+											
+											closeAllSockets();
 										}
-								
-										closeAllSockets();
 									}
 							
 									// closed

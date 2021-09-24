@@ -256,7 +256,7 @@ void enableWDT (void)
 	// Configurando el counter del WDT en 128, el período del WDT es aprox 1024ms.
 	// always_on en false permite cambiar alguna configuración en el WDT mientras corre el programa
 	config_wdt.clock_source = GCLK_GENERATOR_4;
-	config_wdt.timeout_period = WDT_PERIOD_1024CLK;
+	config_wdt.timeout_period = WDT_PERIOD_4096CLK;
 	config_wdt.always_on = false;
 	
 	wdt_reset_count();

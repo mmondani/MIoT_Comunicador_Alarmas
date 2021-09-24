@@ -27,7 +27,9 @@
 #include "inc/nodesManager.h"
 #include "inc/fsmProg.h"
 #include "inc/displayRAM.h"
+#include "inc/cellularManager.h"
 #include "inc/main.h"
+#include "inc/BG96.h"
 
 
 
@@ -40,7 +42,7 @@
 /** UART module for debug. */
 static struct usart_module probador_uart_module;
 static struct usart_module console_uart_module;
-
+static struct usart_module cellular_uart_module;
 
 uint8_t dataH, dataL, dataLayer;
 
@@ -79,6 +81,16 @@ static void configure_console(void)
 
 	while (usart_init(&probador_uart_module, PROBADOR_UART_MODULE, &usart_conf) != STATUS_OK);
 	usart_enable(&probador_uart_module);
+	
+	usart_conf.mux_setting = BG96_UART_SERCOM_MUX_SETTING;
+	usart_conf.pinmux_pad0 = BG96_UART_SERCOM_PINMUX_PAD0;
+	usart_conf.pinmux_pad1 = BG96_UART_SERCOM_PINMUX_PAD1;
+	usart_conf.pinmux_pad2 = BG96_UART_SERCOM_PINMUX_PAD2;
+	usart_conf.pinmux_pad3 = BG96_UART_SERCOM_PINMUX_PAD3;
+	usart_conf.baudrate    = 115200;
+
+	while (usart_init(&cellular_uart_module, BG96_UART_MODULE, &usart_conf) != STATUS_OK);
+	usart_enable(&cellular_uart_module);
 
 }
 
@@ -106,6 +118,8 @@ static void init_leds_button (void)
     port_pin_set_output_level(LED_WIFI_PIN, false);
     port_pin_set_config(LED_CELULAR_PIN, &pin_conf);
     port_pin_set_output_level(LED_CELULAR_PIN, false);
+	port_pin_set_config(DUTY_PAL, &pin_conf);
+	port_pin_set_output_level(DUTY_PAL, false);
 }
 
 
@@ -135,8 +149,10 @@ int main(void)
 	
 	configure_wdt();
 
-	mainFsm_init(&probador_uart_module);
+	mainFsm_init(&probador_uart_module, &cellular_uart_module);
 	
+	bg96_init(&cellular_uart_module, true, false, NULL);
+	bg96_initModule();
 
 	while (1) {
 		imClient_handler();
@@ -555,6 +571,8 @@ void mainLoop (void) {
 	if (mainTimer_expired(TIMER_1SEG)) {
 		maintTimer_clearExpired(TIMER_1SEG);
 		
+		wdt_reset_count();
+		
 		alarmMonitor_timers1s_handler();
 		dateTime_timers1s_handler();
 		nodesManager_timers1s_handler();
@@ -574,9 +592,6 @@ void mainLoop (void) {
 		alarmMonitor_timers1h_handler();
 		dateTime_timers1h_handler();
 	}
-
-	
-	wdt_reset_count();
 	
 	port_pin_set_output_level(DUTY_PAL, false);
 }

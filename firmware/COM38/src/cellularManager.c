@@ -51,14 +51,18 @@ void cellularManager_init (struct usart_module* uart, bool catM, bool bands4g, u
 	bands4gEnabled = bands4g;
 	simPin = pin;
 	
-	
-	bg96_init(&bg96_uart_module, catMEnabled, bands4gEnabled, simPin);
+	bg96_registerModuleCallback(bg96Callback);
+	pdpContextId = bg96_getPdpContext("","","");
+	sslContextId = bg96_getSslContext("ca-cert.pem");
+	/*
+	bg96_init(bg96_uart_module, catMEnabled, bands4gEnabled, simPin);
 	bg96_registerModuleCallback(bg96Callback);
 	bg96_initModule();
 	
 	
 	pdpContextId = bg96_getPdpContext("","","");
 	sslContextId = bg96_getSslContext("ca-cert.pem");
+	*/
 	
 	blinkingLed_init(&blinkingLedVerde, LED_CELULAR_PIN);
 	
@@ -82,7 +86,6 @@ cellularManager_errors cellularManager_getError (void) {
 
 
 void cellularManager_handler (void) {
-	bg96_handler();
 	
 	if (!mainFsm_estaEnPruebaFabrica()) {
 		blinkingLed_handler(&blinkingLedVerde);

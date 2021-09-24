@@ -2,7 +2,7 @@
 #define MAINFSM_H_
 
 
-void mainFsm_init (struct usart_module* uart);
+void mainFsm_init (struct usart_module * uart_tester, struct usart_module * uart_cellular);
 void mainFsm_handler (void);
 bool mainFsm_hayErrorCritico (void);
 bool mainFsm_estaEnPruebaFabrica (void);

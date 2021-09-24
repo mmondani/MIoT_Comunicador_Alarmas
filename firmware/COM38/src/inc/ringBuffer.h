@@ -9,7 +9,7 @@ typedef struct
 	uint32_t len;
 	uint32_t ptrIn;
 	uint32_t ptrOut;
-	uint32_t count;
+	volatile uint8_t count;
 }ringBuffer_t;
 
 void ringBuffer_init (ringBuffer_t* rb, uint8_t* buffer, uint32_t len);

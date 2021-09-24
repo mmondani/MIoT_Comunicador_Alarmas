@@ -22,6 +22,7 @@
 #include "inc/nodesManager.h"
 #include "inc/fsmProg.h"
 #include "inc/displayRAM.h"
+#include "inc/cellularManager.h"
 
 
 
@@ -31,7 +32,8 @@ static blinkingLed_t blinkingLedRojo;
 static debouncePin_t pinSw0;
 
 
-struct usart_module* uart_module;
+struct usart_module* uart_module_tester;
+struct usart_module* uart_module_cellular;
 
 
 /**************************************************************/
@@ -62,7 +64,7 @@ static void mainFsm_gotoPreviousState (void);
 
 
 
-void mainFsm_init (struct usart_module * uart)
+void mainFsm_init (struct usart_module * uart_tester, struct usart_module * uart_cellular)
 {
 	fsmState = mainFsm_init_state;
 	fsmState_previous = mainFsm_init_state;
@@ -71,7 +73,8 @@ void mainFsm_init (struct usart_module * uart)
 	blinkingLed_init(&blinkingLedRojo, LED_STATUS_ROJO_PIN);
 
 
-	uart_module = uart;
+	uart_module_tester = uart_tester;
+	uart_module_cellular = uart_cellular;
 }
 
 
@@ -89,6 +92,7 @@ void mainFsm_analizarMpxh (uint8_t dataH, uint8_t dataL, uint8_t layer, uint8_t 
 
 void mainFsm_handler (void)
 {
+	
 	// En la prueba de fábrica los leds son controlados por la FSM de la prueba
 	if (fsmState != mainFsm_pruebaFabrica) {
 		blinkingLed_handler(&blinkingLedVerde);
@@ -117,10 +121,11 @@ void mainFsm_handler (void)
 				if (fsmState_previous != mainFsm_pruebaFabrica) {
 					nm_bsp_init();
 					debouncePin_init(&pinSw0, DEBOUNCE_PIN_BAJO_ACTIVO, BUTTON_0_PIN);
-				
-				
+					
 					wifiManager_init(&pinSw0);
 					socketManager_init();
+					
+					cellularManager_init(uart_module_cellular, true, false, NULL);
 				
 					// Se chequea la EEPROM externa para determinar si hay que inicializarla o leerla
 					ext_eeprom_init();
@@ -208,10 +213,11 @@ void mainFsm_handler (void)
                 stateOut = false;
 				
 				bit_set(mandarPiruPiru,0);
+
             }
 
             //**********************************************************************************************
-			
+
             //**********************************************************************************************
             if (stateOut)
             {
@@ -304,6 +310,7 @@ void mainFsm_handler (void)
                 stateOut = false;
 				
 				wifiManager_deinit();
+				cellularManager_deinit();
 				nm_bsp_deinit();
 				
 				blinkingLed_setPattern(&blinkingLedVerde, BLINKING_NO_PATTERN, BLINKING_NO_PATTERN_LEN, BLINKING_NO_PATTERN_BASE);
