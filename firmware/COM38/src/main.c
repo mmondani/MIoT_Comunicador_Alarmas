@@ -30,6 +30,7 @@
 #include "inc/cellularManager.h"
 #include "inc/main.h"
 #include "inc/BG96.h"
+#include "inc/connectivityManager.h"
 
 
 
@@ -177,6 +178,8 @@ void mainLoop (void) {
 		return;
 	
 	wifiManager_ProvisioningFsmHandler();
+	
+	connectivityManager_handler();
 	
 	dateTime_handler();
 	dateTime_fsmPatronTiempo();

@@ -206,7 +206,7 @@ int mqtt_publish(struct mqtt_module *const module, const char *topic, const char
 	
 	rc = MQTTPublish(module->client, topic, &mqttMsg);
 	
-	if(module->callback)
+	if(rc == SUCCESS && module->callback)
 		module->callback(module, MQTT_CALLBACK_PUBLISHED, NULL);
 	
 	return rc;
@@ -218,7 +218,7 @@ int mqtt_subscribe(struct mqtt_module *module, const char *topic, uint8_t qos, m
 	
 	rc = MQTTSubscribe(module->client, topic, qos, msgHandler);
 	
-	if(module->callback)
+	if(rc == SUCCESS && module->callback)
 		module->callback(module, MQTT_CALLBACK_SUBSCRIBED, NULL);	
 	
 	return rc;
@@ -230,7 +230,7 @@ int mqtt_unsubscribe(struct mqtt_module *module, const char *topic)
 	
 	rc = MQTTUnsubscribe(module->client, topic);
 
-	if(module->callback)
+	if(rc == SUCCESS && module->callback)
 		module->callback(module, MQTT_CALLBACK_SUBSCRIBED, NULL);	
 	
 	return rc;

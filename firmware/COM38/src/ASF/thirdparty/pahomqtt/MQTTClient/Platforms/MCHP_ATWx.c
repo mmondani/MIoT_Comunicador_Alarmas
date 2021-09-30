@@ -264,55 +264,68 @@ void NetworkInit(Network* n) {
 }
 
 int ConnectNetwork(Network* n, char* addr, int port, int TLSFlag){
+	Timer connect_timer;
 
-  //Resolve Server URL.
-  gbMQTTBrokerIpresolved = false;
-  gpcHostAddr = addr;
-  gethostbyname((uint8*)addr);
+	//Resolve Server URL.
+	gbMQTTBrokerIpresolved = false;
+	gpcHostAddr = addr;
+	gethostbyname((uint8*)addr);
  
-  //wait for resolver callback
-  while (false==gbMQTTBrokerIpresolved){
-	  mainLoop();
-  }
+	TimerInit(&connect_timer);
+	TimerCountdownMS(&connect_timer, 5000);
+ 
+	//wait for resolver callback
+	while (false==gbMQTTBrokerIpresolved){
+		mainLoop();
+		
+		if (TimerIsExpired(&connect_timer) ) {
+			return SOCK_ERR_INVALID;
+		}
+	}
   
-  n->hostIP = gi32MQTTBrokerIp;
+	n->hostIP = gi32MQTTBrokerIp;
   
-  //connect to socket
-  struct sockaddr_in addr_in;
-  addr_in.sin_family = AF_INET;
-  addr_in.sin_port = _htons(port);
-  addr_in.sin_addr.s_addr = gi32MQTTBrokerIp;
+	//connect to socket
+	struct sockaddr_in addr_in;
+	addr_in.sin_family = AF_INET;
+	addr_in.sin_port = _htons(port);
+	addr_in.sin_addr.s_addr = gi32MQTTBrokerIp;
 
-  /* Create secure socket */ 
-  if(n->socket < 0)
+	/* Create secure socket */ 
+	if(n->socket < 0)
 	n->socket = socket(AF_INET, SOCK_STREAM, TLSFlag);
   
-  if (n->socket == -1) {
-   #ifdef MQTT_PLATFORM_DBG
-   printf("ERROR >> socket error.\r\n");
-   #endif
-   close(n->socket);
-   return SOCK_ERR_INVALID;
-  }
+	if (n->socket == -1) {
+		#ifdef MQTT_PLATFORM_DBG
+		printf("ERROR >> socket error.\r\n");
+		#endif
+		close(n->socket);
+		return SOCK_ERR_INVALID;
+	}
   
-  /* If success, connect to socket */
-  if (connect(n->socket, (struct sockaddr *)&addr_in, sizeof(struct sockaddr_in)) != SOCK_ERR_NO_ERROR) {
-   #ifdef MQTT_PLATFORM_DBG  
-   printf("ERROR >> connect error.\r\n");
-   #endif
-   return SOCK_ERR_INVALID;
-  }
+	/* If success, connect to socket */
+	if (connect(n->socket, (struct sockaddr *)&addr_in, sizeof(struct sockaddr_in)) != SOCK_ERR_NO_ERROR) {
+		#ifdef MQTT_PLATFORM_DBG  
+		printf("ERROR >> connect error.\r\n");
+		#endif
+		return SOCK_ERR_INVALID;
+	}
   
-  gbMQTTBrokerConnected = false;
+	gbMQTTBrokerConnected = false;
   
-  /*wait for SOCKET_MSG_CONNECT event */
-  while(false==gbMQTTBrokerConnected){
-    mainLoop();
-  }
+	TimerInit(&connect_timer);
+	TimerCountdownMS(&connect_timer, 15000);
+	while(false==gbMQTTBrokerConnected){
+		mainLoop();
+		
+		if (TimerIsExpired(&connect_timer) ) {
+			return SOCK_ERR_INVALID;
+		}
+	}
   
-  /* Success */
-  #ifdef MQTT_PLATFORM_DBG
-  printf("INFO >> ConnectNetwork successful\r\n");
-  #endif
-  return SOCK_ERR_NO_ERROR;
+	/* Success */
+	#ifdef MQTT_PLATFORM_DBG
+	printf("INFO >> ConnectNetwork successful\r\n");
+	#endif
+	return SOCK_ERR_NO_ERROR;
 }

@@ -889,6 +889,9 @@
     <Compile Include="src\configurationManager.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="src\connectivityManager.c">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="src\dateTime.c">
       <SubType>compile</SubType>
     </Compile>
@@ -935,6 +938,9 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\configurationManager.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="src\inc\connectivityManager.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\inc\dateTime.h">

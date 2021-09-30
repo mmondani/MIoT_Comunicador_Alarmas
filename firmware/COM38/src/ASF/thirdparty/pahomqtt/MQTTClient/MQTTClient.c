@@ -301,6 +301,8 @@ int cycle(MQTTClient* c, Timer* timer)
             c->ping_outstanding = 0;
             break;
     }
+	    
+	// TODO recibir el rc que devuelve la funci?n si se manda el keepalive. As? se puede detectar si no lo pudo mandar
     keepalive(c);
 exit:
     if (rc == SUCCESS)

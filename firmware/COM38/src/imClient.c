@@ -10,6 +10,7 @@
 #include "inc/pga.h"
 #include "inc/mqttClient.h"
 #include "inc/utilities.h"
+#include "inc/connectivityManager.h"
 
 
 enum{
@@ -56,6 +57,8 @@ static uint8_t buffOut[300];
 static uint8_t toAux[4];
 static uint8_t auxBuffer[30];
 
+static connectivityManager_events connectivityManager_event = connectivityManager_event_none;
+static connectivityManager_interfaces connectivityManager_interface = connectivityManager_interface_none;
 
 static void callback_connect (bool result);
 static void callback_disconnect (void);
@@ -65,6 +68,7 @@ static void callback_publish (void);
 static void callback_receive (MQTTString* topic, MQTTMessage* msg);
 static void generateFrameToSend (imMessage_t* msg);
 static void parseMessageIn (uint8_t* data);
+static void connectivity_onChangeCallback (connectivityManager_events evt, connectivityManager_interfaces ifc);
 
 
 void imClient_init (uint8_t* id, uint8_t* pass)
@@ -363,9 +367,9 @@ void imClient_handler (void)
 			
 			if (softTimer_expired(&timerResponseTimeout)) {
 				// No llegó el PUBACK a tiempo
-				// TODO hacer algo si falla 4 veces en enviarlo
+				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
-				if (sendingError >= 4) {
+				if (sendingError >= 2) {
 					//socketManager_close(&socketIm);
 				}
 
@@ -387,13 +391,13 @@ void imClient_handler (void)
 		case FSM_WAIT_STATUS_OFFLINE_ACK:
 			if (softTimer_expired(&timerResponseTimeout)) {
 				// No llegó el PUBACK a tiempo
-				// TODO hacer algo si falla 4 veces en enviarlo
+				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
-				if (sendingError >= 4) {
+				if (sendingError >= 2) {
 					//socketManager_close(&socketIm);
 				}
 
-				fsmState = FSM_IDLE;
+				fsmState = FSM_CONNECT_BROKER;
 			}
 			else if (published) {
 				// Llegó un PUBACK
@@ -436,9 +440,9 @@ void imClient_handler (void)
 		
 			if (softTimer_expired(&timerResponseTimeout)) {
 				// No llegó el PUBACK a tiempo
-				// TODO hacer algo si falla 4 veces en enviarlo
+				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
-				if (sendingError >= 4) {
+				if (sendingError >= 2) {
 					//socketManager_close(&socketIm);
 				}
 
@@ -591,5 +595,18 @@ void callback_receive (MQTTString* topic, MQTTMessage* msg) {
 	}
 	else {
 		// Hay un error en el checksum
+	}
+}
+
+
+void connectivity_onChangeCallback (connectivityManager_events evt, connectivityManager_interfaces ifc) {
+	switch (evt) {
+		case connectivityManager_event_change:
+			
+			break;
+			
+		case connectivityManager_event_disconnect_and_change:
+		
+			break;
 	}
 }

@@ -239,8 +239,10 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 				mqttClient.lwRetain);
 				} else {
 				// Falló la conexión al socket del broker
+				mqttClient.connected = false;
+				
 				if(mqttClient.callback_connect != NULL)
-				mqttClient.callback_connect(false);
+					mqttClient.callback_connect(false);
 			}
 		}
 		break;
@@ -253,8 +255,10 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 			mqttClient.callback_connect(true);
 			} else {
 			// No se pudo conectar al broker
+			mqttClient.connected = false;
+			
 			if(mqttClient.callback_connect != NULL)
-			mqttClient.callback_connect(false);
+				mqttClient.callback_connect(false);
 		}
 
 		break;

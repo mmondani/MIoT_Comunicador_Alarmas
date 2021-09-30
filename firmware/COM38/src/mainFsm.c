@@ -23,6 +23,7 @@
 #include "inc/fsmProg.h"
 #include "inc/displayRAM.h"
 #include "inc/cellularManager.h"
+#include "inc/connectivityManager.h"
 
 
 
@@ -135,6 +136,7 @@ void mainFsm_handler (void)
 					displayRAM_init();
 					fsmProg_init();
 					
+					connectivityManager_init();
 					
 					// Se inicializan los módulos de firmware
 					alarmMonitor_init();
