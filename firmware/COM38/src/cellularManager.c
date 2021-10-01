@@ -326,3 +326,12 @@ void cellularFsm_gotoState (fsmCellular_state_t nextState) {
 	stateIn = false;
 	stateOut = true;
 }
+
+
+int32_t cellularFsm_getPdpContext (void) {
+	return pdpContextId;
+}
+
+int32_t cellularFsm_getSslContext (void) {
+	return sslContextId;
+}

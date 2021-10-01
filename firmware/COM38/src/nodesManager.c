@@ -18,6 +18,7 @@
 #define CANTIDAD_NODOS_TEMPORIZADOS			20
 
 
+static bool yaMandeMensajeInicial;
 uint32_t estadoNodos[8][4];
 uint32_t nodosAPrender[8][4];
 uint32_t nodosAApagar[8][4];
@@ -103,6 +104,8 @@ void nodesManager_init (void)
 	for (uint8_t i = 0; i < CANTIDAD_NODOS_TEMPORIZADOS; i++) {
 		timers[i].layer = 0xff;
 	}
+	
+	yaMandeMensajeInicial = false;
 }
 
 
@@ -334,6 +337,23 @@ void nodesManager_handler (void)
 
 void nodesManager_timers1s_handler (void)
 {
+	// En el caso de una pérdida de conexión, se fuerza a que el WIFICOM100 mande el estado
+	// de los nodos.
+	if (imClient_isClientConnected()) {
+		if (!yaMandeMensajeInicial) {
+			for (uint8_t i = 0; i < 8; i ++) {
+				if (alarmMonitor_existeLayer(i) != 0)
+				armarEventoEstadoNodos(i);
+			}
+			
+			yaMandeMensajeInicial = true;
+		}
+	}
+	else {
+		yaMandeMensajeInicial = false;
+	}
+	
+	
 	for (uint8_t i = 0; i < 16; i++) {
 		timer_simulador1[i] ++;
 	}

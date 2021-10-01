@@ -244,6 +244,13 @@ uint8_t traducirHexaACaracter (uint8_t hexa)
 }
 
 
+void convertNumberToHexString (uint8_t* string, uint8_t number) {
+	string[0] = traducirHexaACaracter((number & 0xF0) >> 4);
+	string[1] = traducirHexaACaracter(number & 0x0F);
+}
+
+
+
 void enableWDT (void)
 {
 	

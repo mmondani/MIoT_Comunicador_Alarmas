@@ -6,6 +6,7 @@
 #include "../inc/basicDefinitions.h"
 #include "../inc/BG96_commands.h"
 #include "../inc/BG96_apn.h"
+#include "../inc/utilities.h"
 
 static struct usart_module* uart_module;
 static bool catMEnabled;
@@ -172,6 +173,8 @@ typedef struct {
 	
 	uint8_t topicToSend[20];
 	uint8_t msgToSend[100];
+	uint8_t msgToSend2[200];
+	uint8_t msgToSend_ptr;
 	uint8_t msgToSendLen;
 	uint8_t qos;
 	bool retain;
@@ -2662,6 +2665,8 @@ void bg96_mqtt_init (bg96_mqtt_configuration_t* config) {
 	mqttClient.connected = false;
 	mqttClient.configured = false;
 	
+	mqttClient.msgToSend_ptr = 0;
+	
 	flags3.bits.mqttConfigure = 1;
 }
 
@@ -2720,6 +2725,88 @@ void bg96_mqtt_publish (uint8_t* topic, uint8_t* data, uint32_t len, uint8_t qos
 	flags3.bits.mqttPublish = 1;
 }
 
+
+
+int32_t bg96_mqtt_bufferPutByte (uint8_t b) {
+	
+	// El buffer realmente tiene 200 posiciones, pero se pueden cargar hasta
+	// 100 bytes ya que antes de mandarlos se los va a comvertir en un string
+	if (mqttClient.msgToSend_ptr < 100) {
+		mqttClient.msgToSend[mqttClient.msgToSend_ptr] = b;
+		mqttClient.msgToSend_ptr ++;
+		
+		return 0;
+	}
+	
+	return -1;
+}
+
+
+int32_t bg96_mqtt_bufferPutBytes (uint8_t* bytes, uint32_t len) {
+	uint32_t bytesWritten = 0;
+	uint32_t dataOffset = mqttClient.msgToSend_ptr;
+	
+	
+	for (uint32_t i = 0; i < len; i++) {
+		
+		// El buffer realmente tiene 200 posiciones, pero se pueden cargar hasta
+		// 100 bytes ya que antes de mandarlos se los va a comvertir en un string
+		if ( (dataOffset + i) < 100) {
+			mqttClient.msgToSend[dataOffset + i] = bytes[i];
+			mqttClient.msgToSend_ptr ++;
+			
+			bytesWritten ++;
+		}
+		else {
+			break;
+		}
+	}
+	
+	return bytesWritten;
+}
+
+
+uint8_t bg96_mqtt_bufferGetChecksum (void) {
+	uint32_t sum = 0;
+	uint8_t checksum = 0;
+	
+	
+	for (int i = 0; i < mqttClient.msgToSend_ptr; i++) {
+		sum += mqttClient.msgToSend[i];
+	}
+	
+	checksum = sum & 0x000000ff;
+	
+	return (0xff - checksum);
+}
+
+void bg96_mqtt_bufferConvertToString (void) {
+	uint8_t msgToSend_ptr2 = 0;
+	
+	for (int i = 0; i < mqttClient.msgToSend_ptr; i++) {
+		convertNumberToHexString(&(mqttClient.msgToSend2[msgToSend_ptr2]), mqttClient.msgToSend[i]);
+		
+		msgToSend_ptr2 += 2;
+	}
+	
+	// Se actualiza la longitud del mensaje a enviar
+	mqttClient.msgToSend_ptr *= 2;
+}
+
+
+uint8_t* bg96_mqtt_getBuffer (void) {
+	return mqttClient.msgToSend2;
+}
+
+
+uint32_t bg96_mqtt_getBufferLen (void) {
+	return mqttClient.msgToSend_ptr;
+}
+
+
+void bg96_mqtt_bufferFlush (void) {
+	mqttClient.msgToSend_ptr = 0;
+}
 
 
 

@@ -10,6 +10,7 @@
 #include "inc/configurationManager.h"
 
 
+static bool yaMandeMensajeInicial;
 static uint8_t timer_inicial;
 uint8_t timer_centralNueva;
 uint8_t estadoAlarma[8];
@@ -194,6 +195,8 @@ void alarmMonitor_init (void) {
 	bateriaRed.bits.bateBaja = 0;
 	
 	variosCentral.bits.esCentralNueva = 1;
+	
+	yaMandeMensajeInicial = false;
 }
 
 
@@ -422,6 +425,27 @@ uint32_t alarmMonitor_estadoBateria (void)
 
 void alarmMonitor_timers1s_handler (void)
 {
+	// En el caso de una pérdida de conexión, se fuerza a que el WIFICOM100 mande un
+	// mensaje cualquiera al backend, para que si hay una app abierta en ese momento
+	// se actualice y vuelva a mostrar el WIFICOM100 conectado.
+	// Solo se manda una vez este mensaje, hasta que se vuelva a desconectar del backend.
+	if (imClient_isClientConnected()) {
+		if (!yaMandeMensajeInicial) {
+			alarmMonitor_armarEventoEstadoZonas(0);
+			//alarmMonitor_armarEventoRed();
+			//alarmMonitor_armarEventoBateria();
+			for (uint8_t i = 0; i < 8; i++) {
+				if (alarmMonitor_existeLayer(i))
+				alarmMonitor_armarGetEstado(i);
+			}
+			yaMandeMensajeInicial = true;
+		}
+	}
+	else {
+		yaMandeMensajeInicial = false;
+	}
+	
+	
 	for (int i = 0; i < 8; i++) {
 		if (timer_huboDisparoDeAlarma[i] != 0) {
 			timer_huboDisparoDeAlarma[i] --;
@@ -917,16 +941,29 @@ void alarmMonitor_armarGetEstado (uint8_t layer)
 	imMessage_t* msg = imClient_getFreeMessageSlot();
 	uint8_t* ptrZonasEstado = (uint8_t*)&zonasEstado[layer];
 	uint8_t* ptrZonasMemoria = (uint8_t*)&zonasMemoria[layer];
-		
-		
+	uint8_t* ptrZonasInclusion = (uint8_t*)&zonasInclusion[layer];
+	
+	
 	if (msg != NULL) {
 		imClient_putPayloadByte(msg, estadoAlarma[layer]);
 		imClient_putPayloadByte(msg, alarmMonitor_hayRed());
 		imClient_putPayloadByte(msg, alarmMonitor_estadoBateria());
 		imClient_putPayloadByte(msg, alarmMonitor_estadoMpxh());
-		imClient_putPayloadByte(msg, particionOk);
-		imClient_putPayloadByte(msg, sonando);
-		imClient_putPayloadByte(msg, ready);
+		
+		if (bit_test(particionOk, layer))
+			imClient_putPayloadByte(msg, 1);
+		else
+			imClient_putPayloadByte(msg, 0);
+		
+		if (bit_test(sonando, layer))
+			imClient_putPayloadByte(msg, 1);
+		else
+			imClient_putPayloadByte(msg, 0);
+		
+		if (bit_test(ready, layer))
+			imClient_putPayloadByte(msg, 1);
+		else
+			imClient_putPayloadByte(msg, 0);
 		
 		if (tipoCentral.bits.tiene32zonas)
 			imClient_putPayloadByte(msg, 32);
@@ -936,7 +973,7 @@ void alarmMonitor_armarGetEstado (uint8_t layer)
 			imClient_putPayloadByte(msg, 8);
 		else if (tipoCentral.bits.tiene4zonas)
 			imClient_putPayloadByte(msg, 4);
-		else 
+		else
 			imClient_putPayloadByte(msg, TIPO_CENTRAL_NINGUNO);
 		
 		imClient_putPayloadByte(msg, PROJECT_FIRMWARE_VERSION_MAYOR);
@@ -949,6 +986,23 @@ void alarmMonitor_armarGetEstado (uint8_t layer)
 		imClient_putPayloadByte(msg, *(ptrZonasMemoria+2));
 		imClient_putPayloadByte(msg, *(ptrZonasMemoria+1));
 		imClient_putPayloadByte(msg, *(ptrZonasMemoria+0));
+		
+		if (bit_test(estoy, layer))
+			imClient_putPayloadByte(msg, 1);
+		else
+			imClient_putPayloadByte(msg, 0);
+		
+		if (bit_test(meVoy, layer))
+			imClient_putPayloadByte(msg, 1);
+		else
+			imClient_putPayloadByte(msg, 0);
+		
+		imClient_putPayloadByte(msg, *(ptrZonasInclusion+3));
+		imClient_putPayloadByte(msg, *(ptrZonasInclusion+2));
+		imClient_putPayloadByte(msg, *(ptrZonasInclusion+1));
+		imClient_putPayloadByte(msg, *(ptrZonasInclusion+0));
+		imClient_putPayloadByte(msg, zonasCondicionalTemporizada[layer]);
+		
 
 		
 		toId[0] = pgaData[PGA_ID_DISPOSITIVO];

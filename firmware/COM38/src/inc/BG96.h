@@ -194,6 +194,13 @@ bool bg96_mqtt_isConnected (void);
 void bg96_mqtt_subscribe (uint8_t* topic, uint8_t qos);
 void bg96_mqtt_unsubscribe (uint8_t* topic);
 void bg96_mqtt_publish (uint8_t* topic, uint8_t* data, uint32_t len, uint8_t qos, bool retain);
+int32_t bg96_mqtt_bufferPutByte (uint8_t b);
+int32_t bg96_mqtt_bufferPutBytes (uint8_t* bytes, uint32_t len);
+uint8_t bg96_mqtt_bufferGetChecksum (void);
+void bg96_mqtt_bufferConvertToString (void);
+uint8_t* bg96_mqtt_getBuffer (void);
+uint32_t bg96_mqtt_getBufferLen (void);
+void bg96_mqtt_bufferFlush (void);
 
 
 #endif /* BG96_H_ */

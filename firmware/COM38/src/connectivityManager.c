@@ -53,7 +53,7 @@ void connectivityManager_handler (void) {
 			fsmState = FSM_HAY_CELULAR;
 			
 			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_change, connectivityManager_interface_celullar);
+			changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
 		}
 		
 		break;
@@ -66,7 +66,7 @@ void connectivityManager_handler (void) {
 				softTimer_init(&timerErrorWifi, 1000*60*15);
 				
 				if (changeCallback != NULL)
-				changeCallback(connectivityManager_event_change, connectivityManager_interface_celullar);
+				changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
 			}
 			else {
 				fsmState = FSM_WAITING;
