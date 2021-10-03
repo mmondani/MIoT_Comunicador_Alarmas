@@ -1,4 +1,5 @@
 #include "inc/mqttClient.h"
+#include "inc/utilities.h"
 
 
 static mqttClient_t mqttClient;
@@ -26,6 +27,8 @@ void mqttClient_loadDefaults (mqttClient_config_t* config) {
 	
 	config->callback_connect = NULL;
 	config->callback_disconnect = NULL;
+	config->callback_connection_error = NULL;
+	config->callback_pingreq_error = NULL;
 	config->callback_subscribe = NULL;
 	config->callback_unsubscribe = NULL;
 	config->callback_publish = NULL;
@@ -54,10 +57,12 @@ int32_t mqttClient_init (mqttClient_config_t* config) {
 	mqttClient.bufferOut_len = config->bufferOut_len;
 	
 	mqttClient.bufferAux_len = 100;
-	mqttClient.bufferAux_ptr = 100;
+	mqttClient.bufferAux_ptr = 0;
 	
 	mqttClient.callback_connect = config->callback_connect;
 	mqttClient.callback_disconnect = config->callback_disconnect;
+	mqttClient.callback_connection_error = config->callback_connection_error;
+	mqttClient.callback_pingreq_error = config->callback_pingreq_error;
 	mqttClient.callback_subscribe = config->callback_subscribe;
 	mqttClient.callback_unsubscribe = config->callback_unsubscribe;
 	mqttClient.callback_publish = config->callback_publish;
@@ -136,16 +141,23 @@ bool mqttClient_isConnected (void) {
 	return (mqttClient.connected);
 }
 
-void mqttClient_yield (void) {
+int mqttClient_yield (void) {
 	int rc = mqtt_yield(&mqttClient.mqtt_inst, 0);
 	
 	if (rc == CONN_ABORTED) {
 		// Hubo un problema con la conexión
 		mqttClient.connected = false;
 		
-		if(mqttClient.callback_disconnect != NULL)
-		mqttClient.callback_disconnect();
+		if(mqttClient.callback_connection_error != NULL)
+		mqttClient.callback_connection_error();
 	}
+	else if (rc == PINGREQ_SEND_ERROR) {
+		// Hubo errores al enviar los PINGREQ
+		if(mqttClient.callback_pingreq_error != NULL)
+		mqttClient.callback_pingreq_error();
+	}
+	
+	return rc;
 }
 
 
@@ -204,8 +216,22 @@ uint8_t mqttClient_bufferGetChecksum (void) {
 }
 
 
+void mqttClient_bufferConvertToString (void) {
+	uint8_t bufferAux_ptr2 = 0;
+	
+	for (int i = 0; i < mqttClient.bufferAux_ptr; i++) {
+		convertNumberToHexString(&(mqttClient.bufferAux2[bufferAux_ptr2]), mqttClient.bufferAux[i]);
+		
+		bufferAux_ptr2 += 2;
+	}
+	
+	// Se actualiza la longitud del mensaje a enviar
+	mqttClient.bufferAux_ptr *= 2;
+}
+
+
 uint8_t* mqttClient_getBuffer (void) {
-	return mqttClient.bufferAux;
+	return mqttClient.bufferAux2;
 }
 
 
@@ -242,7 +268,7 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 				mqttClient.connected = false;
 				
 				if(mqttClient.callback_connect != NULL)
-					mqttClient.callback_connect(false);
+				mqttClient.callback_connect(false);
 			}
 		}
 		break;
@@ -258,7 +284,7 @@ void mqtt_callback(struct mqtt_module *module_inst, int type, union mqtt_data *d
 			mqttClient.connected = false;
 			
 			if(mqttClient.callback_connect != NULL)
-				mqttClient.callback_connect(false);
+			mqttClient.callback_connect(false);
 		}
 
 		break;

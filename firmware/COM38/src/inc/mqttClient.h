@@ -29,11 +29,14 @@ typedef struct {
 	uint32_t bufferOut_len;
 	
 	uint8_t bufferAux[100];
+	uint8_t bufferAux2[200];
 	uint32_t bufferAux_len;
 	uint32_t bufferAux_ptr;
 	
 	void (*callback_connect) (bool result);
 	void (*callback_disconnect) (void);
+	void (*callback_connection_error) (void);
+	void (*callback_pingreq_error) (void);
 	void (*callback_subscribe) (void);
 	void (*callback_unsubscribe) (void);
 	void (*callback_publish) (void);
@@ -59,6 +62,8 @@ typedef struct {
 	
 	void (*callback_connect) (bool result);
 	void (*callback_disconnect) (void);
+	void (*callback_connection_error) (void);
+	void (*callback_pingreq_error) (void);
 	void (*callback_subscribe) (void);
 	void (*callback_unsubscribe) (void);
 	void (*callback_publish) (void);
@@ -76,11 +81,12 @@ void mqttClient_unsubscribe (char *topic);
 void mqttClient_publish (const char *topic, const char *msg, uint32_t msg_len, uint8_t qos, uint8_t retain);
 
 bool mqttClient_isConnected (void);
-void mqttClient_yield (void);
+int mqttClient_yield (void);
 void mqttClient_clearSubscriptionHandlers (void);
 int32_t mqttClient_bufferPutByte (uint8_t b);
 int32_t mqttClient_bufferPutBytes (uint8_t* bytes, uint32_t len);
 uint8_t mqttClient_bufferGetChecksum (void);
+void mqttClient_bufferConvertToString (void);
 uint8_t* mqttClient_getBuffer (void);
 uint32_t mqttClient_getBufferLen (void);
 void mqttClient_bufferFlush (void);

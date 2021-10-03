@@ -15,7 +15,8 @@
 
 
 enum{
-	FSM_INIT = 0,
+	FSM_WAITING_INTERFACE = 0,
+	FSM_INIT,
 	FSM_GET_SOCKET,
 	FSM_IDLE,
 	FSM_MSG_SEND,
@@ -41,6 +42,7 @@ static bool subscribed;
 static uint8_t subscribeTopic[15];
 static uint8_t lastWillTopic[15];
 static uint8_t lastWillMessage[15];
+static int wifiMqttClientErrors;
 
 static SoftTimer_t timerAux;
 static SoftTimer_t timerCheckConnection;
@@ -51,6 +53,7 @@ static bool needToSendLoginMessage;
 static bool authenticated;
 static bool inLoginProcess;
 static bool resetConnection;
+static uint32_t connectToBrokerTries;
 
 
 static uint8_t buffIn[300];
@@ -59,7 +62,8 @@ static uint8_t toAux[4];
 static uint8_t auxBuffer[30];
 
 static connectivityManager_events connectivityManager_event = connectivityManager_event_none;
-static connectivityManager_interfaces connectivityManager_interface = connectivityManager_interface_cellular;
+static connectivityManager_interfaces connectivityManager_interface = connectivityManager_interface_none;
+static connectivityManager_interfaces connectivityManager_nextInterface = connectivityManager_interface_none;
 
 
 static bool interface_isConnected (void);
@@ -72,6 +76,8 @@ static void client_disconnect (void);
 
 static void callback_connect (bool result);
 static void callback_disconnect (void);
+static void callback_connection_error (void);
+static void callback_pingreq_error (void);
 static void callback_subscribe (void);
 static void callback_unsubscribe (void);
 static void callback_publish (void);
@@ -84,7 +90,7 @@ static void bg96MqttCallback (bg96_mqtt_events evt, void* payload);
 
 void imClient_init (uint8_t* id, uint8_t* pass)
 {
-	fsmState = FSM_INIT;
+	fsmState = FSM_WAITING_INTERFACE;
 	
 	messagePool_init();
 	
@@ -112,11 +118,15 @@ void imClient_init (uint8_t* id, uint8_t* pass)
 	inLoginProcess = false;
 	resetConnection = false;
 	
+	wifiMqttClientErrors = 0;
+	
 	// El systick es usado por el cliente de MQTT del WINC1500
 	if (SysTick_Config(system_cpu_clock_get_hz() / 1000))
 	{
 		errores1.bits.errorMqtt = 1;
 	}
+	
+	connectivityManager_setChangeCallback(connectivity_onChangeCallback);
 }
 
 
@@ -132,6 +142,12 @@ uint32_t imClient_isClientConnected (void)
 void imClient_resetConnection (void)
 {
 	resetConnection = true;
+}
+
+
+connectivityManager_interfaces imClient_currentInterface (void) 
+{
+	return connectivityManager_interface;
 }
 
 
@@ -226,9 +242,11 @@ void imClient_removeMessageToRead (uint32_t flow)
 void imClient_handler (void)
 {
 	imMessage_t* msg;
+	int rc;
 	
-	if(mqttClient_isConnected())
-		mqttClient_yield();
+	
+	if(mqttClient_isConnected() && connectivityManager_interface == connectivityManager_interface_wifi)
+		rc = mqttClient_yield();
 	
 	if (softTimer_expired(&timerBuffer)) {
 		if (messagePool_pendingOutputMessage() > 0) {
@@ -242,12 +260,20 @@ void imClient_handler (void)
 	
 	switch (fsmState) {
 		
+		case FSM_WAITING_INTERFACE:
+		
+			break;
+			
+			
 		case FSM_INIT:
 		{
-			int result = 0;
+			connectivityManager_interface = connectivityManager_nextInterface;
 			
+			int result = 0;
 			result = client_init ();
 			
+			connectToBrokerTries = 0;
+			wifiMqttClientErrors = 0;
 			
 			if (errores1.bits.errorMqtt == 1 || result < 0) {
 				errores1.bits.errorMqtt = 1;
@@ -290,27 +316,26 @@ void imClient_handler (void)
 				
 				fsmState = FSM_WAIT_SUBSCRIBE;
 			}
-			else if (softTimer_expired(&timerAux))
-				fsmState = FSM_IDLE;
+			else if (softTimer_expired(&timerAux)) {
+				connectToBrokerTries ++;
+				
+				if (connectToBrokerTries < 2)
+					fsmState = FSM_CONNECT_BROKER;
+				else {
+					// Se reporta sal connectivity manager que hay un problema con la interfaz
+					// actual de comunicación
+					connectivityManager_interfaceError(connectivityManager_interface);	
+					fsmState = FSM_IDLE;				
+				}
+				
+			}
 				
 			break;
 			
 			
 		case FSM_IDLE:
 		
-			if (softTimer_expired(&timerCheckConnection)) {
-				softTimer_init(&timerCheckConnection, 15000);
-				
-				fsmState = FSM_CONNECT_BROKER;
-			}
-			else if (messagePool_pendingOutputMessage() == 1) {
-				if (interface_isConnected()) {
-					if (imClient_isClientConnected() == 1) {
-						fsmState = FSM_MSG_SEND;
-					}
-				}
-			}
-			else if (resetConnection) {
+			if (resetConnection) {
 				resetConnection = false;
 				
 				published = false;
@@ -323,6 +348,18 @@ void imClient_handler (void)
 				
 				softTimer_init(&timerResponseTimeout, 2000);
 				fsmState = FSM_WAIT_STATUS_OFFLINE_ACK;
+			}
+			else if (softTimer_expired(&timerCheckConnection)) {
+				softTimer_init(&timerCheckConnection, 15000);
+				
+				fsmState = FSM_CONNECT_BROKER;
+			}
+			else if (messagePool_pendingOutputMessage() == 1) {
+				if (interface_isConnected()) {
+					if (imClient_isClientConnected() == 1) {
+						fsmState = FSM_MSG_SEND;
+					}
+				}
 			}
 			
 			break;
@@ -353,7 +390,7 @@ void imClient_handler (void)
 				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
 				if (sendingError >= 2) {
-					//socketManager_close(&socketIm);
+					connectivityManager_interfaceError(connectivityManager_interface);	
 				}
 
 				fsmState = FSM_IDLE;
@@ -374,10 +411,9 @@ void imClient_handler (void)
 		case FSM_WAIT_STATUS_OFFLINE_ACK:
 			if (softTimer_expired(&timerResponseTimeout)) {
 				// No llegó el PUBACK a tiempo
-				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
 				if (sendingError >= 2) {
-					//socketManager_close(&socketIm);
+					connectivityManager_interfaceError(connectivityManager_interface);	
 				}
 
 				fsmState = FSM_CONNECT_BROKER;
@@ -394,8 +430,10 @@ void imClient_handler (void)
 		
 		case FSM_WAIT_CLOSE:
 		
-			if (!client_isConnected())
-				fsmState = FSM_CONNECT_BROKER;
+			if (!client_isConnected()) {
+				connectToBrokerTries = 0;
+				fsmState = FSM_INIT;
+			}
 			
 			break;
 			
@@ -423,10 +461,9 @@ void imClient_handler (void)
 		
 			if (softTimer_expired(&timerResponseTimeout)) {
 				// No llegó el PUBACK a tiempo
-				// TODO hacer algo si falla 2 veces en enviarlo. Informar a connectivityManager?
 				sendingError ++;
 				if (sendingError >= 2) {
-					//socketManager_close(&socketIm);
+					connectivityManager_interfaceError(connectivityManager_interface);	
 				}
 
 				fsmState = FSM_IDLE;
@@ -465,6 +502,8 @@ static void generateFrameToSend (imMessage_t* msg)
 		mqttClient_bufferPutBytes((uint8_t*)&(len), 2);										// largo
 		mqttClient_bufferPutBytes(msg->payload, msg->payload_ptr);							// payload
 		mqttClient_bufferPutByte(mqttClient_bufferGetChecksum());							// checksum
+
+		mqttClient_bufferConvertToString();
 
 		// TODO definir el QoS
 		if (msg->cmd == IM_CLIENT_CMD_RESP_GET)
@@ -584,6 +623,17 @@ void callback_disconnect (void) {
 }
 
 
+void callback_connection_error (void) {
+	// Se intenta volver a conectar
+	fsmState = FSM_CONNECT_BROKER;
+}
+
+
+void callback_pingreq_error (void) {
+	connectivityManager_interfaceError(connectivityManager_interface);	
+}
+
+
 void callback_subscribe (void) {
 	subscribed = true;
 }
@@ -621,11 +671,16 @@ void callback_receive (MQTTString* topic, MQTTMessage* msg) {
 void connectivity_onChangeCallback (connectivityManager_events evt, connectivityManager_interfaces ifc) {
 	switch (evt) {
 		case connectivityManager_event_change:
-			
+			connectivityManager_nextInterface = ifc;
+			if (ifc == connectivityManager_interface_none) 
+				fsmState = FSM_WAITING_INTERFACE;
+			else			
+				fsmState = FSM_INIT;
 			break;
 			
 		case connectivityManager_event_disconnect_and_change:
-		
+			connectivityManager_nextInterface = ifc;
+			resetConnection = true;
 			break;
 	}
 }
@@ -675,6 +730,8 @@ int client_init (void) {
 		
 		mqtt_conf.callback_connect = callback_connect;
 		mqtt_conf.callback_disconnect = callback_disconnect;
+		mqtt_conf.callback_connection_error = callback_connection_error;
+		mqtt_conf.callback_pingreq_error = callback_pingreq_error;
 		mqtt_conf.callback_subscribe = callback_subscribe;
 		mqtt_conf.callback_unsubscribe = callback_unsubscribe;
 		mqtt_conf.callback_publish = callback_publish;
@@ -847,7 +904,8 @@ void bg96MqttCallback (bg96_mqtt_events evt, void* payload) {
 			
 			switch(mqttError->error) {
 				case mqtt_error_cant_connect:
-					bg96_mqtt_connect();
+					//bg96_resetModule();
+					//fsmState = FSM_INIT;
 					break;
 					
 				case mqtt_error_connection_error:

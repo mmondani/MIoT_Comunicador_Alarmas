@@ -3,6 +3,7 @@
 #define IMCLIENT_H_
 
 #include "MessagePoolManager.h"
+#include "connectivityManager.h"
 
 
 #define BUFFER_IN_N_MESSAGES	5
@@ -18,6 +19,7 @@ void imClient_init (uint8_t* id, uint8_t* pass);
 void imClient_handler (void);
 uint32_t imClient_isClientConnected (void);
 void imClient_resetConnection (void);
+connectivityManager_interfaces imClient_currentInterface (void);
 
 imMessage_t* imClient_getFreeMessageSlot (void);
 void imClient_releaseMessageSlot (imMessage_t* msg);

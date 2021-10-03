@@ -133,7 +133,9 @@ typedef enum {
 typedef enum {
 	mqtt_error_cant_connect = 0,
 	mqtt_error_cant_disconnect,
-	mqtt_error_connection_error
+	mqtt_error_connection_error,
+	mqtt_error_cant_publish,
+	mqtt_error_cant_subscribe
 }bg96_mqtt_errors;
 
 typedef struct {

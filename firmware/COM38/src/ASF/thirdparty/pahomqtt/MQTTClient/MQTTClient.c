@@ -16,6 +16,9 @@
  *******************************************************************************/
 #include "MQTTClient.h"
 
+static uint8_t sendAckErrors = 0;
+
+
 /*Function prototypes to remove build warnings*/
 int deliverMessage(MQTTClient* c, MQTTString* topicName, MQTTMessage* message);
 int keepalive(MQTTClient* c);
@@ -216,7 +219,7 @@ int deliverMessage(MQTTClient* c, MQTTString* topicName, MQTTMessage* message)
 
 int keepalive(MQTTClient* c)
 {
-    int rc = FAILURE;
+    int rc = SUCCESS;
 
     if (c->keepAliveInterval == 0)
     {
@@ -234,6 +237,11 @@ int keepalive(MQTTClient* c)
             int len = MQTTSerialize_pingreq(c->buf, c->buf_size);
             if (len > 0 && (rc = sendPacket(c, len, &timer)) == SUCCESS) // send the ping packet
                 c->ping_outstanding = 1;
+				
+			// TODO se podría contar más de un error en el envío de keepalive y recién ahí dar falla
+			if (rc == FAILURE) {
+				sendAckErrors ++;
+			}
         }
     }
 
@@ -301,12 +309,19 @@ int cycle(MQTTClient* c, Timer* timer)
             c->ping_outstanding = 0;
             break;
     }
-	    
-	// TODO recibir el rc que devuelve la funci?n si se manda el keepalive. As? se puede detectar si no lo pudo mandar
+	
+	
     keepalive(c);
+		
 exit:
     if (rc == SUCCESS)
         rc = packet_type;
+		
+	// TODO ajustar la cantidad de ACK que se toleran perder
+	if (sendAckErrors >= 2) {
+		rc = PINGREQ_SEND_ERROR;
+	}
+	
     return rc;
 }
 
@@ -331,6 +346,10 @@ int MQTTYield(MQTTClient* c, int timeout_ms)
 		else if (cycleRc == CONN_ABORTED) {
 			c->isconnected = false;
 			rc = CONN_ABORTED;
+			break;
+		}
+		else if (cycleRc == PINGREQ_SEND_ERROR) {
+			rc = PINGREQ_SEND_ERROR;
 			break;
 		}
 	} while (!TimerIsExpired(&timer));

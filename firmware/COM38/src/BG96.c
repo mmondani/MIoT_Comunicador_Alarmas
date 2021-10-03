@@ -2177,7 +2177,7 @@ void bg96_handler (void) {
 						flags3.bits.mqttDisconnect = 0;
 						
 						if (mqttCallback != NULL) {
-							mqttErrorPayload.error = mqtt_error_cant_connect;
+							mqttErrorPayload.error = mqtt_error_cant_disconnect;
 							mqttCallback(bg96_mqtt_error, (void*)&mqttErrorPayload);
 						}
 						
@@ -2252,6 +2252,13 @@ void bg96_handler (void) {
 				case module_mqttPublish_waitingPublishOk:
 					if (softTimer_expired(&timerModuleFsm) || serialFlags1.bits.errorReceived || serialFlags1.bits.closedReceived) {
 						// Error al enviar la información
+						flags3.bits.mqttPublish = 0;
+						
+						if (mqttCallback != NULL) {
+							mqttErrorPayload.error = mqtt_error_cant_publish;
+							mqttCallback(bg96_mqtt_error, (void*)&mqttErrorPayload);
+						}
+						
 						module_gotoState(module_idle, module_null);
 					}
 					else if (serialFlags2.bits.mqttPublishOk) {
@@ -2308,6 +2315,13 @@ void bg96_handler (void) {
 				case module_mqttSubscribe_waitingQmtsub:
 					if (softTimer_expired(&timerModuleFsm) || serialFlags1.bits.errorReceived || serialFlags1.bits.closedReceived) {
 						// No se pudo suscribir
+						flags3.bits.mqttSubscribe = 0;
+						
+						if (mqttCallback != NULL) {
+							mqttErrorPayload.error = mqtt_error_cant_subscribe;
+							mqttCallback(bg96_mqtt_error, (void*)&mqttErrorPayload);
+						}
+						
 						module_gotoState(module_idle, module_null);
 					}
 					else if (serialFlags2.bits.mqttSubscribeOk) {

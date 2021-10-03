@@ -45,6 +45,9 @@ static struct usart_module probador_uart_module;
 static struct usart_module console_uart_module;
 static struct usart_module cellular_uart_module;
 
+static blinkingLed_t ledInterface;
+static connectivityManager_interfaces imClient_interface = 0xff;
+
 uint8_t dataH, dataL, dataLayer;
 
 uint8_t sacarLayer (uint8_t dato) ;
@@ -144,6 +147,8 @@ int main(void)
 	printf(STRING_HEADER);
 #endif
 
+    blinkingLed_init(&ledInterface, DUTY_PAL);
+
 	mainTimer_init();
 	mpxh_init();
 	init_leds_button();
@@ -184,11 +189,25 @@ void mainLoop (void) {
 	dateTime_handler();
 	dateTime_fsmPatronTiempo();
 
+    
+    blinkingLed_handler(&ledInterface);
+    if (imClient_interface != imClient_currentInterface()) {
+	    imClient_interface = imClient_currentInterface();
+	    
+	    if (imClient_currentInterface() == connectivityManager_interface_none)
+	    blinkingLed_setPattern(&ledInterface, 0b00000, 0b10000, 100);
+	    else if (imClient_currentInterface() == connectivityManager_interface_wifi)
+	    blinkingLed_setPattern(&ledInterface, 0b00001, 0b10000, 100);
+	    else if (imClient_currentInterface() == connectivityManager_interface_cellular)
+	    blinkingLed_setPattern(&ledInterface, 0b00101, 0b10000, 100);
+    }
+	
+	
 
 	if (mainTimer_expired(TIMER_4MSEG)) {
 		maintTimer_clearExpired(TIMER_4MSEG);
 
-		port_pin_set_output_level(DUTY_PAL, true);
+		//port_pin_set_output_level(DUTY_PAL, true);
 
 		/*****************************************************************************/
 		//  RECEPCIÓN MPXH : 17 bits
@@ -596,5 +615,5 @@ void mainLoop (void) {
 		dateTime_timers1h_handler();
 	}
 	
-	port_pin_set_output_level(DUTY_PAL, false);
+	//port_pin_set_output_level(DUTY_PAL, false);
 }

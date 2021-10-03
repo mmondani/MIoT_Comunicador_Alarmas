@@ -84,7 +84,7 @@ void connectivityManager_handler (void) {
 			fsmState = FSM_HAY_WIFI;
 			
 			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_change, connectivityManager_interface_wifi);
+			changeCallback(connectivityManager_event_disconnect_and_change, connectivityManager_interface_wifi);
 		}
 		else if (cellularManager_isInternetConnected() == 0 || error_celular) {
 			fsmState = FSM_WAITING;
@@ -104,13 +104,13 @@ void connectivityManager_setChangeCallback (void (*cb)(connectivityManager_event
 	changeCallback = cb;
 }
 
-
-void connectivityManager_setErrorWifi (void) {
-	error_wifi = true;
-}
-
-
-
-void connectivityManager_setErrorCelular (void) {
-	error_celular = true;
+void connectivityManager_interfaceError (connectivityManager_interfaces inter) {
+	if (inter == connectivityManager_interface_wifi) {
+		error_wifi = true;
+		softTimer_init(&timerErrorWifi, 1000*60*15);
+	}
+	else if (inter == connectivityManager_interface_cellular) {
+		error_celular = true;
+		softTimer_init(&timerErrorCelular, 1000*60*15);
+	}
 }

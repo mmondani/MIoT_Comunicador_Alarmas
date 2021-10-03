@@ -20,8 +20,7 @@ typedef enum {
 void connectivityManager_init (void);
 void connectivityManager_handler (void);
 void connectivityManager_setChangeCallback (void (*cb)(connectivityManager_events, connectivityManager_interfaces));
-void connectivityManager_setErrorWifi (void);
-void connectivityManager_setErrorCelular (void);
+void connectivityManager_interfaceError (connectivityManager_interfaces inter);
 int32_t cellularFsm_getPdpContext (void);
 int32_t cellularFsm_getSslContext (void);
 
