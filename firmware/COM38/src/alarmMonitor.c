@@ -1518,12 +1518,14 @@ void parsear4bx (uint8_t dataL, uint8_t layer)
 					bit_clear(mandandoCambioModoAEstoy,layer);
 					
 					// una vez cambiado el MODO mando el código que tenía guardado
-					for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
+					if (largoCodigoUsuarioAMandar > 0) {
+						for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
 						bufferTeclas[i] = codigoUsuarioAMandar[i];
 						
-					ptrTeclas = 0;
-					lenTeclas = largoCodigoUsuarioAMandar;
-					bit_set(mandarTeclas,layer);
+						ptrTeclas = 0;
+						lenTeclas = largoCodigoUsuarioAMandar;
+						bit_set(mandarTeclas,layer);
+					}
 				}
 				else if (bit_test(mandandoCambioModoAMeVoy,layer)) {
 					bufferTeclas[0] = 0x0d;
@@ -1550,12 +1552,14 @@ void parsear4bx (uint8_t dataL, uint8_t layer)
 					bit_clear(mandandoCambioModoAMeVoy,layer);
 					
 					// una vez cambiado el MODO mando el código que tenía guardado
-					for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
+					if (largoCodigoUsuarioAMandar > 0) {
+						for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
 						bufferTeclas[i] = codigoUsuarioAMandar[i];
 						
-					ptrTeclas = 0;
-					lenTeclas = largoCodigoUsuarioAMandar;
-					bit_set(mandarTeclas,layer);
+						ptrTeclas = 0;
+						lenTeclas = largoCodigoUsuarioAMandar;
+						bit_set(mandarTeclas,layer);
+					}
 				}
 			}
 				

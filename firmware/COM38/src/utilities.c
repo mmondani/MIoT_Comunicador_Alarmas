@@ -244,11 +244,34 @@ uint8_t traducirHexaACaracter (uint8_t hexa)
 }
 
 
+uint8_t traducirCaracterAHexa (uint8_t c)
+{
+	uint8_t ret = 0;
+	
+	if (c >= '0' && c <= '9')
+	ret = c - '0';
+	else if (c >= 'A' && c <= 'F')
+	ret = c - 'A' + 0x0A;
+	
+	return ret;
+}
+
+
 void convertNumberToHexString (uint8_t* string, uint8_t number) {
 	string[0] = traducirHexaACaracter((number & 0xF0) >> 4);
 	string[1] = traducirHexaACaracter(number & 0x0F);
 }
 
+
+uint8_t convertHexStringToNumber (uint8_t* string) {
+	uint8_t number = 0;
+	
+	uint8_t num0 = traducirCaracterAHexa(string[0]);
+	uint8_t num1 = traducirCaracterAHexa(string[1]);
+	number = (num0 << 4) | num1;
+	
+	return number;
+}
 
 
 void enableWDT (void)

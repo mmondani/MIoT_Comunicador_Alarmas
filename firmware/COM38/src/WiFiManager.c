@@ -36,6 +36,7 @@ static bool stateIn = true;
 static bool stateOut = false;
 static tstrM2MAPConfig apConfig;
 static SoftTimer_t fsmTimer;
+static SoftTimer_t timerApMode;
 static stopWatch_t stopWatchPushButton;
 static tstrM2MProvisionInfo provisioningInfo;
 static bool provisioningInfoAvailable = false;
@@ -451,6 +452,7 @@ void wifiManager_ProvisioningFsmHandler (void)
 				createServerSocket();
 				
 				softTimer_init(&fsmTimer, 30000);
+				softTimer_init(&timerApMode, 1000*60*5);
 				
 #ifdef DEBUG_PRINTF
 				printf ("wifiManager - escuchando conexiones\n\r");
@@ -466,6 +468,13 @@ void wifiManager_ProvisioningFsmHandler (void)
 					disableAp();
 					provisioningFsm_gotoState(fsmProvisioning_chequearWiFiPrevio);
 				}
+			}
+			
+			if (softTimer_expired(&timerApMode) && apClientsCount == 0 && chequearWiFiPrevio == false) {
+				// Aunque chequearWiFiPrevio esté en false, ya pasaron 5 minutos con el AP encendido y no pasó nada.
+				deleteServerSocket();
+				disableAp();
+				provisioningFsm_gotoState(fsmProvisioning_chequearWiFiPrevio);
 			}
 
 			if (pushButtonPressed5s == true) {

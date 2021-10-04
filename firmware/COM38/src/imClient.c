@@ -60,6 +60,7 @@ static uint8_t buffIn[300];
 static uint8_t buffOut[300];
 static uint8_t toAux[4];
 static uint8_t auxBuffer[30];
+static uint8_t auxBufferRx[50];
 
 static connectivityManager_events connectivityManager_event = connectivityManager_event_none;
 static connectivityManager_interfaces connectivityManager_interface = connectivityManager_interface_none;
@@ -261,7 +262,7 @@ void imClient_handler (void)
 	switch (fsmState) {
 		
 		case FSM_WAITING_INTERFACE:
-		
+			connectivityManager_interface = connectivityManager_nextInterface;
 			break;
 			
 			
@@ -447,7 +448,7 @@ void imClient_handler (void)
 					lastWillTopic,
 					"online",
 					6,
-					0,
+					1,
 					1);
 					
 				softTimer_init(&timerResponseTimeout, 2000);
@@ -516,7 +517,7 @@ static void generateFrameToSend (imMessage_t* msg)
 			auxBuffer,
 			mqttClient_getBuffer(),
 			mqttClient_getBufferLen(),
-			0,
+			1,
 			0);
 	}
 	else if (connectivityManager_interface == connectivityManager_interface_cellular) {
@@ -548,7 +549,7 @@ static void generateFrameToSend (imMessage_t* msg)
 			auxBuffer,
 			bg96_mqtt_getBuffer(),
 			bg96_mqtt_getBufferLen(),
-			0,
+			1,
 			0);
 	}
 	
@@ -653,14 +654,19 @@ void callback_receive (MQTTString* topic, MQTTMessage* msg) {
 	uint32_t sum = 0;
 	uint8_t* payload = (uint8_t*)msg->payload;
 	
+	for (int i = 0, j = 0; i < msg->payloadlen; j ++) {
+		auxBufferRx[j] = convertHexStringToNumber(&(msg->payload[i]));
+		i += 2;
+	}
+	
 	// Se chequea el checksum
-	for (int i = 0; i < msg->payloadlen; i++) {
-		sum += payload[i];
+	for (int i = 0; i < msg->payloadlen / 2; i++) {
+		sum += auxBufferRx[i];
 	}
 	
 	if ((sum & 0x000000ff) == 0xff) {
 		// Está bien el checksum
-		parseMessageIn(msg->payload);
+		parseMessageIn(auxBufferRx);
 	}
 	else {
 		// Hay un error en el checksum
@@ -880,14 +886,19 @@ void bg96MqttCallback (bg96_mqtt_events evt, void* payload) {
 			uint32_t sum = 0;
 			uint8_t* payload = mqttMsgReceived->data;
 				
+			for (int i = 0, j = 0; i < mqttMsgReceived->length; j ++) {
+				auxBufferRx[j] = convertHexStringToNumber(&(payload[i]));
+				i += 2;
+			}	
+				
 			// Se chequea el checksum
-			for (int i = 0; i < mqttMsgReceived->length; i++) {
-				sum += payload[i];
+			for (int i = 0; i < mqttMsgReceived->length / 2; i++) {
+				sum += auxBufferRx[i];
 			}
 				
 			if ((sum & 0x000000ff) == 0xff) {
 				// Está bien el checksum
-				parseMessageIn(payload);
+				parseMessageIn(auxBufferRx);
 			}
 			else {
 				// Hay un error en el checksum

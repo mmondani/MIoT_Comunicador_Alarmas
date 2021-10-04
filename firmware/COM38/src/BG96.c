@@ -269,6 +269,9 @@ static union SerialFlags2{
 /**************************************************************/
 // FSM el manejo del BG96
 /**************************************************************/
+#define SEND_COMMAND_RETRY_TIME		1000
+
+
 typedef enum    {
 	module_idle = 0,
 	module_init,
@@ -455,6 +458,7 @@ static bool module_waitingPrompt (void);
 SoftTimer_t timerModuleFsm;
 SoftTimer_t timerModuleFsmTimeout;
 SoftTimer_t softtimertimerRetryConnectInternet;
+SoftTimer_t timerRetrySendCommand;
 uint8_t module_aux1;
 uint8_t module_auxBuffer1[10];
 
@@ -652,6 +656,9 @@ void bg96_handler (void) {
 		softTimer_restart(&timerTestModule);
 		flags2.bits.testModule = 1;
 	}
+	
+	if (softTimer_expired(&timerRetrySendCommand) == 0)
+		return;
 	
 	switch(module_state) {
 		case module_idle:
@@ -2830,7 +2837,7 @@ void handleError (void) {
 	
 	numberOfModuleErrors ++;
 	
-	if (numberOfModuleErrors >= 8) {
+	if (numberOfModuleErrors >= 4) {
 		switch(module_state) {
 			case module_init:
 				flags.bits.moduleOn = 0;
@@ -2872,7 +2879,8 @@ void handleError (void) {
 				break;
 				
 			case module_receiveData:
-			
+				
+				module_gotoState(module_idle, module_null);
 				break;
 				
 			case module_openSslContext:
@@ -2929,27 +2937,27 @@ void handleError (void) {
 		switch(module_state) {
 			case module_init:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 			
 			case module_register:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 			
 			case module_connectToInternet:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 			
 			case module_testModule:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_openSocket:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_closeSocket:
@@ -2957,53 +2965,56 @@ void handleError (void) {
 					// Vuelvo a idle para volver a intentar cerrarlo
 					module_gotoState(module_idle, module_null);
 				}
-				else
+				else {
+					softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 					module_gotoPrevSubState();
+				}
 					
 				break;
 				
 			case module_sendData:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_receiveData:
-			
+				module_gotoPrevSubState();
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_openSslContext:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_changeNetworks:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_changeBands:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 			
 			case module_mqttConfigure:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_mqttConnect:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_mqttDisconnect:
 				module_gotoPrevSubState();
-				
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 				
 			case module_mqttPublish:
 				module_gotoPrevSubState();
-			
+				softTimer_init(&timerRetrySendCommand, SEND_COMMAND_RETRY_TIME);
 				break;
 		}
 	}

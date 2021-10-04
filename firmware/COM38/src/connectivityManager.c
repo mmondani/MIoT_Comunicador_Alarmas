@@ -30,33 +30,39 @@ void connectivityManager_init (void) {
 void connectivityManager_handler (void) {
 	
 	if (softTimer_expired(&timerErrorWifi))
-	error_wifi = false;
-	
+		error_wifi = false;
+		
 	if (softTimer_expired(&timerErrorCelular))
-	error_celular = false;
-	
+		error_celular = false;
+		
 	
 	switch(fsmState) {
 		case FSM_INIT:
-		fsmState = FSM_WAITING;
-		break;
+			fsmState = FSM_WAITING;
+			break;
 		
 		
 		case FSM_WAITING:
-		if (wifiManager_isWiFiConnected() && !error_wifi) {
-			fsmState = FSM_HAY_WIFI;
+			if (wifiManager_isWiFiConnected() && !error_wifi) {
+				fsmState = FSM_HAY_WIFI;
+				
+				if (changeCallback != NULL)
+					changeCallback(connectivityManager_event_change, connectivityManager_interface_wifi);
+			}
+			else if (cellularManager_isInternetConnected() && !error_celular) {
+				fsmState = FSM_HAY_CELULAR;
+				
+				// Se fuerza un error de Wi-Fi para que no intente conectarse por Wi-Fi al toque de que se conectó
+				// por celular
+				error_wifi = true;
+				softTimer_init(&timerErrorWifi, 1000*60*15);
+				                
+				
+				if (changeCallback != NULL)
+					changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
+			}
 			
-			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_change, connectivityManager_interface_wifi);
-		}
-		else if (cellularManager_isInternetConnected() && !error_celular) {
-			fsmState = FSM_HAY_CELULAR;
-			
-			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
-		}
-		
-		break;
+			break;
 		
 		case FSM_HAY_WIFI:
 		if (wifiManager_isWiFiConnected() == 0 || error_wifi) {
@@ -66,7 +72,7 @@ void connectivityManager_handler (void) {
 				softTimer_init(&timerErrorWifi, 1000*60*15);
 				
 				if (changeCallback != NULL)
-				changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
+					changeCallback(connectivityManager_event_change, connectivityManager_interface_cellular);
 			}
 			else {
 				fsmState = FSM_WAITING;
@@ -74,28 +80,29 @@ void connectivityManager_handler (void) {
 				softTimer_init(&timerErrorWifi, 1000*60*1);
 				
 				if (changeCallback != NULL)
-				changeCallback(connectivityManager_event_change, connectivityManager_interface_none);
+					changeCallback(connectivityManager_event_change, connectivityManager_interface_none);
 			}
 		}
 		break;
 		
 		case FSM_HAY_CELULAR:
-		if (wifiManager_isWiFiConnected() && !error_wifi) {
-			fsmState = FSM_HAY_WIFI;
-			
-			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_disconnect_and_change, connectivityManager_interface_wifi);
-		}
-		else if (cellularManager_isInternetConnected() == 0 || error_celular) {
-			fsmState = FSM_WAITING;
-			
-			softTimer_init(&timerErrorCelular, 1000*60*1);
-			
-			if (changeCallback != NULL)
-			changeCallback(connectivityManager_event_change, connectivityManager_interface_none);
-			
-		}
-		break;
+			if (wifiManager_isWiFiConnected() && !error_wifi) {
+				fsmState = FSM_HAY_WIFI;
+				
+				if (changeCallback != NULL)
+					changeCallback(connectivityManager_event_disconnect_and_change, connectivityManager_interface_wifi);
+			}
+			else if (cellularManager_isInternetConnected() == 0 || error_celular) {
+				fsmState = FSM_WAITING;
+				
+				softTimer_init(&timerErrorCelular, 1000*60*1);
+				softTimer_init(&timerErrorWifi, 1000*60*1);
+				
+				if (changeCallback != NULL)
+					changeCallback(connectivityManager_event_change, connectivityManager_interface_none);
+				
+			}
+			break;
 	}
 }
 
