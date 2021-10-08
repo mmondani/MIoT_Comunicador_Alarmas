@@ -84,7 +84,10 @@ uint8_t getPdpContextArrayIndex (uint8_t contextId);
 typedef struct {
 	bool free;
 	uint8_t contextId;		// Va de 0 a 5
+	uint8_t secLevel;
 	uint8_t caCertName[20];
+	uint8_t clientCertName[20];
+	uint8_t clientKeyName[20];
 	bool opened;
 	bool open;
 	bool alreadyTryToOpen;
@@ -158,6 +161,7 @@ uint8_t getSocketArrayIndex(uint8_t socketId);
 /**************************************************************/
 // MQTT
 /**************************************************************/
+#define BG96_MQTT_TOPIC_MAX_LENGTH		40
 typedef struct {
 	bg96_mqtt_configuration_t config;
 	
@@ -171,7 +175,7 @@ typedef struct {
 	bool unsibscribe;
 	bool publish;
 	
-	uint8_t topicToSend[20];
+	uint8_t topicToSend[BG96_MQTT_TOPIC_MAX_LENGTH];
 	uint8_t msgToSend[100];
 	uint8_t msgToSend2[200];
 	uint8_t msgToSend_ptr;
@@ -179,11 +183,11 @@ typedef struct {
 	uint8_t qos;
 	bool retain;
 	
-	uint8_t topicReceived[20];
+	uint8_t topicReceived[BG96_MQTT_TOPIC_MAX_LENGTH];
 	uint8_t msgReceived[100];
 	uint8_t msgReceivedLen;
 	
-	uint8_t topicToSubscribe[20];
+	uint8_t topicToSubscribe[BG96_MQTT_TOPIC_MAX_LENGTH];
 	uint8_t qosToSubscribe;
 }bg96Mqtt_t;
 
@@ -393,8 +397,15 @@ typedef enum    {
 	module_receive_waitingReceiveOk,
 	module_openSslContext_init,
 	module_openSslContext_waitInitialDelay,
-	module_openSslContext_sendQsslcfg,
-	module_openSslContext_waitingQsslcfgOk,
+	module_openSslContext_sendQsslcfgSecLevel,
+	module_openSslContext_waitingQsslcfgSecLevelOk,
+	module_openSslContext_sendQsslcfgCaCert,
+	module_openSslContext_waitingQsslcfgCaCertOk,
+	module_openSslContext_sendQsslcfgClientCert,
+	module_openSslContext_waitingQsslcfgClientCertOk,
+	module_openSslContext_sendQsslcfgClientKey,	
+	module_openSslContext_contextOpened,
+	module_openSslContext_waitingQsslcfgClientKeyOk,
 	module_changeNetworks_sendNewscanmode,
 	module_changeNetworks_waitingSendNewscanmodeOk,
 	module_changeBands_sendQcfgBand,
@@ -1484,40 +1495,101 @@ void bg96_handler (void) {
 							module_gotoState(module_idle, module_null);
 						}
 						else {
-							module_gotoSubstate(module_openSslContext_sendQsslcfg);
+							module_gotoSubstate(module_openSslContext_sendQsslcfgSecLevel);
 						}
 					}
 					break;
 					
-				case module_openSslContext_sendQsslcfg:
-					uartRB_writeString(&uartRB , bg96_qsslcfg);
+				case module_openSslContext_sendQsslcfgSecLevel:
+					uartRB_writeString(&uartRB , bg96_qsslcfgSecLevel);
+					uartRB_writeByte(&uartRB, sslContextIdOpen->contextId + '0');
+					uartRB_writeByte(&uartRB, ',');
+					uartRB_writeByte(&uartRB, sslContextIdOpen->secLevel + '0');
+					uartRB_writeByte(&uartRB, '\r');
+					
+					module_gotoSubstateWithTimeOut(module_openSslContext_waitingQsslcfgSecLevelOk, 16000);
+					break;
+					
+				case module_openSslContext_waitingQsslcfgSecLevelOk:
+					if (module_waitingOk()) {
+						module_gotoSubstate(module_openSslContext_sendQsslcfgCaCert);
+					}
+					break;
+					
+				case module_openSslContext_sendQsslcfgCaCert:
+					uartRB_writeString(&uartRB , bg96_qsslcfgCaCert);
 					uartRB_writeByte(&uartRB, sslContextIdOpen->contextId + '0');
 					uartRB_writeString(&uartRB, bg96_separador3);
 					uartRB_writeString(&uartRB, sslContextIdOpen->caCertName);
 					uartRB_writeByte(&uartRB, '"');
 					uartRB_writeByte(&uartRB, '\r');
 					
-					module_gotoSubstateWithTimeOut(module_openSslContext_waitingQsslcfgOk, 16000);
+					module_gotoSubstateWithTimeOut(module_openSslContext_waitingQsslcfgCaCertOk, 16000);
 					break;
 					
-				case module_openSslContext_waitingQsslcfgOk:
+				case module_openSslContext_waitingQsslcfgCaCertOk:
 					if (module_waitingOk()) {
-						// Se pudo abrir el contexto de SSL
-						sslContextIdOpen->alreadyTryToOpen = false;
-						sslContextIdOpen->triesToOpen = 0;
-						sslContextIdOpen->open = false;
-						sslContextIdOpen->opened = true;
-						
-						if (moduleCallback != NULL) {
-							contextStateChangePayload.contextId = getSslContextArrayIndex(sslContextIdOpen->contextId);
-							contextStateChangePayload.state = module_states_context_opened;
-							contextStateChangePayload.isSsl = true;
-							moduleCallback(bg96_module_contextStateChange, (void*)&contextStateChangePayload);
+						if (sslContextIdOpen->clientCertName[0] != '\0' && sslContextIdOpen->clientKeyName[0] != '\0') {
+							module_gotoSubstate(module_openSslContext_sendQsslcfgClientCert);
+						}
+						else {
+							// No hay nada más que configurar en el contexto SSL
+							module_gotoSubstate(module_openSslContext_contextOpened);
 						}
 						
-						flags3.bits.openSslContext = 0;
-						module_gotoState(module_idle, module_null);
 					}
+					break;
+					
+				case module_openSslContext_sendQsslcfgClientCert:
+					uartRB_writeString(&uartRB , bg96_qsslcfgClientCert);
+					uartRB_writeByte(&uartRB, sslContextIdOpen->contextId + '0');
+					uartRB_writeString(&uartRB, bg96_separador3);
+					uartRB_writeString(&uartRB, sslContextIdOpen->clientCertName);
+					uartRB_writeByte(&uartRB, '"');
+					uartRB_writeByte(&uartRB, '\r');
+					
+					module_gotoSubstateWithTimeOut(module_openSslContext_waitingQsslcfgClientCertOk, 16000);
+					break;
+					
+				case module_openSslContext_waitingQsslcfgClientCertOk:
+					if (module_waitingOk()) {
+						module_gotoSubstate(module_openSslContext_sendQsslcfgClientKey);
+					}
+					break;
+					
+				case module_openSslContext_sendQsslcfgClientKey:
+					uartRB_writeString(&uartRB , bg96_qsslcfgClientKey);
+					uartRB_writeByte(&uartRB, sslContextIdOpen->contextId + '0');
+					uartRB_writeString(&uartRB, bg96_separador3);
+					uartRB_writeString(&uartRB, sslContextIdOpen->clientKeyName);
+					uartRB_writeByte(&uartRB, '"');
+					uartRB_writeByte(&uartRB, '\r');
+					
+					module_gotoSubstateWithTimeOut(module_openSslContext_waitingQsslcfgClientKeyOk, 16000);
+					break;
+					
+				case module_openSslContext_waitingQsslcfgClientKeyOk:
+					if (module_waitingOk()) {
+						module_gotoSubstate(module_openSslContext_contextOpened);
+					}
+					break;
+					
+				case module_openSslContext_contextOpened:
+					// Se pudo abrir el contexto de SSL
+					sslContextIdOpen->alreadyTryToOpen = false;
+					sslContextIdOpen->triesToOpen = 0;
+					sslContextIdOpen->open = false;
+					sslContextIdOpen->opened = true;
+						
+					if (moduleCallback != NULL) {
+						contextStateChangePayload.contextId = getSslContextArrayIndex(sslContextIdOpen->contextId);
+						contextStateChangePayload.state = module_states_context_opened;
+						contextStateChangePayload.isSsl = true;
+						moduleCallback(bg96_module_contextStateChange, (void*)&contextStateChangePayload);
+					}
+						
+					flags3.bits.openSslContext = 0;
+					module_gotoState(module_idle, module_null);
 					break;
 					
 			}
@@ -2019,11 +2091,20 @@ void bg96_handler (void) {
 				case module_mqttConnect_sendConn:
 					uartRB_writeString(&uartRB, bg96_mqttConn);
 					uartRB_writeString(&uartRB, mqttClient.config.clientId);
-					uartRB_writeString(&uartRB, bg96_separador);
-					uartRB_writeString(&uartRB, mqttClient.config.user);
-					uartRB_writeString(&uartRB, bg96_separador);
-					uartRB_writeString(&uartRB, mqttClient.config.password);
 					uartRB_writeByte(&uartRB, '\"');
+					
+					if (mqttClient.config.user != NULL && mqttClient.config.user[0] != '\0') {
+						uartRB_writeString(&uartRB, bg96_separador3);
+						uartRB_writeString(&uartRB, mqttClient.config.user);
+						uartRB_writeByte(&uartRB, '\"');
+					}
+					
+					if (mqttClient.config.password != NULL && mqttClient.config.password[0] != '\0') {
+						uartRB_writeString(&uartRB, bg96_separador3);
+						uartRB_writeString(&uartRB, mqttClient.config.password);
+						uartRB_writeByte(&uartRB, '\"');
+					}
+					
 					uartRB_writeByte(&uartRB, '\r');
 					
 					module_gotoSubstateWithTimeOut(module_mqttConnect_waitingConnOk, 1500);
@@ -2490,7 +2571,7 @@ int8_t bg96_getPdpContext (uint8_t* customApn, uint8_t* customApnUser, uint8_t* 
 }
 
 
-int8_t bg96_getSslContext (uint8_t* caCert) {
+int8_t bg96_getSslContext (uint8_t* caCert, uint8_t* clientCert, uint8_t* clientKey, uint8_t secLevel) {
 	uint32_t i;
 	int32_t ret = -1;
 	
@@ -2503,8 +2584,22 @@ int8_t bg96_getSslContext (uint8_t* caCert) {
 			sslContexts[i].alreadyTryToOpen = false;
 			sslContexts[i].triesToOpen = 0;
 			
+			sslContexts[i].secLevel = secLevel;
+			
 			for (uint32_t j = 0; j < 20 && caCert[j] != '\0'; j++)
 				sslContexts[i].caCertName[j] = caCert[j];
+				
+			if (clientCert != NULL && clientKey != NULL) {
+				for (uint32_t j = 0; j < 20 && clientCert[j] != '\0'; j++)
+					sslContexts[i].clientCertName[j] = clientCert[j];
+					
+				for (uint32_t j = 0; j < 20 && clientCert[j] != '\0'; j++)
+					sslContexts[i].clientKeyName[j] = clientKey[j];
+			}
+			else {
+				sslContexts[i].clientCertName[0] = '\0';
+				sslContexts[i].clientKeyName[0] = '\0';
+			}
 
 			ret = i;
 			break;
@@ -4276,13 +4371,13 @@ void readSerialPort (void) {
 							
 						case serialPort_mqttRec_receivingTopic:
 							if (data != '\"') {
-								if (aux < 20) {
+								if (aux < BG96_MQTT_TOPIC_MAX_LENGTH) {
 									mqttClient.topicReceived[aux] = data;
 									aux ++;
 								}
 							}
 							else {
-								if (aux < 20)
+								if (aux < BG96_MQTT_TOPIC_MAX_LENGTH)
 									mqttClient.topicReceived[aux] = '\0';
 									
 								serialPort_gotoSubstate(serialPort_mqttRec_waitingQuote2);

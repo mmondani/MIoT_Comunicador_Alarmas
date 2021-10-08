@@ -32,6 +32,7 @@ typedef struct
 	uint16_t reg;
 	uint8_t part;
 	dateTime_t timestamp;
+	uint8_t random;
 	uint16_t len;
 	uint8_t payload[MESSAGE_POOL_MESSAGE_MAX_LEN];
 	uint32_t payload_ptr;

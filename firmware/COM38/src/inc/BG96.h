@@ -160,7 +160,7 @@ void bg96_setAll4gBands (bool bands);
 int8_t bg96_getPdpContext (uint8_t* customApn, uint8_t* customApnUser, uint8_t* customApnPassword);
 int32_t bg96_openPdpContext (uint8_t contextId);
 int32_t bg96_closePdpContext (uint8_t contextId);
-int8_t bg96_getSslContext (uint8_t* caCertName);
+int8_t bg96_getSslContext (uint8_t* caCert, uint8_t* clientCert, uint8_t* clientKey, uint8_t secLevel);
 int32_t bg96_openSslContext (uint8_t contextId);
 void bg96_handler (void);
 bool bg96_isBusy (void);

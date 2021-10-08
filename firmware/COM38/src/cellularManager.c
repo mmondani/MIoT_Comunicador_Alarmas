@@ -53,7 +53,19 @@ void cellularManager_init (struct usart_module* uart, bool catM, bool bands4g, u
 	
 	bg96_registerModuleCallback(bg96Callback);
 	pdpContextId = bg96_getPdpContext("","","");
-	sslContextId = bg96_getSslContext("ca-cert.pem");
+	
+	
+#ifdef USE_AWS_MQTT
+
+	sslContextId = bg96_getSslContext("ca-aws.pem", "client.crt", "client.key", 2);
+	
+#else
+
+	sslContextId = bg96_getSslContext("ca-x28.pem", NULL, NULL, 0);
+
+#endif
+	
+	
 	/*
 	bg96_init(bg96_uart_module, catMEnabled, bands4gEnabled, simPin);
 	bg96_registerModuleCallback(bg96Callback);

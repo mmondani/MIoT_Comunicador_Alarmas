@@ -172,6 +172,7 @@ static uint8_t busco_usuario(uint8_t layer);
 static void obtenerEventoYZonaUsuarioDelEvento(uint8_t* evento, uint8_t* zona_usuario);
 static void parsearEventosMpxh (uint8_t dataH, uint8_t dataL, uint8_t layer);
 
+static void armarPayloadGetEstado(imMessage_t* msg, uint8_t layer);
 static void armarPayloadGetInclusion (imMessage_t* msg, uint8_t layer);
 static void armarPayloadGetEstadoZonas (imMessage_t* msg, uint8_t layer);
 static void armarPayloadGetMemoria (imMessage_t* msg, uint8_t layer);
@@ -436,7 +437,7 @@ void alarmMonitor_timers1s_handler (void)
 			//alarmMonitor_armarEventoBateria();
 			for (uint8_t i = 0; i < 8; i++) {
 				if (alarmMonitor_existeLayer(i))
-				alarmMonitor_armarGetEstado(i);
+				alarmMonitor_armarEventEstado(i);
 			}
 			yaMandeMensajeInicial = true;
 		}
@@ -939,77 +940,33 @@ void alarmMonitor_armarGetEstado (uint8_t layer)
 {
 	uint8_t toId[4];
 	imMessage_t* msg = imClient_getFreeMessageSlot();
-	uint8_t* ptrZonasEstado = (uint8_t*)&zonasEstado[layer];
-	uint8_t* ptrZonasMemoria = (uint8_t*)&zonasMemoria[layer];
-	uint8_t* ptrZonasInclusion = (uint8_t*)&zonasInclusion[layer];
-	
+
 	
 	if (msg != NULL) {
-		imClient_putPayloadByte(msg, estadoAlarma[layer]);
-		imClient_putPayloadByte(msg, alarmMonitor_hayRed());
-		imClient_putPayloadByte(msg, alarmMonitor_estadoBateria());
-		imClient_putPayloadByte(msg, alarmMonitor_estadoMpxh());
-		
-		if (bit_test(particionOk, layer))
-			imClient_putPayloadByte(msg, 1);
-		else
-			imClient_putPayloadByte(msg, 0);
-		
-		if (bit_test(sonando, layer))
-			imClient_putPayloadByte(msg, 1);
-		else
-			imClient_putPayloadByte(msg, 0);
-		
-		if (bit_test(ready, layer))
-			imClient_putPayloadByte(msg, 1);
-		else
-			imClient_putPayloadByte(msg, 0);
-		
-		if (tipoCentral.bits.tiene32zonas)
-			imClient_putPayloadByte(msg, 32);
-		else if (tipoCentral.bits.tiene16zonas)
-			imClient_putPayloadByte(msg, 16);
-		else if (tipoCentral.bits.tiene8zonas)
-			imClient_putPayloadByte(msg, 8);
-		else if (tipoCentral.bits.tiene4zonas)
-			imClient_putPayloadByte(msg, 4);
-		else
-			imClient_putPayloadByte(msg, TIPO_CENTRAL_NINGUNO);
-		
-		imClient_putPayloadByte(msg, PROJECT_FIRMWARE_VERSION_MAYOR);
-		imClient_putPayloadByte(msg, PROJECT_FIRMWARE_VERSION_MENOR);
-		imClient_putPayloadByte(msg, *(ptrZonasEstado+3));
-		imClient_putPayloadByte(msg, *(ptrZonasEstado+2));
-		imClient_putPayloadByte(msg, *(ptrZonasEstado+1));
-		imClient_putPayloadByte(msg, *(ptrZonasEstado+0));
-		imClient_putPayloadByte(msg, *(ptrZonasMemoria+3));
-		imClient_putPayloadByte(msg, *(ptrZonasMemoria+2));
-		imClient_putPayloadByte(msg, *(ptrZonasMemoria+1));
-		imClient_putPayloadByte(msg, *(ptrZonasMemoria+0));
-		
-		if (bit_test(estoy, layer))
-			imClient_putPayloadByte(msg, 1);
-		else
-			imClient_putPayloadByte(msg, 0);
-		
-		if (bit_test(meVoy, layer))
-			imClient_putPayloadByte(msg, 1);
-		else
-			imClient_putPayloadByte(msg, 0);
-		
-		imClient_putPayloadByte(msg, *(ptrZonasInclusion+3));
-		imClient_putPayloadByte(msg, *(ptrZonasInclusion+2));
-		imClient_putPayloadByte(msg, *(ptrZonasInclusion+1));
-		imClient_putPayloadByte(msg, *(ptrZonasInclusion+0));
-		imClient_putPayloadByte(msg, zonasCondicionalTemporizada[layer]);
-		
+		armarPayloadGetEstado(msg, layer);
 
-		
 		toId[0] = pgaData[PGA_ID_DISPOSITIVO];
 		toId[1] = pgaData[PGA_ID_DISPOSITIVO+1];
 		toId[2] = pgaData[PGA_ID_DISPOSITIVO+2];
 		toId[3] = pgaData[PGA_ID_DISPOSITIVO+3];
 		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_RESP_GET, IM_CLIENT_REG_ESTADO, layer, 0);
+	}
+}
+
+
+void alarmMonitor_armarEventEstado (uint8_t layer)
+{
+	uint8_t toId[4];
+	imMessage_t* msg = imClient_getFreeMessageSlot();
+	
+	if (msg != NULL) {
+		armarPayloadGetEstado(msg, layer);
+		
+		toId[0] = pgaData[PGA_ID_DISPOSITIVO];
+		toId[1] = pgaData[PGA_ID_DISPOSITIVO+1];
+		toId[2] = pgaData[PGA_ID_DISPOSITIVO+2];
+		toId[3] = pgaData[PGA_ID_DISPOSITIVO+3];
+		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_EVENT, IM_CLIENT_REG_ESTADO, layer, 0);
 	}
 }
 
@@ -1119,6 +1076,75 @@ void alarmMonitor_armarEventoSonandoReady (void)
 		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_EVENT, IM_CLIENT_REG_SONANDO_READY, 0, 0);
 	}
 }
+
+
+
+void armarPayloadGetEstado(imMessage_t* msg, uint8_t layer) 
+{
+	uint8_t* ptrZonasEstado = (uint8_t*)&zonasEstado[layer];
+	uint8_t* ptrZonasMemoria = (uint8_t*)&zonasMemoria[layer];
+	uint8_t* ptrZonasInclusion = (uint8_t*)&zonasInclusion[layer];
+	
+	
+	imClient_putPayloadByte(msg, estadoAlarma[layer]);
+	imClient_putPayloadByte(msg, alarmMonitor_hayRed());
+	imClient_putPayloadByte(msg, alarmMonitor_estadoBateria());
+	imClient_putPayloadByte(msg, alarmMonitor_estadoMpxh());
+		
+	if (bit_test(particionOk, layer))
+		imClient_putPayloadByte(msg, 1);
+	else
+		imClient_putPayloadByte(msg, 0);
+		
+	if (bit_test(sonando, layer))
+		imClient_putPayloadByte(msg, 1);
+	else
+		imClient_putPayloadByte(msg, 0);
+		
+	if (bit_test(ready, layer))
+		imClient_putPayloadByte(msg, 1);
+	else
+		imClient_putPayloadByte(msg, 0);
+		
+	if (tipoCentral.bits.tiene32zonas)
+		imClient_putPayloadByte(msg, 32);
+	else if (tipoCentral.bits.tiene16zonas)
+		imClient_putPayloadByte(msg, 16);
+	else if (tipoCentral.bits.tiene8zonas)
+		imClient_putPayloadByte(msg, 8);
+	else if (tipoCentral.bits.tiene4zonas)
+		imClient_putPayloadByte(msg, 4);
+	else
+		imClient_putPayloadByte(msg, TIPO_CENTRAL_NINGUNO);
+		
+	imClient_putPayloadByte(msg, PROJECT_FIRMWARE_VERSION_MAYOR);
+	imClient_putPayloadByte(msg, PROJECT_FIRMWARE_VERSION_MENOR);
+	imClient_putPayloadByte(msg, *(ptrZonasEstado+3));
+	imClient_putPayloadByte(msg, *(ptrZonasEstado+2));
+	imClient_putPayloadByte(msg, *(ptrZonasEstado+1));
+	imClient_putPayloadByte(msg, *(ptrZonasEstado+0));
+	imClient_putPayloadByte(msg, *(ptrZonasMemoria+3));
+	imClient_putPayloadByte(msg, *(ptrZonasMemoria+2));
+	imClient_putPayloadByte(msg, *(ptrZonasMemoria+1));
+	imClient_putPayloadByte(msg, *(ptrZonasMemoria+0));
+		
+	if (bit_test(estoy, layer))
+		imClient_putPayloadByte(msg, 1);
+	else
+		imClient_putPayloadByte(msg, 0);
+		
+	if (bit_test(meVoy, layer))
+		imClient_putPayloadByte(msg, 1);
+	else
+		imClient_putPayloadByte(msg, 0);
+		
+	imClient_putPayloadByte(msg, *(ptrZonasInclusion+3));
+	imClient_putPayloadByte(msg, *(ptrZonasInclusion+2));
+	imClient_putPayloadByte(msg, *(ptrZonasInclusion+1));
+	imClient_putPayloadByte(msg, *(ptrZonasInclusion+0));
+	imClient_putPayloadByte(msg, zonasCondicionalTemporizada[layer]);
+}
+
 
 
 void armarPayloadGetSonandoReady (imMessage_t* msg) 
@@ -1327,7 +1353,7 @@ void armarGetReplay(uint8_t layer, bool estaVacio)
 		toId[1] = lastFromIdReceived[1];
 		toId[2] = lastFromIdReceived[2];
 		toId[3] = lastFromIdReceived[3];
-		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_RESP_GET, IM_CLIENT_REG_REPLAY, layer, 0);
+		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_EVENT, IM_CLIENT_REG_REPLAY, layer, 0);
 	}
 }
 
@@ -1371,7 +1397,7 @@ void armarGetEventos(uint8_t layer, uint8_t cantidadEventos)
 		toId[1] = lastFromIdReceived[1];
 		toId[2] = lastFromIdReceived[2];
 		toId[3] = lastFromIdReceived[3];
-		imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_RESP_GET, IM_CLIENT_REG_EVENTOS, layer, 0);
+        imClient_send(msg, toId, MESSAGE_POOL_FLOW_WCOM, IM_CLIENT_CMD_EVENT, IM_CLIENT_REG_EVENTOS, layer, 0);
 	}
 }
 
@@ -1520,7 +1546,7 @@ void parsear4bx (uint8_t dataL, uint8_t layer)
 					// una vez cambiado el MODO mando el código que tenía guardado
 					if (largoCodigoUsuarioAMandar > 0) {
 						for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
-						bufferTeclas[i] = codigoUsuarioAMandar[i];
+							bufferTeclas[i] = codigoUsuarioAMandar[i];
 						
 						ptrTeclas = 0;
 						lenTeclas = largoCodigoUsuarioAMandar;
@@ -1554,7 +1580,7 @@ void parsear4bx (uint8_t dataL, uint8_t layer)
 					// una vez cambiado el MODO mando el código que tenía guardado
 					if (largoCodigoUsuarioAMandar > 0) {
 						for (uint8_t i = 0; i < largoCodigoUsuarioAMandar; i++)
-						bufferTeclas[i] = codigoUsuarioAMandar[i];
+							bufferTeclas[i] = codigoUsuarioAMandar[i];
 						
 						ptrTeclas = 0;
 						lenTeclas = largoCodigoUsuarioAMandar;

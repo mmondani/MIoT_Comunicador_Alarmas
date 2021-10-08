@@ -30,7 +30,7 @@ void pga_checkEeprom (void)
 
     aux = ext_eeprom_read_byte(EE_FLAG_ADDR);
 
-    if (aux != 0x29)
+    if (aux != 0x28)
     {
 	    defaults();
     }
@@ -216,7 +216,7 @@ void defaults (void)
 {
     u8 i;
 
-	pgaData[PGA_FLAG] = 0x29;
+	pgaData[PGA_FLAG] = 0x28;
 
 /*
 	pgaData[EE_ID_DISPOSITIVO] = 0xFF;
@@ -246,36 +246,60 @@ void defaults (void)
 	pgaData[PGA_MONITOREADA] = 0;
 	pgaData[PGA_APP] = 1;
 	
-	pgaData[PGA_BROKER_PORT] = 8884 & 0xFF;
-	pgaData[PGA_BROKER_PORT+1] = (8884 >> 8) & 0xFF;
+	pgaData[PGA_BROKER_PORT] = 8883 & 0xFF;
+	pgaData[PGA_BROKER_PORT+1] = (8883 >> 8) & 0xFF;
 	
 	
+#ifdef USE_AWS_MQTT
+
+	// a34024whcwieqd.iot.sa-east-1.amazonaws.com
+	pgaData[PGA_BROKER_URL+0] = 'a';
+	pgaData[PGA_BROKER_URL+1] = '3';
+	pgaData[PGA_BROKER_URL+2] = '4';
+	pgaData[PGA_BROKER_URL+3] = '0';
+	pgaData[PGA_BROKER_URL+4] = '2';
+	pgaData[PGA_BROKER_URL+5] = '4';
+	pgaData[PGA_BROKER_URL+6] = 'w';
+	pgaData[PGA_BROKER_URL+7] = 'h';
+	pgaData[PGA_BROKER_URL+8] = 'c';
+	pgaData[PGA_BROKER_URL+9] = 'w';
+	pgaData[PGA_BROKER_URL+10] = 'i';
+	pgaData[PGA_BROKER_URL+11] = 'e';
+	pgaData[PGA_BROKER_URL+12] = 'q';
+	pgaData[PGA_BROKER_URL+13] = 'd';
+	pgaData[PGA_BROKER_URL+14] = '.';
+	pgaData[PGA_BROKER_URL+15] = 'i';
+	pgaData[PGA_BROKER_URL+16] = 'o';
+	pgaData[PGA_BROKER_URL+17] = 't';
+	pgaData[PGA_BROKER_URL+18] = '.';
+	pgaData[PGA_BROKER_URL+19] = 's';
+	pgaData[PGA_BROKER_URL+20] = 'a';
+	pgaData[PGA_BROKER_URL+21] = '-';
+	pgaData[PGA_BROKER_URL+22] = 'e';
+	pgaData[PGA_BROKER_URL+23] = 'a';
+	pgaData[PGA_BROKER_URL+24] = 's';
+	pgaData[PGA_BROKER_URL+25] = 't';
+	pgaData[PGA_BROKER_URL+26] = '-';
+	pgaData[PGA_BROKER_URL+27] = '1';
+	pgaData[PGA_BROKER_URL+28] = '.';
+	pgaData[PGA_BROKER_URL+29] = 'a';
+	pgaData[PGA_BROKER_URL+30] = 'm';
+	pgaData[PGA_BROKER_URL+31] = 'a';
+	pgaData[PGA_BROKER_URL+32] = 'z';
+	pgaData[PGA_BROKER_URL+33] = 'o';
+	pgaData[PGA_BROKER_URL+34] = 'n';
+	pgaData[PGA_BROKER_URL+35] = 'a';
+	pgaData[PGA_BROKER_URL+36] = 'w';
+	pgaData[PGA_BROKER_URL+37] = 's';
+	pgaData[PGA_BROKER_URL+38] = '.';
+	pgaData[PGA_BROKER_URL+39] = 'c';
+	pgaData[PGA_BROKER_URL+40] = 'o';
+	pgaData[PGA_BROKER_URL+41] = 'm';
+	pgaData[PGA_BROKER_URL+42] = '\0';
 	
-	/*
-	pgaData[PGA_BROKER_URL+0] = 'b';
-	pgaData[PGA_BROKER_URL+1] = 'r';
-	pgaData[PGA_BROKER_URL+2] = 'o';
-	pgaData[PGA_BROKER_URL+3] = 'k';
-	pgaData[PGA_BROKER_URL+4] = 'e';
-	pgaData[PGA_BROKER_URL+5] = 'r';
-	pgaData[PGA_BROKER_URL+6] = '.';
-	pgaData[PGA_BROKER_URL+7] = 'c';
-	pgaData[PGA_BROKER_URL+8] = 'l';
-	pgaData[PGA_BROKER_URL+9] = 'o';
-	pgaData[PGA_BROKER_URL+10] = 'u';
-	pgaData[PGA_BROKER_URL+11] = 'd';
-	pgaData[PGA_BROKER_URL+12] = 'x';
-	pgaData[PGA_BROKER_URL+13] = '2';
-	pgaData[PGA_BROKER_URL+14] = '8';
-	pgaData[PGA_BROKER_URL+15] = '.';
-	pgaData[PGA_BROKER_URL+16] = 'c';
-	pgaData[PGA_BROKER_URL+17] = 'o';
-	pgaData[PGA_BROKER_URL+18] = 'm';
-	pgaData[PGA_BROKER_URL+19] = '\0';
-	*/
-	
-	
-	
+#else
+
+	// wificom100.dyndns.org
 	pgaData[PGA_BROKER_URL+0] = 'w';
 	pgaData[PGA_BROKER_URL+1] = 'i';
 	pgaData[PGA_BROKER_URL+2] = 'f';
@@ -299,6 +323,7 @@ void defaults (void)
 	pgaData[PGA_BROKER_URL+20] = 'g';
 	pgaData[PGA_BROKER_URL+21] = '\0';
 	
+#endif
 	
 	
 	for (int i = 0; i < 16; i++) {

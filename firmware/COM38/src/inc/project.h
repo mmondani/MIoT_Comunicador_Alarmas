@@ -7,6 +7,9 @@
 #define DEBUG_PRINTF						// Comentar para producción.
 // Cambiar el #define CONF_WINC_DEBUG
 
+/** MQTT */
+#define USE_AWS_MQTT
+
 /** Wi-Fi */
 #define MAIN_M2M_DEVICE_NAME				"COM38_00:00"
 #define MAIN_MAC_ADDRESS                     {0xf8, 0xf0, 0x05, 0x45, 0xD4, 0x84}

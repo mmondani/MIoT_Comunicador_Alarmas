@@ -59,6 +59,7 @@ void alarmMonitor_determinarFinProcesamiento(void);
 bool alarmMonitor_procesandoMensaje(void);
 
 void alarmMonitor_armarGetEstado (uint8_t layer);
+void alarmMonitor_armarEventEstado (uint8_t layer);
 void alarmMonitor_armarEventoOpenClose (uint8_t layer);
 void alarmMonitor_armarEventoRed (void);
 void alarmMonitor_armarEventoBateria (void);

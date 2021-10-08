@@ -12,6 +12,7 @@
 #include "inc/utilities.h"
 #include "inc/connectivityManager.h"
 #include "inc/BG96.h"
+#include "inc/mainTimer.h"
 
 
 enum{
@@ -35,6 +36,7 @@ uint32_t fsmState;
 
 
 static struct mqtt_module mqtt_inst;
+static uint8_t deviceId[10];
 static uint8_t clientId[10];
 static uint8_t password[20];
 static bool published;
@@ -59,8 +61,31 @@ static uint32_t connectToBrokerTries;
 static uint8_t buffIn[300];
 static uint8_t buffOut[300];
 static uint8_t toAux[4];
-static uint8_t auxBuffer[30];
+static uint8_t auxTopic[40];
 static uint8_t auxBufferRx[50];
+
+/**
+  Cada fila del array guarda los datos de un mensaje MQTT recibido.
+  Se van a guardar los últimos RECEIVED_MSG_BUFFER_LEN mensajes recibidos, para 
+  que, cada vez que llega uno nuevo, se compare contra los ya recibidos y se pueda
+  determinar si es un mensaje repetido o no.
+  
+  Las columnas del array son 9. Todos los valores se sacan del header del payload del mensaje MQTT:
+  
+  hora   |   min   |   seg   |   dia   |   mes   |   año   |   comando   |   registro   |   random
+*/
+#define RECEIVED_MSG_BUFFER_LEN			10
+#define RECEIVED_MSG_BUFFER_HORA		0
+#define RECEIVED_MSG_BUFFER_MIN			1
+#define RECEIVED_MSG_BUFFER_SEG			2
+#define RECEIVED_MSG_BUFFER_DIA			3
+#define RECEIVED_MSG_BUFFER_MES			4
+#define RECEIVED_MSG_BUFFER_ANIO		5
+#define RECEIVED_MSG_BUFFER_COMANDO		6
+#define RECEIVED_MSG_BUFFER_REGISTRO	7
+#define RECEIVED_MSG_BUFFER_RANDOM		8
+static uint8_t receivedMsgBuffer[RECEIVED_MSG_BUFFER_LEN][9];
+static uint8_t receivedMsgBuffer_index = 0;
 
 static connectivityManager_events connectivityManager_event = connectivityManager_event_none;
 static connectivityManager_interfaces connectivityManager_interface = connectivityManager_interface_none;
@@ -87,6 +112,9 @@ static void generateFrameToSend (imMessage_t* msg);
 static void parseMessageIn (uint8_t* data);
 static void connectivity_onChangeCallback (connectivityManager_events evt, connectivityManager_interfaces ifc);
 static void bg96MqttCallback (bg96_mqtt_events evt, void* payload);
+static bool messageIsDuplicated (imMessage_t* msg);
+static void getEventTopic(uint16_t reg, uint8_t* topic, uint8_t* id);
+
 
 
 void imClient_init (uint8_t* id, uint8_t* pass)
@@ -97,21 +125,41 @@ void imClient_init (uint8_t* id, uint8_t* pass)
 	
 	softTimer_init(&timerCheckConnection, 1000);
 	
+	
+#ifdef USE_AWS_MQTT
+
+	for (int i = 0; i < 4; i++) {
+		deviceId[2*i] = traducirHexaACaracter((id[i] & 0xF0) >> 4);
+		deviceId[2*i+1] = traducirHexaACaracter(id[i] & 0x0F);	
+	}
+	deviceId[8] = '\0';
+	
+	clientId[0] = '\0';
+	password[0] = '\0';
+	
+#else
+
 	for (int i = 0; i < 4; i++) {
 		clientId[2*i] = traducirHexaACaracter((id[i] & 0xF0) >> 4);
-		clientId[2*i+1] = traducirHexaACaracter(id[i] & 0x0F);	
+		clientId[2*i+1] = traducirHexaACaracter(id[i] & 0x0F);
+		
+		deviceId[2*i] = traducirHexaACaracter((id[i] & 0xF0) >> 4);
+		deviceId[2*i+1] = traducirHexaACaracter(id[i] & 0x0F);
 	}
 	clientId[8] = '\0';
+	deviceId[8] = '\0';
 	
 	for (int i = 0; i < 16; i++)
 		password[i] = pass[i];
+	
+#endif	
 		
 	// Last will
-	sprintf(lastWillTopic, "%s/status", clientId);
+	sprintf(lastWillTopic, "%s/status", deviceId);
 	sprintf(lastWillMessage, "offline");
 	
 	// Suscripciones
-	sprintf(subscribeTopic, "%s/cmd", clientId);
+	sprintf(subscribeTopic, "%s/cmd", deviceId);
 		
 	
 	needToSendLoginMessage = false;
@@ -345,7 +393,7 @@ void imClient_handler (void)
 					"offline",
 					7,
 					1,
-					1);
+					0);
 				
 				softTimer_init(&timerResponseTimeout, 2000);
 				fsmState = FSM_WAIT_STATUS_OFFLINE_ACK;
@@ -449,7 +497,7 @@ void imClient_handler (void)
 					"online",
 					6,
 					1,
-					1);
+					0);
 					
 				softTimer_init(&timerResponseTimeout, 2000);
 				fsmState = FSM_WAIT_STATUS_ONLINE_ACK;
@@ -500,21 +548,25 @@ static void generateFrameToSend (imMessage_t* msg)
 		mqttClient_bufferPutByte(msg->timestamp.horas);										// Hora: horas
 		mqttClient_bufferPutByte(msg->timestamp.minutos);									// Hora: minutos
 		mqttClient_bufferPutByte(msg->timestamp.segundos);									// Hora: segundos
+		mqttClient_bufferPutByte(maintTimer_getRandom1());									// Random
 		mqttClient_bufferPutBytes((uint8_t*)&(len), 2);										// largo
 		mqttClient_bufferPutBytes(msg->payload, msg->payload_ptr);							// payload
 		mqttClient_bufferPutByte(mqttClient_bufferGetChecksum());							// checksum
 
 		mqttClient_bufferConvertToString();
 
-		// TODO definir el QoS
 		if (msg->cmd == IM_CLIENT_CMD_RESP_GET)
-			sprintf(auxBuffer, "%s/resp", clientId);
+			sprintf(auxTopic, "%s/resp", deviceId);
+		else if (msg->cmd == IM_CLIENT_CMD_PEDIR_FYH)
+			sprintf(auxTopic, "%s/event/pedir_fh", deviceId);
+		else if (msg->cmd == IM_CLIENT_CMD_RESET_CLAVES)
+			sprintf(auxTopic, "%s/event/reset_claves", deviceId);
 		else
-			sprintf(auxBuffer, "%s/event", clientId);
+			getEventTopic(msg->reg, auxTopic, deviceId);
 
 
 		client_publish (
-			auxBuffer,
+			auxTopic,
 			mqttClient_getBuffer(),
 			mqttClient_getBufferLen(),
 			1,
@@ -532,21 +584,25 @@ static void generateFrameToSend (imMessage_t* msg)
 		bg96_mqtt_bufferPutByte(msg->timestamp.horas);									// Hora: horas
 		bg96_mqtt_bufferPutByte(msg->timestamp.minutos);								// Hora: minutos
 		bg96_mqtt_bufferPutByte(msg->timestamp.segundos);								// Hora: segundos
+		bg96_mqtt_bufferPutByte(maintTimer_getRandom1());								// Random
 		bg96_mqtt_bufferPutBytes((uint8_t*)&(len), 2);									// largo
 		bg96_mqtt_bufferPutBytes(msg->payload, msg->payload_ptr);						// payload
 		bg96_mqtt_bufferPutByte(bg96_mqtt_bufferGetChecksum());							// checksum
 		
 		bg96_mqtt_bufferConvertToString();
 
-		// TODO definir el QoS
 		if (msg->cmd == IM_CLIENT_CMD_RESP_GET)
-			sprintf(auxBuffer, "%s/resp", clientId);
+			sprintf(auxTopic, "%s/resp", deviceId);
+		else if (msg->cmd == IM_CLIENT_CMD_PEDIR_FYH)
+			sprintf(auxTopic, "%s/event/pedir_fh", deviceId);
+		else if (msg->cmd == IM_CLIENT_CMD_RESET_CLAVES)
+			sprintf(auxTopic, "%s/event/reset_claves", deviceId);
 		else
-			sprintf(auxBuffer, "%s/event", clientId);
+			getEventTopic(msg->reg, auxTopic, deviceId);
 
 
 		client_publish (
-			auxBuffer,
+			auxTopic,
 			bg96_mqtt_getBuffer(),
 			bg96_mqtt_getBufferLen(),
 			1,
@@ -598,6 +654,9 @@ static void parseMessageIn (uint8_t* data)
 		msg->timestamp.segundos = data[index];
 		index ++;
 		
+		msg->random = data[index];
+		index ++;
+		
 		((uint8_t*)&(msg->len))[0] = data[index];
 		index ++;
 		((uint8_t*)&(msg->len))[1] = data[index];
@@ -608,8 +667,10 @@ static void parseMessageIn (uint8_t* data)
 			index ++;
 		}
 		
-		
-		messagePool_pushInputQueue(0, msg);
+		if (!messageIsDuplicated(msg))
+			messagePool_pushInputQueue(0, msg);
+		else
+			messagePool_releaseSlot(msg);
 	}
 }
 
@@ -725,7 +786,7 @@ int client_init (void) {
 		mqtt_conf.cleanSession = true;
 		mqtt_conf.keepalive = 30;
 		
-		mqtt_conf.clientId = &clientId;
+		mqtt_conf.clientId = &deviceId;
 		mqtt_conf.user = &clientId;
 		mqtt_conf.password = &password;
 		
@@ -764,8 +825,8 @@ int client_init (void) {
 		mqttConfig.cleanSession = true;
 		mqttConfig.keepaliveTime = 30;
 		
-		for (i = 0; i < clientId[i] != '\0' && i < 10; i++)
-			mqttConfig.clientId[i] = clientId[i];
+		for (i = 0; i < deviceId[i] != '\0' && i < 10; i++)
+			mqttConfig.clientId[i] = deviceId[i];
 		mqttConfig.clientId[i] = '\0';
 		
 		for (i = 0; i < clientId[i] != '\0' && i < 10; i++)
@@ -783,6 +844,9 @@ int client_init (void) {
 		for (i = 0; i < lastWillMessage[i] != '\0' && i < 20; i++)
 			mqttConfig.will_msg[i] = lastWillMessage[i];
 		mqttConfig.will_msg[i] = '\0';
+		
+		// En AWS el LWT no puede ser retains
+		mqttConfig.will_retain = false;
 		
 		bg96_mqtt_init(&mqttConfig);
 		
@@ -811,7 +875,9 @@ bool client_isConnected (void) {
 void client_connect (void) {
 	if (connectivityManager_interface == connectivityManager_interface_wifi) {
 		mqttClient_clearSubscriptionHandlers();
-		mqttClient_connect(lastWillTopic, lastWillMessage, 7, 0, 1);
+		
+		// En AWS el LWT no puede ser retain
+		mqttClient_connect(lastWillTopic, lastWillMessage, 7, 0, 0);
 	}
 	else if (connectivityManager_interface == connectivityManager_interface_cellular) {
 		bg96_mqtt_connect();
@@ -821,10 +887,10 @@ void client_connect (void) {
 
 void client_subscribe (void) {
 	if (connectivityManager_interface == connectivityManager_interface_wifi) {
-		mqttClient_subscribe(subscribeTopic, 0);
+		mqttClient_subscribe(subscribeTopic, 1);
 	}
 	else if (connectivityManager_interface == connectivityManager_interface_cellular) {
-		bg96_mqtt_subscribe("5843A135/cmd", 2);
+		bg96_mqtt_subscribe(subscribeTopic, 1);
 	}
 }
 
@@ -928,4 +994,96 @@ void bg96MqttCallback (bg96_mqtt_events evt, void* payload) {
 			break;
 		}
 	}
+}
+
+
+bool messageIsDuplicated (imMessage_t* msg) {
+	bool duplicated = false;
+	
+	// Primero se chequea si el mensaje parseado coincide con alguno de los
+	// recibidos anteriormente
+	for (int i = 0; i < RECEIVED_MSG_BUFFER_LEN; i++) {
+		if (receivedMsgBuffer[RECEIVED_MSG_BUFFER_HORA] != msg->timestamp.horas ||
+			receivedMsgBuffer[RECEIVED_MSG_BUFFER_MIN] != msg->timestamp.minutos ||
+			receivedMsgBuffer[RECEIVED_MSG_BUFFER_SEG] != msg->timestamp.segundos) {
+				
+			duplicated = false;
+		}
+		else if (receivedMsgBuffer[RECEIVED_MSG_BUFFER_DIA] != msg->timestamp.dia ||
+				receivedMsgBuffer[RECEIVED_MSG_BUFFER_MES] != msg->timestamp.mes ||
+				receivedMsgBuffer[RECEIVED_MSG_BUFFER_ANIO] != msg->timestamp.anio) {
+				
+			duplicated = false;
+		}
+		else if (receivedMsgBuffer[RECEIVED_MSG_BUFFER_COMANDO] != msg->cmd ||
+				receivedMsgBuffer[RECEIVED_MSG_BUFFER_REGISTRO] != msg->reg ||
+				receivedMsgBuffer[RECEIVED_MSG_BUFFER_RANDOM] != msg->random) {
+			
+			duplicated = false;
+		}
+		else {
+			duplicated = true;
+			break;
+		}
+	}
+	
+	// Se agrega este nuevo mensaje a receivedMsgBuffer
+	if (!duplicated) {
+		
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_HORA] = msg->timestamp.horas;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_MIN] = msg->timestamp.minutos;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_SEG] = msg->timestamp.segundos;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_DIA] = msg->timestamp.dia;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_MES] = msg->timestamp.mes;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_ANIO] = msg->timestamp.anio;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_COMANDO] = msg->cmd;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_REGISTRO] = msg->reg;
+		receivedMsgBuffer[receivedMsgBuffer_index][RECEIVED_MSG_BUFFER_RANDOM] = msg->random;
+		
+		receivedMsgBuffer_index ++;
+		if (receivedMsgBuffer_index >= 10)
+			receivedMsgBuffer_index = 0;
+	}
+}
+
+
+void getEventTopic(uint16_t reg, uint8_t* topic, uint8_t* id) {
+	switch (reg) {
+		case IM_CLIENT_REG_ESTADO: sprintf(topic, "%s/event/estado", id); break;
+		case IM_CLIENT_REG_OPEN_CLOSE: sprintf(topic, "%s/event/open_close", id); break;
+		case IM_CLIENT_REG_RED: sprintf(topic, "%s/event/red", id); break;
+		case IM_CLIENT_REG_BATERIA: sprintf(topic, "%s/event/bateria", id); break;
+		case IM_CLIENT_REG_ESTADO_MPXH: sprintf(topic, "%s/event/mpxh", id); break;
+		case IM_CLIENT_REG_SONANDO_READY: sprintf(topic, "%s/event/sonando_ready", id); break;
+		case IM_CLIENT_REG_INCLUSION: sprintf(topic, "%s/event/inclusion", id); break;
+		case IM_CLIENT_REG_MEMORIA: sprintf(topic, "%s/event/memoria", id); break;
+		case IM_CLIENT_REG_ESTADO_ZONAS: sprintf(topic, "%s/event/estado_zonas", id); break;
+		case IM_CLIENT_REG_EVENTOS_CUSTOM: sprintf(topic, "%s/event/eventos_custom", id); break;
+		case IM_CLIENT_REG_NODOS: sprintf(topic, "%s/event/nodos", id); break;
+		case IM_CLIENT_REG_USUARIOS: sprintf(topic, "%s/event/usuarios", id); break;
+		case IM_CLIENT_REG_ZONAS: sprintf(topic, "%s/event/zonas", id); break;
+		case IM_CLIENT_REG_PARTICIONES: sprintf(topic, "%s/event/particiones", id); break;
+		case IM_CLIENT_REG_ESTADO_NODOS: sprintf(topic, "%s/event/estado_nodos", id); break;
+		case IM_CLIENT_REG_FECHA: sprintf(topic, "%s/event/fecha", id); break;
+		case IM_CLIENT_REG_HORA: sprintf(topic, "%s/event/hora", id); break;
+		case IM_CLIENT_REG_FECHA_HORA: sprintf(topic, "%s/event/fecha_hora", id); break;
+		case IM_CLIENT_REG_DISPARO: sprintf(topic, "%s/event/disparo", id); break;
+		case IM_CLIENT_REG_CONFIGURACION_NODOS: sprintf(topic, "%s/event/config_nodos", id); break;
+		case IM_CLIENT_REG_CONFIGURACION_TIEMPO: sprintf(topic, "%s/event/config_tiempo", id); break;
+		case IM_CLIENT_REG_CONFIGURACION_ROBO: sprintf(topic, "%s/event/config_robo", id); break;
+		case IM_CLIENT_REG_MENSAJE_TCLD: sprintf(topic, "%s/event/mens_tlcd", id); break;
+		case IM_CLIENT_REG_NOMBRE_COM: sprintf(topic, "%s/event/nombre", id); break;
+        case IM_CLIENT_REG_EVENTOS: sprintf(topic, "%s/event/eventos", id); break;
+        case IM_CLIENT_REG_REPLAY: sprintf(topic, "%s/event/replay", id); break;
+		case IM_CLIENT_REG_EVENTO_CUSTOM: sprintf(topic, "%s/event/evento_custom", id); break;
+		case IM_CLIENT_REG_MENSAJE_MPXH: sprintf(topic, "%s/event/mens_mpxh", id); break;
+		case IM_CLIENT_REG_ESTADO_SENSORES: sprintf(topic, "%s/event/estado_sensor", id); break;
+		case IM_CLIENT_REG_ESTADO_DISPOSITIVOS: sprintf(topic, "%s/event/estado_disp", id); break;
+		case IM_CLIENT_REG_NOMBRES_AUTOMATIZACIONES: sprintf(topic, "%s/event/automatizaciones", id); break;
+		case IM_CLIENT_REG_NODO_TEMPORIZADO: sprintf(topic, "%s/event/nodo_temp", id); break;
+		case IM_CLIENT_REG_CONFIGURACION_MONITOREO: sprintf(topic, "%s/event/config_monit", id); break;
+		case IM_CLIENT_REG_SOCKET_BROKER: sprintf(topic, "%s/event/broker", id); break;
+		default: sprintf(topic, "%s/event", id); break;
+	}
+	
 }
