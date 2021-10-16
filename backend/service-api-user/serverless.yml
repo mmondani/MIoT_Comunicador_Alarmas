@@ -1,0 +1,91 @@
+service:
+  name: service-api-user
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  region: sa-east-1
+  environment:
+    MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
+    MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
+    MAIL_QUEUE_URL: ${self:custom.MailQueue.url}
+    JWT_KEY: ${ssm:/auth/jwt-secret~true}
+    API_BASE_URL: { "Fn::Join" : ["", [" https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}" ] ]  }
+  stage: ${opt:stage, 'dev'}
+  iamRoleStatements:
+  - ${file(iam/SendMailIAM.yml):SendMailIAM}
+  - ${file(iam/MailQueueIAM.yml):MailQueueIAM}
+  
+functions:
+  newUser:
+    handler: src/handlers/users/newUser.handler
+    events:
+      - http:
+          method: POST
+          path: /user
+          cors: true
+
+  login:
+    handler: src/handlers/users/login.handler
+    events:
+      - http:
+          method: POST
+          path: /user/login
+          cors: true
+
+  verifyEmail:
+    handler: src/handlers/users/verifyEmail.handler
+    events:
+      - http:
+          method: GET
+          path: /user/verify-email/{code}
+          cors: true
+
+  sendMail:
+    handler: src/handlers/notifications/sendMail.handler
+    events:
+      - sqs:
+          arn: ${self:custom.MailQueue.arn}
+          batchSize: 1
+
+resources:
+  Resources:
+    MailQueue: ${file(resources/MailQueue.yml):MailQueue}
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+
+custom:
+  MongoDb:
+    connectionString: ${ssm:/db/atlas-connection-string~true}
+    dbName: com38
+  MailQueue:
+    name: MailQueue-${self:provider.stage}
+    arn: !GetAtt MailQueue.Arn
+    url: !Ref MailQueue
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  bundle:
+    linting: false
