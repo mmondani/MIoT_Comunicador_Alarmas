@@ -46,12 +46,50 @@ functions:
           path: /user/verify-email/{code}
           cors: true
 
+  getUsers:
+    handler: src/handlers/users/getUsers.handler
+    events:
+      - http:
+          method: GET
+          path: /user
+          authorizer: auth
+          cors: true
+
+  
+  forgotPassword:
+    handler: src/handlers/users/forgotPassword.handler
+    events:
+      - http:
+          method: POST
+          path: /user/forgot-password
+          cors: true
+
+  recoverPassword:
+    handler: src/handlers/users/recoverPassword.handler
+    events:
+      - http:
+          method: POST
+          path: /user/recover-password
+          cors: true
+
+  changePassword:
+    handler: src/handlers/users/changePassword.handler
+    events:
+      - http:
+          method: POST
+          path: /user/change-password
+          authorizer: auth
+          cors: true
+
   sendMail:
     handler: src/handlers/notifications/sendMail.handler
     events:
       - sqs:
           arn: ${self:custom.MailQueue.arn}
           batchSize: 1
+
+  auth:
+    handler: src/handlers/auth/auth.handler
 
 resources:
   Resources:
