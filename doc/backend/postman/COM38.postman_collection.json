@@ -180,6 +180,47 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "app",
+			"item": [
+				{
+					"name": "Update app token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"appId\": \"d2293293-db06-4a56-a837-ebe7c514202c\",\r\n    \"token\": \"d4xVkkFD0xM:APA91bH1FfX4RhJt1L8IKiyy4hlPk_4knv3SwFzbamJ4UhPmCAuK887dV_ro5sToZX9sw8oRuren-o-6xgpa_DxkInlb_rqRlm5mTBQVac5m5icZyNCvTutqpKSMUOqXcHI1V8cGfB_k\",\r\n    \"email\": \"mmondani89@gmail.com\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/app",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"app"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
