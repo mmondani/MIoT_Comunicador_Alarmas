@@ -26,7 +26,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /app
+          path: /
           authorizer: ${self:custom.Authorizer}
           cors: true
 

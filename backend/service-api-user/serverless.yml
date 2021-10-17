@@ -27,7 +27,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /user
+          path: /
           cors: true
 
   login:
@@ -35,7 +35,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /user/login
+          path: /login
           cors: true
 
   verifyEmail:
@@ -43,7 +43,7 @@ functions:
     events:
       - http:
           method: GET
-          path: /user/verify-email/{code}
+          path: /verify-email/{code}
           cors: true
 
   getUsers:
@@ -51,7 +51,7 @@ functions:
     events:
       - http:
           method: GET
-          path: /user
+          path: /
           authorizer: auth
           cors: true
 
@@ -61,7 +61,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /user/forgot-password
+          path: /forgot-password
           cors: true
 
   recoverPassword:
@@ -69,7 +69,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /user/recover-password
+          path: /recover-password
           cors: true
 
   changePassword:
@@ -77,7 +77,7 @@ functions:
     events:
       - http:
           method: POST
-          path: /user/change-password
+          path: /change-password
           authorizer: auth
           cors: true
 
