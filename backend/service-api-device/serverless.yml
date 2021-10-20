@@ -1,0 +1,78 @@
+service:
+  name: service-api-device
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  region: sa-east-1
+  environment:
+    MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
+    MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
+    API_BASE_URL: { "Fn::Join" : ["", [" https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}" ] ]  }
+  stage: ${opt:stage, 'dev'}
+  
+functions:
+  newDevice:
+    handler: src/handlers/device/newDevice.handler
+    events:
+      - http:
+          method: POST
+          path: /
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  linkUserDevice:
+    handler: src/handlers/device/linkUserDevice.handler
+    events:
+      - http:
+          method: POST
+          path: /link
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  unlinkUserDevice:
+    handler: src/handlers/device/unlinkUserDevice.handler
+    events:
+      - http:
+          method: POST
+          path: /unlink
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+resources:
+  Resources:
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401' 
+
+custom:
+  MongoDb:
+    connectionString: ${ssm:/db/atlas-connection-string~true}
+    dbName: com38
+  Authorizer: arn:aws:lambda:${self:provider.region}:${aws:accountId}:function:service-api-user-${self:provider.stage}-auth
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  bundle:
+    linting: false

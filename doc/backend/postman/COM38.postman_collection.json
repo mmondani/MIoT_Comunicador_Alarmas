@@ -221,6 +221,121 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "device",
+			"item": [
+				{
+					"name": "New device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Link user and device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\",\r\n    \"rol\":\"master\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/link",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"link"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Unlink user and device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/unlink",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"unlink"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

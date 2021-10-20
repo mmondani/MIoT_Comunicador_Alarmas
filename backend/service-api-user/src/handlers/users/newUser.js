@@ -42,7 +42,8 @@ async function newUser(event, context) {
     fechaCreacion: now.toISOString(),
     verificado: false,
     codigoVerificacion: uuid(),
-    apps:[]
+    apps:[],
+    comunicadores:[]
   }
 
   try {
