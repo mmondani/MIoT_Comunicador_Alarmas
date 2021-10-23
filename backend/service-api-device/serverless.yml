@@ -252,6 +252,16 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  getEvents:
+    handler: src/handlers/device/getEvents.handler
+    events:
+      - http:
+          method: GET
+          path: /events/{comId}/{particion}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+
 resources:
   Resources:
     GatewayResponse:

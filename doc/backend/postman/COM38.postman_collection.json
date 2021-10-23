@@ -1165,6 +1165,41 @@
 							"response": []
 						}
 					]
+				},
+				{
+					"name": "events",
+					"item": [
+						{
+							"name": "Get events",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/events/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"events",
+										"5843A135",
+										"1"
+									]
+								}
+							},
+							"response": []
+						}
+					]
 				}
 			]
 		}
