@@ -18,26 +18,31 @@ async function connectToDatabase() {
     return db;
 }
 
-async function getPartition(event, context) {
+async function getZones(event, context) {
     context.callbackWaitsForEmptyEventLoop = false;
 
     const db = await connectToDatabase();
 
-    const {comId, numero} = event.pathParameters;
+    const {comId, particion} = event.pathParameters;
 
-    let partition;
+    let zones;
 
     try {
-        partition = await db.collection("devices")
+        zones = await db.collection("devices")
             .findOne(
-                {comId: comId, "particiones.numero": parseInt(numero)},
-                {projection: {"particiones.$": 1, _id: 0}});
+                {comId: comId, "particiones.numero": parseInt(particion)},
+                {projection: {
+                        "particiones.$": 1,
+                        _id: 0
+                    }
+                }
+            );
 
-        if (partition) {
-            partition = partition.particiones[0];
+        if (zones) {
+            zones = zones.particiones[0].zonas;
         }
-        else
-            return httpStatus(409, {error: `Error al solicitar la partición ${numero} del comunicador ${comId}`})
+        else 
+            return httpStatus(409, {error: `Error al solicitar las zonas de la partición ${particion} del comunicador ${comId}`})
     }
     catch (error) {
         console.log(error);
@@ -45,7 +50,7 @@ async function getPartition(event, context) {
         return httpStatus(500, error);
     }
 
-    return httpStatus(200, partition);
+    return httpStatus(200, zones);
 }
 
-export const handler = commonMiddleware(getPartition);
+export const handler = commonMiddleware(getZones);

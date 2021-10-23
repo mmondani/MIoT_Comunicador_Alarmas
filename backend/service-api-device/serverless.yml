@@ -107,6 +107,43 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+
+  getZones:
+    handler: src/handlers/device/getZones.handler
+    events:
+      - http:
+          method: GET
+          path: /zone/{comId}/{particion}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  newZone:
+    handler: src/handlers/device/newZone.handler
+    events:
+      - http:
+          method: POST
+          path: /zone
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  modifyZone:
+    handler: src/handlers/device/modifyZone.handler
+    events:
+      - http:
+          method: PATCH
+          path: /zone
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+    
+  deleteZone:
+    handler: src/handlers/device/deleteZone.handler
+    events:
+      - http:
+          method: DELETE
+          path: /zone
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:
