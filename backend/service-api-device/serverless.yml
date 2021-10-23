@@ -180,6 +180,42 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  getAlarmUsers:
+    handler: src/handlers/device/getAlarmUsers.handler
+    events:
+      - http:
+          method: GET
+          path: /alarm-user/{comId}/{particion}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  newAlarmUser:
+    handler: src/handlers/device/newAlarmUser.handler
+    events:
+      - http:
+          method: POST
+          path: /alarm-user
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  modifyAlarmUser:
+    handler: src/handlers/device/modifyAlarmUser.handler
+    events:
+      - http:
+          method: PATCH
+          path: /alarm-user
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+    
+  deleteAlarmUser:
+    handler: src/handlers/device/deleteAlarmUser.handler
+    events:
+      - http:
+          method: DELETE
+          path: /alarm-user
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:

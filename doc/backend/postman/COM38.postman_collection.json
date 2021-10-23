@@ -853,6 +853,147 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "New alarm user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"usuario 1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/alarm-user",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"alarm-user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get alarm users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/device/alarm-user/5843A135/1",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"alarm-user",
+								"5843A135",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modify alarm user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 2,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Usuario ppal-1-2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/alarm-user",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"alarm-user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Alarm user",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/alarm-user",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"alarm-user"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
