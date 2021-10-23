@@ -216,6 +216,42 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  getAutomations:
+    handler: src/handlers/device/getAutomations.handler
+    events:
+      - http:
+          method: GET
+          path: /automation/{comId}/{particion}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  newAutomation:
+    handler: src/handlers/device/newAutomation.handler
+    events:
+      - http:
+          method: POST
+          path: /automation
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  modifyAutomation:
+    handler: src/handlers/device/modifyAutomation.handler
+    events:
+      - http:
+          method: PATCH
+          path: /automation
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+    
+  deleteAutomation:
+    handler: src/handlers/device/deleteAutomation.handler
+    events:
+      - http:
+          method: DELETE
+          path: /automation
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:

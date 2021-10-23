@@ -226,774 +226,945 @@
 			"name": "device",
 			"item": [
 				{
-					"name": "New device",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "device",
+					"item": [
+						{
+							"name": "New device",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+						{
+							"name": "Link user and device",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\",\r\n    \"rol\":\"master\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/link",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"link"
+									]
 								}
-							}
+							},
+							"response": []
 						},
-						"url": {
-							"raw": "{{API_URL}}/device",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device"
-							]
+						{
+							"name": "Unlink user and device",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/unlink",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"unlink"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify device",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"icono\": \"icono1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get device",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/id/5843A135",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"id",
+										"5843A135"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get devices by email",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/user/mmondani89@gmail.com",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"user",
+										"mmondani89@gmail.com"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Link user and device",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "partition",
+					"item": [
+						{
+							"name": "Get partition",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/partition/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"partition",
+										"5843A135",
+										"1"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\",\r\n    \"rol\":\"master\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+						{
+							"name": "New partition",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2,\r\n    \"nombre\": \"Particion 2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/partition",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"partition"
+									]
 								}
-							}
+							},
+							"response": []
 						},
-						"url": {
-							"raw": "{{API_URL}}/device/link",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"link"
-							]
+						{
+							"name": "Modify partition",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 1,\r\n    \"nombre\": \"Particion Ppal\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/partition",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"partition"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete partition",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/partition",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"partition"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Unlink user and device",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "zone",
+					"item": [
+						{
+							"name": "New zone",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 2,\r\n    \"nombre\": \"zona 2\",\r\n    \"icono\": \"icono1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/zone",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"zone"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+						{
+							"name": "Get zones",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/zone/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"zone",
+										"5843A135",
+										"1"
+									]
 								}
-							}
+							},
+							"response": []
 						},
-						"url": {
-							"raw": "{{API_URL}}/device/unlink",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"unlink"
-							]
+						{
+							"name": "Modify zone",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Puerta\",\r\n    \"icono\": \"icono2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/zone/",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"zone",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete zone",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 2\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/zone/",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"zone",
+										""
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Modify device",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "node",
+					"item": [
+						{
+							"name": "New node",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15,\r\n    \"nombre\": \"nodo 15\",\r\n    \"icono\": \"icono1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/node",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"node"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"icono\": \"icono1\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
+						{
+							"name": "Get nodes",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/node/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"node",
+										"5843A135",
+										"1"
+									]
 								}
-							}
+							},
+							"response": []
 						},
-						"url": {
-							"raw": "{{API_URL}}/device",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device"
-							]
+						{
+							"name": "Modify node",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Luz entrada\",\r\n    \"icono\": \"icono2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/node",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"node"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete node",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/node",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"node"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Get device",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "alarm-user",
+					"item": [
+						{
+							"name": "New alarm user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"usuario 1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/alarm-user",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"alarm-user"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/id/5843A135",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"id",
-								"5843A135"
-							]
+						{
+							"name": "Get alarm users",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/alarm-user/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"alarm-user",
+										"5843A135",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify alarm user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 2,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Usuario ppal-1-2\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/alarm-user",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"alarm-user"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Alarm user",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/alarm-user",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"alarm-user"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Get devices by email",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
+					"name": "automation",
+					"item": [
+						{
+							"name": "New automation",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 2,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Noche 1-2\",\r\n    \"tipo\": \"noche\",\r\n    \"nodos\": [10, 31]\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/automation",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"automation"
+									]
 								}
-							]
+							},
+							"response": []
 						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/user/mmondani89@gmail.com",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"user",
-								"mmondani89@gmail.com"
-							]
+						{
+							"name": "Get automations",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{API_URL}}/device/automation/5843A135/1",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"automation",
+										"5843A135",
+										"1"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Modify automation",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"tipo\": \"fototimer\",\r\n    \"nombre\": \"Foto 1-1\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/automation",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"automation"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Delete automation",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{TOKEN}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "DELETE",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 2,\r\n    \"numero\": 1,\r\n    \"tipo\": \"noche\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{API_URL}}/device/automation",
+									"host": [
+										"{{API_URL}}"
+									],
+									"path": [
+										"device",
+										"automation"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get partition",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/partition/5843A135/1",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"partition",
-								"5843A135",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New partition",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2,\r\n    \"nombre\": \"Particion 2\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/partition",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"partition"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Modify partition",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 1,\r\n    \"nombre\": \"Particion Ppal\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/partition",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"partition"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete partition",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/partition",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"partition"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New zone",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 2,\r\n    \"nombre\": \"zona 2\",\r\n    \"icono\": \"icono1\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/zone",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"zone"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get zones",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/zone/5843A135/1",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"zone",
-								"5843A135",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Modify zone",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Puerta\",\r\n    \"icono\": \"icono2\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/zone/",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"zone",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete zone",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 2\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/zone/",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"zone",
-								""
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New node",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15,\r\n    \"nombre\": \"nodo 15\",\r\n    \"icono\": \"icono1\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/node",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"node"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get nodes",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/node/5843A135/1",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"node",
-								"5843A135",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Modify node",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Luz entrada\",\r\n    \"icono\": \"icono2\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/node",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"node"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete node",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/node",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"node"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "New alarm user",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"usuario 1\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/alarm-user",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"alarm-user"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get alarm users",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_URL}}/device/alarm-user/5843A135/1",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"alarm-user",
-								"5843A135",
-								"1"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Modify alarm user",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 2,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Usuario ppal-1-2\"\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/alarm-user",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"alarm-user"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete Alarm user",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{TOKEN}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1\r\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_URL}}/device/alarm-user",
-							"host": [
-								"{{API_URL}}"
-							],
-							"path": [
-								"device",
-								"alarm-user"
-							]
-						}
-					},
-					"response": []
+					]
 				}
 			]
 		}
