@@ -50,7 +50,29 @@ async function newDevice(event, context) {
     estadoRedElectrica: true,
     estadoBateria: "bien",
     estadoMpxh: true,
-    usuarios: []
+    usuarios: [],
+    particiones: [
+      {
+        numero: 1,
+        nombre: "Particion 1",
+        retardoDisparo: 8,
+        estado: "desactivada",
+        sonando: false,
+        lista: true,
+        modo: "estoy",
+        zonasAnormales: "00000000000000000000000000000000",
+        zonasMemorizadas: "00000000000000000000000000000000",
+        zonasIncluidas: "00000000000000000000000000000000",
+        zonasCondicionales: "0000",
+        tipoDisparo: 0,
+        replayDisparo: "",
+        zonas: [],
+        nodos: [],
+        usuariosAlarma: [],
+        automatizaciones: [],
+        eventosAlarma: []
+      }
+    ]
   }
 
   try {
