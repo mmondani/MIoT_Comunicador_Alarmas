@@ -15,7 +15,7 @@ provider:
     MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
     MAIL_QUEUE_URL: ${self:custom.MailQueue.url}
     JWT_KEY: ${ssm:/auth/jwt-secret~true}
-    API_BASE_URL: { "Fn::Join" : ["", [" https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}" ] ]  }
+    API_BASE_URL: https://api.com38-cloud.com
   stage: ${opt:stage, 'dev'}
   iamRoleStatements:
   - ${file(iam/SendMailIAM.yml):SendMailIAM}
@@ -87,6 +87,7 @@ functions:
       - sqs:
           arn: ${self:custom.MailQueue.arn}
           batchSize: 1
+          maximumBatchingWindow: 10   #tiempo en segundos
 
   auth:
     handler: src/handlers/auth/auth.handler
