@@ -44,6 +44,69 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  modifyDevice:
+    handler: src/handlers/device/modifyDevice.handler
+    events:
+      - http:
+          method: PATCH
+          path: /
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  getDevicesByEmail:
+    handler: src/handlers/device/getDevicesByEmail.handler
+    events:
+      - http:
+          method: GET
+          path: /user/{email}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  getDevice:
+    handler: src/handlers/device/getDevice.handler
+    events:
+      - http:
+          method: GET
+          path: /id/{comId}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  getPartition:
+    handler: src/handlers/device/getPartition.handler
+    events:
+      - http:
+          method: GET
+          path: /partition/{comId}/{numero}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  newPartition:
+    handler: src/handlers/device/newPartition.handler
+    events:
+      - http:
+          method: POST
+          path: /partition
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  modifyPartition:
+    handler: src/handlers/device/modifyPartition.handler
+    events:
+      - http:
+          method: PATCH
+          path: /partition
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+    
+  deletePartition:
+    handler: src/handlers/device/deletePartition.handler
+    events:
+      - http:
+          method: DELETE
+          path: /partition
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:

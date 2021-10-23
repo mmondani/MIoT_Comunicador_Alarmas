@@ -334,6 +334,241 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Modify device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"icono\": \"icono1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get device",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/device/id/5843A135",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"id",
+								"5843A135"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get devices by email",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/device/user/mmondani89@gmail.com",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"user",
+								"mmondani89@gmail.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get device partition",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/device/partition/5843A135/1",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"partition",
+								"5843A135",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New partition",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2,\r\n    \"nombre\": \"Particion 2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/partition",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"partition"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modify partition",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 1,\r\n    \"retardoDisparo\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/partition",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"partition"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete partition",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"numero\": 2\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/partition",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"partition"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}
