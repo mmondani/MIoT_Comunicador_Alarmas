@@ -712,6 +712,147 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "New node",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15,\r\n    \"nombre\": \"nodo 15\",\r\n    \"icono\": \"icono1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/node",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"node"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get nodes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{API_URL}}/device/node/5843A135/1",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"node",
+								"5843A135",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Modify node",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"nombre\": \"Luz entrada\",\r\n    \"icono\": \"icono2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/node",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"node"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete node",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 15\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/device/node",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"device",
+								"node"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		}

@@ -144,6 +144,42 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  getNodes:
+    handler: src/handlers/device/getNodes.handler
+    events:
+      - http:
+          method: GET
+          path: /node/{comId}/{particion}
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  newNode:
+    handler: src/handlers/device/newNode.handler
+    events:
+      - http:
+          method: POST
+          path: /node
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  modifyNode:
+    handler: src/handlers/device/modifyNode.handler
+    events:
+      - http:
+          method: PATCH
+          path: /node
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+    
+  deleteNode:
+    handler: src/handlers/device/deleteNode.handler
+    events:
+      - http:
+          method: DELETE
+          path: /node
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:
