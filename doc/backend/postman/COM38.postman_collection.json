@@ -1202,6 +1202,48 @@
 					]
 				}
 			]
+		},
+		{
+			"name": "command",
+			"item": [
+				{
+					"name": "Arm disarm",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"estado\": \"activada\",\r\n    \"clave\": \"282829\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/arm-disarm",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"arm-disarm"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }

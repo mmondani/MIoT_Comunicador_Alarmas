@@ -5,6 +5,8 @@ import {IotData} from 'aws-sdk';
 import armDisarmSchema from '../../schemas/armDisarmSchema';
 import {httpStatus} from '../../lib/httpStatus';
 import {BrokerMessage} from '../../lib/brokerMessage';
+import {BrokerCommands} from '../../lib/brokerCommands';
+import {BrokerRegisters} from '../../lib/brokerRegisters';
 
 
 const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
@@ -16,8 +18,8 @@ async function armDisarm(event, context) {
   const {comId, particion, estado, clave} = event.body;
 
   let msg = new BrokerMessage(
-    0x02,
-    0x0001,
+    BrokerCommands.SET,
+    BrokerRegisters.ESTADO,
     parseInt(particion)-1
   );
 
