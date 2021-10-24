@@ -27,6 +27,42 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  changeMode:
+    handler: src/handlers/command/changeMode.handler
+    events:
+      - http:
+          method: POST
+          path: /mode
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  triggerAlarm:
+    handler: src/handlers/command/triggerAlarm.handler
+    events:
+      - http:
+          method: POST
+          path: /trigger
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  excludeZones:
+    handler: src/handlers/command/excludeZones.handler
+    events:
+      - http:
+          method: POST
+          path: /exclude
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+  manageNodes:
+    handler: src/handlers/command/manageNodes.handler
+    events:
+      - http:
+          method: POST
+          path: /manage-nodes
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:

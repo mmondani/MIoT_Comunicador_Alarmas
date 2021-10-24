@@ -30,6 +30,7 @@ async function armDisarm(event, context) {
     case "activada_me_voy": msg.addByte(4); break;
   }
 
+  // Se convierte la clave de string a números
   let bufferClave = Buffer.from(clave);
   let auxClave = bufferClave.map(c => {return (c - 0x30)});
   msg.addBytes(auxClave)
