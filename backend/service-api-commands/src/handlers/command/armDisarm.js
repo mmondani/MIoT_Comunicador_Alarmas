@@ -40,7 +40,7 @@ async function armDisarm(event, context) {
   let params = {
     topic: comId + "/cmd",
     payload: msgBuffer.toString("hex"),
-    qos: 1
+    qos: 0
   };
   
 

@@ -6,13 +6,13 @@ export class BrokerMessage {
      *  @property {number} command 
      *  @property {number} register 
      *  @property {number} layer 
-     *  @property {number} qos 
      *  @property {number} day 
      *  @property {number} month 
      *  @property {number} year 
      *  @property {number} hour 
      *  @property {number} minutes 
-     *  @property {number} seconds 
+     *  @property {number} seconds
+     *  @property {number} random  
      *  @property {number} length 
      *  @property {Array|Object} payload 
      *  @property {number} checksum 
@@ -28,6 +28,7 @@ export class BrokerMessage {
         this.hour = 12;
         this.minutes = 0;
         this.seconds = 0;
+        this.random = Math.random()*255;
         this.length = 0;
         this.payload = [];
         this.checksum = 0;
@@ -47,6 +48,7 @@ export class BrokerMessage {
         this.hour = parsedMessage.hour;
         this.minutes = parsedMessage.minutes;
         this.seconds = parsedMessage.seconds;
+        this.random = parsedMessage.random;
         this.length = parsedMessage.length;
         this.payload = parsedMessage.payload;
         this.checksum = parsedMessage.checksum;
@@ -80,12 +82,14 @@ export class BrokerMessage {
         let date = Buffer.from([currentDate.getDate(), currentDate.getMonth() + 1, currentDate.getFullYear() - 2000]);
         let time = Buffer.from([currentDate.getHours(), currentDate.getMinutes(), currentDate.getSeconds()]);
 
+        let random = Buffer.from([this.random]);
+
         let length = Buffer.allocUnsafe(2);
         length.writeUInt16LE(this.length);
 
         let payload = Buffer.from(this.payload);
 
-        let bufferToSend = Buffer.concat([command, register, layer, date, time, length, payload]);
+        let bufferToSend = Buffer.concat([command, register, layer, date, time, random, length, payload]);
 
         this.checksum = this.getChecksum (bufferToSend);
         let checksum = Buffer.from([this.checksum])
