@@ -1,0 +1,61 @@
+service:
+  name: service-api-commands
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  region: sa-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    IOT_ENDPOINT: ${self:custom.Iot.endpoint}
+  iamRoleStatements:
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
+  
+functions:
+  armDisarm:
+    handler: src/handlers/command/armDisarm.handler
+    events:
+      - http:
+          method: POST
+          path: /arm-disarm
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
+resources:
+  Resources:
+    GatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: EXPIRED_TOKEN
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401'
+    AuthFailureGatewayResponse:
+      Type: 'AWS::ApiGateway::GatewayResponse'
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'*'"
+        ResponseType: UNAUTHORIZED
+        RestApiId:
+          Ref: 'ApiGatewayRestApi'
+        StatusCode: '401' 
+
+custom:
+  Iot:
+    endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
+    arn: arn:aws:iot:${self:provider.region}:${aws:accountId}
+  Authorizer: arn:aws:lambda:${self:provider.region}:${aws:accountId}:function:service-api-user-${self:provider.stage}-auth
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  bundle:
+    linting: false
