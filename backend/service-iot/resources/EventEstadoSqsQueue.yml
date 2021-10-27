@@ -1,0 +1,4 @@
+EventEstadoSqsQueue:
+  Type: AWS::SQS::Queue
+  Properties:
+    QueueName: ${self:custom.eventEstadoSqsQueue.name}

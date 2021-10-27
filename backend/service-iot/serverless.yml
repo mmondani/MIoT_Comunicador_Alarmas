@@ -1,0 +1,47 @@
+service:
+  name: service-iot
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  region: sa-east-1
+  stage: ${opt:stage, 'dev'}
+  environment:
+    MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
+    MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
+
+resources:
+  Resources:
+    EventEstadoSqsTopicRule: ${file(resources/EventEstadoSqsTopicRule.yml):EventEstadoSqsTopicRule}
+    EventEstadoSqsQueuePublishRole: ${file(resources/roles/EventEstadoSqsQueuePublishRole.yml):EventEstadoSqsQueuePublishRole}
+    EventEstadoSqsQueue: ${file(resources/EventEstadoSqsQueue.yml):EventEstadoSqsQueue}
+
+functions:
+  iotEventEstado:
+    handler: src/handlers/iotEventEstado.handler
+    events:
+      - sqs:
+          arn: ${self:custom.eventEstadoSqsQueue.arn}
+          batchSize: 5
+          maximumBatchingWindow: 10   #tiempo en segundos
+
+custom:
+  MongoDb:
+    connectionString: ${ssm:/db/atlas-connection-string~true}
+    dbName: com38
+  eventEstadoSqsRule:
+    name: EventEstadoSqsTopicRule_${self:provider.stage}    #no soporta guión del medio en el nombre
+    arn: !GetAtt EventEstadoSqsTopicRule.Arn
+  eventEstadoSqsQueue:
+    name: EventEstadoSqsQueue-${self:provider.stage}
+    arn: !GetAtt EventEstadoSqsQueue.Arn
+    url: !Ref EventEstadoSqsQueue
+  eventEstadoSqsQueuePublishRole:
+    arn: !GetAtt EventEstadoSqsQueuePublishRole.Arn
+  bundle:
+    linting: false
