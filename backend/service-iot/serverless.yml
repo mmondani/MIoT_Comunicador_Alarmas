@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-bundle
   - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function
 
 provider:
   name: aws
@@ -14,6 +15,7 @@ provider:
   environment:
     MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
     MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
+    IOT_ENDPOINT: ${self:custom.Iot.endpoint}
 
 resources:
   Resources:
@@ -22,15 +24,28 @@ resources:
     EventEstadoSqsQueue: ${file(resources/EventEstadoSqsQueue.yml):EventEstadoSqsQueue}
 
 functions:
+  iotPedirFyH:
+    handler: src/handlers/iotPedirFyH.handler
+    events:
+      - iot:
+          sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/pedir_fh'"
+          sqlVersion: "2016-03-23"
+    iamRoleStatements:
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
+
   iotEventEstado:
     handler: src/handlers/iotEventEstado.handler
     events:
       - sqs:
           arn: ${self:custom.eventEstadoSqsQueue.arn}
           batchSize: 5
-          maximumBatchingWindow: 1   #tiempo en segundos
+          maximumBatchingWindow: 1 
 
 custom:
+  Iot:
+    endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
+    arn: arn:aws:iot:${self:provider.region}:${aws:accountId}
   MongoDb:
     connectionString: ${ssm:/db/atlas-connection-string~true}
     dbName: com38

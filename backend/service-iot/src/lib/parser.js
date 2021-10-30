@@ -44,6 +44,14 @@ export const parseHeader = (message) => {
 let EstadosAlarma = ["null", "desactivada", "activada", "activada_estoy", "activada_me_voy", "activacion_parcial", "programacion"];
 let EstadosBateria = ["bien", "dudosa", "baja"];
 
+export const parsePedirFyH = (message) => {
+    let payloadParsed = {};
+
+    payloadParsed.cod_region = message.payload[0];
+    
+    return payloadParsed;
+}
+
 export const parseRegisterEstado = (message) => {
     let payloadParsed = {};
 
