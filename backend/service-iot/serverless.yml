@@ -28,7 +28,7 @@ functions:
       - sqs:
           arn: ${self:custom.eventEstadoSqsQueue.arn}
           batchSize: 5
-          maximumBatchingWindow: 10   #tiempo en segundos
+          maximumBatchingWindow: 1   #tiempo en segundos
 
 custom:
   MongoDb:

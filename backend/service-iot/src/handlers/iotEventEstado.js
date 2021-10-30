@@ -23,7 +23,7 @@ async function iotEventEstadoSqs(event, context) {
 
   const db = await connectToDatabase();
 
-
+  let promises = [];
   records.forEach(async function (record) {
     let message = JSON.parse(record.body);
     let comId = message.clientId;
@@ -37,39 +37,54 @@ async function iotEventEstadoSqs(event, context) {
     console.log(JSON.stringify(parsedMessage));
     console.log(JSON.stringify(payloadParsed));
 
-    try {
-      
-      if (parsedMessage.layer === 0) {
-        await db.collection("devices").updateOne(
-          {comId: comId},
+    
+    if (parsedMessage.layer === 0) {
+      promises.push(
+        db.collection("devices").updateOne(
+          {comId: comId, "particiones.numero": parsedMessage.layer + 1},
           {$set:{
             "estadoRedElectrica": payloadParsed.estadoRedElectrica,
             "estadoBateria": payloadParsed.estadoBateria,
             "estadoMpxh": payloadParsed.estadoMpxh,
             "cantidadZonas": payloadParsed.cantidadZonas,
-            "versionFirmware": payloadParsed.versionFirmware
+            "versionFirmware": payloadParsed.versionFirmware,
+            "particiones.$.estado": payloadParsed.estado,
+            "particiones.$.sonando": payloadParsed.sonando,
+            "particiones.$.ready": payloadParsed.ready,
+            "particiones.$.zonasAnormales": payloadParsed.zonasAnormales,
+            "particiones.$.zonasMemorizadas": payloadParsed.zonasMemorizadas,
+            "particiones.$.zonasIncluidas": payloadParsed.zonasIncluidas,
+            "particiones.$.zonasCondicionales": payloadParsed.zonasCondicionales,
+            "particiones.$.modo": payloadParsed.modo
           }}
-        );
-      }
-
-      await db.collection("devices").updateOne(
-        {comId: comId, "particiones.numero": parsedMessage.layer + 1},
-        {$set:{
-          "particiones.$.estado": payloadParsed.estado,
-          "particiones.$.sonando": payloadParsed.sonando,
-          "particiones.$.ready": payloadParsed.ready,
-          "particiones.$.zonasAnormales": payloadParsed.zonasAnormales,
-          "particiones.$.zonasMemorizadas": payloadParsed.zonasMemorizadas,
-          "particiones.$.zonasIncluidas": payloadParsed.zonasIncluidas,
-          "particiones.$.zonasCondicionales": payloadParsed.zonasCondicionales,
-          "particiones.$.modo": payloadParsed.modo
-        }}
+        )
       );
     }
-    catch (error) {
-      console.log("[IOT] " + error);
+    else {
+      promises.push(
+        db.collection("devices").updateOne(
+          {comId: comId, "particiones.numero": parsedMessage.layer + 1},
+          {$set:{
+            "particiones.$.estado": payloadParsed.estado,
+            "particiones.$.sonando": payloadParsed.sonando,
+            "particiones.$.ready": payloadParsed.ready,
+            "particiones.$.zonasAnormales": payloadParsed.zonasAnormales,
+            "particiones.$.zonasMemorizadas": payloadParsed.zonasMemorizadas,
+            "particiones.$.zonasIncluidas": payloadParsed.zonasIncluidas,
+            "particiones.$.zonasCondicionales": payloadParsed.zonasCondicionales,
+            "particiones.$.modo": payloadParsed.modo
+          }}
+        )
+      );
     }
   });
+
+  try {
+    await Promise.all(promises);
+  }
+  catch (error) {
+    console.log("[IOT] " + error);
+  }
   
   return 0;
 }
