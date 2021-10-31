@@ -1,6 +1,12 @@
+import {IotData, SNS} from 'aws-sdk';
 import { parseHeader, parseRegisterOpenClose } from "../lib/parser";
 
 const MongoClient = require("mongodb").MongoClient;
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
+const sns = new SNS({
+  region: "sa-east-1",
+  apiVersion: "2010-03-31"
+});
 
 let cachedDb = null;
 
@@ -43,7 +49,7 @@ async function iotEventOpenClose(event, context) {
 
     // Se busca el nombre del usuario de la alarma en la base de datos
     // Se lo va a usar para armar la notificación y guardar el evento
-    let users = await db.collection("devices").aggregate(
+    let alarmUsers = await db.collection("devices").aggregate(
       [
         {$match: {comId: comId}},
         {$unwind: "$particiones"},
@@ -52,16 +58,13 @@ async function iotEventOpenClose(event, context) {
       ]
     ).toArray();
 
-    console.log(JSON.stringify(users));
-
     let userName = `usuario ${payloadParsed.usuario}`;
-    if (users && users.length > 0) {
-      users[0].particiones.usuariosAlarma.forEach(user => {
+    if (alarmUsers && alarmUsers.length > 0) {
+      alarmUsers[0].particiones.usuariosAlarma.forEach(user => {
         if (user.numero === payloadParsed.usuario)
           userName = user.nombre;
       });
     }
-
 
     let eventDescription;
     let eventTimeStamp = new Date();
@@ -88,6 +91,7 @@ async function iotEventOpenClose(event, context) {
         break;
     }
 
+
     // Se guarda el evento en la base de datos
     await db.collection("devices").updateOne (
       {comId: comId, "particiones.numero": parsedMessage.layer + 1},
@@ -99,9 +103,49 @@ async function iotEventOpenClose(event, context) {
       }}
     );
 
-    // Se avisa por el broker que hay una novedad para este equipo
 
-    // Se envía la notificación push
+    // Se avisa por el broker que hay una novedad para este equipo
+    let params = {
+      topic: comId + "/new",
+      payload: `{particion: ${parsedMessage.layer + 1}}`,
+      qos: 0
+    };
+
+    await iotdata.publish(params).promise();
+
+
+    // Se envía la notificación push a todos los usuarios que tienen dado de alta al
+    // comunicador comId
+    let users = await db.collection("users").find({comunicadores: comId}, {apps: 1, _id: 0}).toArray();
+
+    if (users.length > 0) {
+      // Se agrupan todos los SNS Endpoints de todas las apps
+      let endpointsArn = [];
+
+      users.forEach(user => {
+        if (user.apps.length > 0) {
+          user.apps.forEach(app => {
+            endpointsArn.push(app.snsEndpointArn);
+          })
+        }
+      });
+
+      // Se envia la push notification a cada uno de las apps
+      let snsPromises = [];
+      endpointsArn.forEach(endpoint => {
+          let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comId}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
+          let snsParams = {
+              Message: JSON.stringify(snsPush),
+              TargetArn: endpoint,
+              MessageStructure: 'json'
+          }
+
+          snsPromises = sns.publish(snsParams).promise();
+      });
+
+      if (snsPromises.length > 0)
+        await Promise.all(snsPromises);
+    }
   }
   catch (error) {
     console.log("[IOT] " + error);

@@ -1,0 +1,7 @@
+PushNotificationsSnsIAM:
+  Effect: Allow
+  Action:
+    - sns:Publish
+    - sns:CreatePlatformEndpoint
+    - sns:DeleteEndpoint
+  Resource: ${self:custom.Sns.arnFcm}

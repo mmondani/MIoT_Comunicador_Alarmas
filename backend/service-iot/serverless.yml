@@ -16,6 +16,11 @@ provider:
     MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
     MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
     IOT_ENDPOINT: ${self:custom.Iot.endpoint}
+    SNS_PLATFORM_FCM_ARN: ${self:custom.Sns.arnFcm}
+  iamRoleStatements:
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+    - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
+    - ${file(iam/PushNotificationsSnsIAM.yml):PushNotificationsSnsIAM}
 
 resources:
   Resources:
@@ -31,9 +36,6 @@ functions:
       - iot:
           sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/pedir_fh'"
           sqlVersion: "2016-03-23"
-    iamRoleStatements:
-    - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
-    - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
 
   iotEventEstado:
     handler: src/handlers/iotEventEstado.handler
@@ -58,6 +60,9 @@ custom:
   MongoDb:
     connectionString: ${ssm:/db/atlas-connection-string~true}
     dbName: com38
+
+  Sns:
+    arnFcm: arn:aws:sns:${self:provider.region}:${aws:accountId}:app/GCM/COM38App
 
   eventEstadoSqsRule:
     name: EventEstadoSqsTopicRule_${self:provider.stage}    #no soporta guión del medio en el nombre
