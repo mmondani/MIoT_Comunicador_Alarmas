@@ -28,12 +28,12 @@ async function iotPedirFyH(event, context) {
 
   let comId = event.clientId;
   let payload = event.payload;
+  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+
   let payloadBuffer = Buffer.from(payload, "hex");
 
   let parsedMessage = parseHeader(payloadBuffer);
   let payloadParsed = parsePedirFyH(parsedMessage);
-
-  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
   console.log(JSON.stringify(parsedMessage));
   console.log(JSON.stringify(payloadParsed));
 

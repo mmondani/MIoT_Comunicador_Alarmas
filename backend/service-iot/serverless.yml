@@ -23,6 +23,7 @@ resources:
     EventEstadoSqsQueuePublishRole: ${file(resources/roles/EventEstadoSqsQueuePublishRole.yml):EventEstadoSqsQueuePublishRole}
     EventEstadoSqsQueue: ${file(resources/EventEstadoSqsQueue.yml):EventEstadoSqsQueue}
 
+
 functions:
   iotPedirFyH:
     handler: src/handlers/iotPedirFyH.handler
@@ -42,13 +43,22 @@ functions:
           batchSize: 5
           maximumBatchingWindow: 1 
 
+  iotEventOpenClose:
+    handler: src/handlers/iotEventOpenClose.handler
+    events:
+      - iot:
+          sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/open_close'"
+          sqlVersion: "2016-03-23"
+
 custom:
   Iot:
     endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
     arn: arn:aws:iot:${self:provider.region}:${aws:accountId}
+
   MongoDb:
     connectionString: ${ssm:/db/atlas-connection-string~true}
     dbName: com38
+
   eventEstadoSqsRule:
     name: EventEstadoSqsTopicRule_${self:provider.stage}    #no soporta guión del medio en el nombre
     arn: !GetAtt EventEstadoSqsTopicRule.Arn
@@ -58,5 +68,6 @@ custom:
     url: !Ref EventEstadoSqsQueue
   eventEstadoSqsQueuePublishRole:
     arn: !GetAtt EventEstadoSqsQueuePublishRole.Arn
+
   bundle:
     linting: false

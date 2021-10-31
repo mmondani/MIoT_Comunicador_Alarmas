@@ -96,3 +96,15 @@ export const parseRegisterEstado = (message) => {
     
     return payloadParsed;
 }
+
+
+export const parseRegisterOpenClose = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0b) {
+        payloadParsed.estado_alarma = EstadosAlarma[message.payload[0]];
+        payloadParsed.usuario = message.payload[1];
+    }
+    
+    return payloadParsed;
+}
