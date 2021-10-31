@@ -25,6 +25,8 @@ async function connectToDatabase() {
 
 async function iotEventOpenClose(event, context) {
 
+  context.callbackWaitsForEmptyEventLoop = false;
+
   const db = await connectToDatabase();
 
   let comId = event.clientId;
@@ -47,19 +49,23 @@ async function iotEventOpenClose(event, context) {
       }}
     );
 
-    // Se busca el nombre del usuario de la alarma en la base de datos
+    // Se busca el nombre del usuario de la alarma y el nombre del comunicador en la base de datos
     // Se lo va a usar para armar la notificación y guardar el evento
     let alarmUsers = await db.collection("devices").aggregate(
       [
         {$match: {comId: comId}},
         {$unwind: "$particiones"},
         {$match: {"particiones.numero": parsedMessage.layer + 1}},
-        {$project: {"particiones.usuariosAlarma": 1, _id: 0}}
+        {$project: {nombre: 1, "particiones.nombre": 1, "particiones.usuariosAlarma": 1, _id: 0}}
       ]
     ).toArray();
 
+    let comName = `Comunicador ${comId}`;
+    let partitionName = `partición ${parsedMessage.layer + 1}`;
     let userName = `usuario ${payloadParsed.usuario}`;
     if (alarmUsers && alarmUsers.length > 0) {
+      comName = alarmUsers[0].nombre;
+      partitionName = alarmUsers[0].particiones.nombre;
       alarmUsers[0].particiones.usuariosAlarma.forEach(user => {
         if (user.numero === payloadParsed.usuario)
           userName = user.nombre;
@@ -132,15 +138,15 @@ async function iotEventOpenClose(event, context) {
 
       // Se envia la push notification a cada uno de las apps
       let snsPromises = [];
+      let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comName} - ${partitionName}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
       endpointsArn.forEach(endpoint => {
-          let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comId}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
           let snsParams = {
               Message: JSON.stringify(snsPush),
               TargetArn: endpoint,
               MessageStructure: 'json'
           }
 
-          snsPromises = sns.publish(snsParams).promise();
+          snsPromises.push(sns.publish(snsParams).promise());
       });
 
       if (snsPromises.length > 0)
