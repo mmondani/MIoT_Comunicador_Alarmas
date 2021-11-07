@@ -1,5 +1,8 @@
 import {IotData, SNS} from 'aws-sdk';
 import { parseHeader, parseRegisterRed } from "../lib/parser";
+import {addEvent} from "../lib/addEvent";
+import {updateMqtt} from "../lib/updateMqtt";
+import {sendPushNotifications} from "../lib/sendPushNotifications";
 
 const MongoClient = require("mongodb").MongoClient;
 const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
@@ -70,59 +73,21 @@ async function iotEventOpenClose(event, context) {
 
 
     // Se guarda el evento en la base de datos
-    await db.collection("devices").updateOne (
-      {comId: comId, "particiones.numero": parsedMessage.layer + 1},
-      {$push:{
-        "particiones.$.eventosAlarma": {
-          timestamp: eventTimeStamp,
-          evento: eventDescription
-        }
-      }}
-    );
-
+    await addEvent(db, comId, parsedMessage.layer, eventDescription, eventTimeStamp);
 
     // Se avisa por el broker que hay una novedad para este equipo
-    let params = {
-      topic: comId + "/new",
-      payload: `{particion: ${parsedMessage.layer + 1}}`,
-      qos: 0
-    };
-
-    await iotdata.publish(params).promise();
+    await updateMqtt(iotdata, comId, parsedMessage.layer);
 
 
     // Se envía la notificación push a todos los usuarios que tienen dado de alta al
     // comunicador comId
-    let users = await db.collection("users").find({comunicadores: comId}, {apps: 1, _id: 0}).toArray();
-
-    if (users.length > 0) {
-      // Se agrupan todos los SNS Endpoints de todas las apps
-      let endpointsArn = [];
-
-      users.forEach(user => {
-        if (user.apps.length > 0) {
-          user.apps.forEach(app => {
-            endpointsArn.push(app.snsEndpointArn);
-          })
-        }
-      });
-
-      // Se envia la push notification a cada uno de las apps
-      let snsPromises = [];
-      let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comName}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
-      endpointsArn.forEach(endpoint => {
-          let snsParams = {
-              Message: JSON.stringify(snsPush),
-              TargetArn: endpoint,
-              MessageStructure: 'json'
-          }
-
-          snsPromises.push(sns.publish(snsParams).promise());
-      });
-
-      if (snsPromises.length > 0)
-        await Promise.all(snsPromises);
-    }
+    await sendPushNotifications(
+      db,
+      sns,
+      comId,
+      comName,
+      eventDescription
+    );
   }
   catch (error) {
     console.log("[IOT] " + error);
