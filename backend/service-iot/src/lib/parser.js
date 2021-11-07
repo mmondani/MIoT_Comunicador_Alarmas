@@ -132,3 +132,38 @@ export const parseRegisterBateria = (message) => {
 }
 
 
+export const parseRegisterSonandoReady = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.particiones = [];
+        for (let i = 0; i < 8; i++) {
+            let particion = {};
+        
+            if ((message.payload[0] & (1 << i)) != 0)
+                particion.sonando = true;
+            else
+                particion.sonando = false;
+
+            if ((message.payload[1] & (1 << i)) != 0)
+                particion.lista = true;
+            else
+                particion.lista = false;
+
+            if ((message.payload[2] & (1 << i)) != 0)
+                particion.modo = "estoy";
+            else if ((message.payload[3] & (1 << i)) != 0)
+                particion.modo = "me_voy";  
+            else
+                particion.modo = "ninguno";  
+
+
+            payloadParsed.particiones.push(particion);
+        }
+
+        payloadParsed.cantidadZonas = message.payload[4];
+    }
+    
+    return payloadParsed;
+}
+

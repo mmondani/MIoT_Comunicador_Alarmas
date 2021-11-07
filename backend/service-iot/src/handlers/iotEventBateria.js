@@ -39,9 +39,9 @@ async function iotEventRed(event, context) {
   let parsedMessage = parseHeader(payloadBuffer);
   let payloadParsed = parseRegisterBateria(parsedMessage);
 
-  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-  console.log(JSON.stringify(parsedMessage));
-  console.log(JSON.stringify(payloadParsed));
+  //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+  //console.log(JSON.stringify(parsedMessage));
+  //console.log(JSON.stringify(payloadParsed));
 
   try {
     // Se actualiza el estado de la partición
