@@ -226,3 +226,34 @@ export const parseRegisterEstadoZonas = (message) => {
     return payloadParsed;
 }
 
+
+export const parseRegisterEstadoNodos = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.nodosEncendidos = bufferToBinaryString(
+            Buffer.from([
+                message.payload[15] & 0xFF, 
+                message.payload[14] & 0xFF, 
+                message.payload[13] & 0xFF, 
+                message.payload[12] & 0xFF,
+                message.payload[11] & 0xFF, 
+                message.payload[10] & 0xFF, 
+                message.payload[9] & 0xFF, 
+                message.payload[8] & 0xFF,
+                message.payload[7] & 0xFF, 
+                message.payload[6] & 0xFF, 
+                message.payload[5] & 0xFF, 
+                message.payload[4] & 0xFF,
+                message.payload[3] & 0xFF, 
+                message.payload[2] & 0xFF, 
+                message.payload[1] & 0xFF, 
+                message.payload[0] & 0xFF
+            ])
+        );
+    }
+    
+    return payloadParsed;
+}
+
+

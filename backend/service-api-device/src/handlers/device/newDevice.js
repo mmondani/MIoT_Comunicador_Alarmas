@@ -64,6 +64,7 @@ async function newDevice(event, context) {
         zonasMemorizadas: "00000000000000000000000000000000",
         zonasIncluidas: "00000000000000000000000000000000",
         zonasCondicionales: "0000",
+        nodosEncendidos: "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         tipoDisparo: 0,
         replayDisparo: "",
         zonas: [],
