@@ -87,6 +87,13 @@ functions:
           sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/memoria'"
           sqlVersion: "2016-03-23"
 
+  iotEventEstadoZonas:
+    handler: src/handlers/iotEventEstadoZonas.handler
+    events:
+      - iot:
+          sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/estado_zonas'"
+          sqlVersion: "2016-03-23"
+
 custom:
   Iot:
     endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com

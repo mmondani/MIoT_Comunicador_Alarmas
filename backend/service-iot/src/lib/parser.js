@@ -208,3 +208,21 @@ export const parseRegisterMemoria = (message) => {
     return payloadParsed;
 }
 
+
+export const parseRegisterEstadoZonas = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.zonasAnormales = bufferToBinaryString(
+            Buffer.from([
+                message.payload[0] & 0xFF, 
+                message.payload[1] & 0xFF, 
+                message.payload[2] & 0xFF, 
+                message.payload[3] & 0xFF
+            ])
+        );
+    }
+    
+    return payloadParsed;
+}
+

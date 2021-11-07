@@ -1,5 +1,5 @@
 import {IotData, SNS} from 'aws-sdk';
-import { parseHeader, parseRegisterMemoria } from "../lib/parser";
+import { parseHeader, parseRegisterEstadoZonas } from "../lib/parser";
 import {updateMqtt} from "../lib/updateMqtt";
 
 const MongoClient = require("mongodb").MongoClient;
@@ -24,7 +24,7 @@ async function connectToDatabase() {
     return db;
 }
 
-async function iotEventMemoria(event, context) {
+async function iotEventEstadoZonas(event, context) {
 
   context.callbackWaitsForEmptyEventLoop = false;
 
@@ -35,18 +35,18 @@ async function iotEventMemoria(event, context) {
   let payloadBuffer = Buffer.from(payload, "hex");
 
   let parsedMessage = parseHeader(payloadBuffer);
-  let payloadParsed = parseRegisterMemoria(parsedMessage);
+  let payloadParsed = parseRegisterEstadoZonas(parsedMessage);
 
-  //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-  //console.log(JSON.stringify(parsedMessage));
-  //console.log(JSON.stringify(payloadParsed));
+  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+  console.log(JSON.stringify(parsedMessage));
+  console.log(JSON.stringify(payloadParsed));
 
   try {
     // Se actualiza el estado de la partición
     await db.collection("devices").updateOne (
       {comId: comId, "particiones.numero": parsedMessage.layer + 1},
       {$set:{
-        "particiones.$.zonasMemorizadas": payloadParsed.zonasMemorizadas
+        "particiones.$.zonasAnormales": payloadParsed.zonasAnormales
       }}
     );
 
@@ -61,4 +61,4 @@ async function iotEventMemoria(event, context) {
   return 0;
 }
 
-export const handler = iotEventMemoria;
+export const handler = iotEventEstadoZonas;
