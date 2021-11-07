@@ -1,5 +1,5 @@
 import {IotData, SNS} from 'aws-sdk';
-import { parseHeader, parseRegisterOpenClose } from "../lib/parser";
+import { parseHeader, parseRegisterRed } from "../lib/parser";
 
 const MongoClient = require("mongodb").MongoClient;
 const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
@@ -34,68 +34,39 @@ async function iotEventOpenClose(event, context) {
   let payloadBuffer = Buffer.from(payload, "hex");
 
   let parsedMessage = parseHeader(payloadBuffer);
-  let payloadParsed = parseRegisterOpenClose(parsedMessage);
+  let payloadParsed = parseRegisterRed(parsedMessage);
 
-  //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-  //console.log(JSON.stringify(parsedMessage));
-  //console.log(JSON.stringify(payloadParsed));
+  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+  console.log(JSON.stringify(parsedMessage));
+  console.log(JSON.stringify(payloadParsed));
 
   try {
     // Se actualiza el estado de la partición
     await db.collection("devices").updateOne (
-      {comId: comId, "particiones.numero": parsedMessage.layer + 1},
+      {comId: comId},
       {$set:{
-        "particiones.$.estado": payloadParsed.estado_alarma
+        estadoRedElectrica: payloadParsed.estadoRedElectrica
       }}
     );
 
-    // Se busca el nombre del usuario de la alarma y el nombre del comunicador en la base de datos
+    // Se busca el nombre del nombre del comunicador en la base de datos
     // Se lo va a usar para armar la notificación y guardar el evento
-    let alarmUsers = await db.collection("devices").aggregate(
-      [
-        {$match: {comId: comId}},
-        {$unwind: "$particiones"},
-        {$match: {"particiones.numero": parsedMessage.layer + 1}},
-        {$project: {nombre: 1, "particiones.nombre": 1, "particiones.usuariosAlarma": 1, _id: 0}}
-      ]
-    ).toArray();
+    let comInfo = await db.collection("devices").findOne(
+      {comId: comId},
+      {nombre:1, _id: 0}
+    );
 
     let comName = `Comunicador ${comId}`;
-    let partitionName = `partición ${parsedMessage.layer + 1}`;
-    let userName = `usuario ${payloadParsed.usuario}`;
-    if (alarmUsers && alarmUsers.length > 0) {
-      comName = alarmUsers[0].nombre;
-      partitionName = alarmUsers[0].particiones.nombre;
-      alarmUsers[0].particiones.usuariosAlarma.forEach(user => {
-        if (user.numero === payloadParsed.usuario)
-          userName = user.nombre;
-      });
-    }
+    if (comInfo)
+      comName = comInfo.nombre;
 
     let eventDescription;
     let eventTimeStamp = new Date();
 
-    switch (payloadParsed.estado_alarma) {
-      case "desactivada":
-        eventDescription = `Alarma desactivada por ${userName}`;
-        break;
-
-      case "activada":
-        eventDescription = `Alarma activada por ${userName}`;
-        break;
-
-      case "activada_estoy":
-        eventDescription = `Alarma activada en modo Estoy por ${userName}`;
-        break;
-
-      case "activada_me_voy":
-        eventDescription = `Alarma activada en modo Me Voy por ${userName}`;
-        break;
-
-      case "activacion_parcial":
-        eventDescription = `Alarma activada parcialmente por ${userName}`;
-        break;
-    }
+    if (payloadParsed.estadoRedElectrica) 
+      eventDescription = `Red eléctrica restaurada`;
+    else 
+      eventDescription = `Corte de red eléctrica`;
 
 
     // Se guarda el evento en la base de datos
@@ -138,7 +109,7 @@ async function iotEventOpenClose(event, context) {
 
       // Se envia la push notification a cada uno de las apps
       let snsPromises = [];
-      let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comName} - ${partitionName}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
+      let snsPush = {"GCM": `{\"notification\": { \"title\": \"${comName}\", \"body\": \"${eventDescription}\", \"sound\":\"default\", \"android_channel_id\":\"Miscellaneous\"},  \"android\": {\"priority\":\"high\"}}`}
       endpointsArn.forEach(endpoint => {
           let snsParams = {
               Message: JSON.stringify(snsPush),

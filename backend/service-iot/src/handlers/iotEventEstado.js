@@ -33,9 +33,9 @@ async function iotEventEstadoSqs(event, context) {
     let parsedMessage = parseHeader(payloadBuffer);
     let payloadParsed = parseRegisterEstado(parsedMessage);
 
-    console.log (`Mensaje recibido de ${message.clientId} con payload ${message.payload}`);
-    console.log(JSON.stringify(parsedMessage));
-    console.log(JSON.stringify(payloadParsed));
+    //console.log (`Mensaje recibido de ${message.clientId} con payload ${message.payload}`);
+    //console.log(JSON.stringify(parsedMessage));
+    //console.log(JSON.stringify(payloadParsed));
 
     
     if (parsedMessage.layer === 0) {

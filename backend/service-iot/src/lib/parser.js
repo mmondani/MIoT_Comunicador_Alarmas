@@ -108,3 +108,14 @@ export const parseRegisterOpenClose = (message) => {
     
     return payloadParsed;
 }
+
+
+export const parseRegisterRed = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0b) {
+        payloadParsed.estadoRedElectrica = (message.payload[0] === 0)? false : true;
+    }
+    
+    return payloadParsed;
+}

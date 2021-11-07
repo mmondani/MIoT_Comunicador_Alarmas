@@ -52,6 +52,13 @@ functions:
           sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/open_close'"
           sqlVersion: "2016-03-23"
 
+  iotEventRed:
+    handler: src/handlers/iotEventRed.handler
+    events:
+      - iot:
+          sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/red'"
+          sqlVersion: "2016-03-23"
+
 custom:
   Iot:
     endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
