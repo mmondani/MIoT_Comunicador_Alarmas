@@ -1,3 +1,6 @@
+import {bufferToBinaryString} from "./bufferToBinaryString"
+
+
 export const parseHeader = (message) => {
     let parsedMessage;
 
@@ -162,6 +165,26 @@ export const parseRegisterSonandoReady = (message) => {
         }
 
         payloadParsed.cantidadZonas = message.payload[4];
+    }
+    
+    return payloadParsed;
+}
+
+
+export const parseRegisterInlusion = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.zonasIncluidas = bufferToBinaryString(
+            Buffer.from([
+                message.payload[0] & 0xFF, 
+                message.payload[1] & 0xFF, 
+                message.payload[2] & 0xFF, 
+                message.payload[3] & 0xFF
+            ])
+        );
+
+        payloadParsed.zonasCondicionales = (message.payload[4] & 0x0F).toString(2).padStart(8, "0");
     }
     
     return payloadParsed;
