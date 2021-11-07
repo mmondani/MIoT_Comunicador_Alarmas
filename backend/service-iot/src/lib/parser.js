@@ -46,6 +46,8 @@ export const parseHeader = (message) => {
 
 let EstadosAlarma = ["null", "desactivada", "activada", "activada_estoy", "activada_me_voy", "activacion_parcial", "programacion"];
 let EstadosBateria = ["bien", "dudosa", "baja"];
+let TiposDisparo = ["null", "robo", "asalto", "incendio", "incendio_manual", "tamper", "emergencia_medica", "panico"];
+
 
 export const parsePedirFyH = (message) => {
     let payloadParsed = {};
@@ -257,3 +259,13 @@ export const parseRegisterEstadoNodos = (message) => {
 }
 
 
+export const parseRegisterDisparo = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.tipoDisparo = TiposDisparo[message.payload[0]];
+        payloadParsed.usuario = message.payload[1];
+    }
+    
+    return payloadParsed;
+}

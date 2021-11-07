@@ -1,0 +1,152 @@
+import {IotData, SNS} from 'aws-sdk';
+import { parseHeader, parseRegisterDisparo } from "../lib/parser";
+import {addEvent} from "../lib/addEvent";
+import {updateMqtt} from "../lib/updateMqtt";
+import {sendPushNotifications} from "../lib/sendPushNotifications";
+
+const MongoClient = require("mongodb").MongoClient;
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
+const sns = new SNS({
+  region: "sa-east-1",
+  apiVersion: "2010-03-31"
+});
+
+let cachedDb = null;
+
+async function connectToDatabase() {
+    if (cachedDb) {
+        return cachedDb;
+    }
+
+    const client = await MongoClient.connect(process.env.MONGODB_CONNECTION_STRING);
+    const db = await client.db(process.env.MONGODB_DB_NAME);
+    
+    cachedDb = db;
+
+    return db;
+}
+
+async function iotEventDisparo(event, context) {
+
+  context.callbackWaitsForEmptyEventLoop = false;
+
+  const db = await connectToDatabase();
+
+  let comId = event.clientId;
+  let payload = event.payload;
+  let payloadBuffer = Buffer.from(payload, "hex");
+
+  let parsedMessage = parseHeader(payloadBuffer);
+  let payloadParsed = parseRegisterDisparo(parsedMessage);
+
+  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+  console.log(JSON.stringify(parsedMessage));
+  console.log(JSON.stringify(payloadParsed));
+
+  try {
+    // Se actualiza el estado de la partición
+    await db.collection("devices").updateOne (
+      {comId: comId, "particiones.numero": parsedMessage.layer + 1},
+      {$set:{
+        "particiones.$.tipoDisparo": payloadParsed.tipoDisparo
+      }}
+    );
+
+    // Se busca el nombre del comunicador y la partición en la base de datos
+    // Se lo va a usar para armar la notificación y guardar el evento
+    // Si es un evento de asalto, se busca el nombre del usuario también
+    let partitionInfo;
+    if (payloadParsed.tipoDisparo !== "asalto") {
+      partitionInfo = await db.collection("devices").aggregate(
+        [
+          {$match: {comId: comId}},
+          {$unwind: "$particiones"},
+          {$match: {"particiones.numero": parsedMessage.layer + 1}},
+          {$project: {nombre: 1, "particiones.nombre": 1, _id: 0}}
+        ]
+      ).toArray();
+    }
+    else {
+      partitionInfo = await db.collection("devices").aggregate(
+        [
+          {$match: {comId: comId}},
+          {$unwind: "$particiones"},
+          {$match: {"particiones.numero": parsedMessage.layer + 1}},
+          {$project: {nombre: 1, "particiones.nombre": 1, "particiones.usuariosAlarma": 1, _id: 0}}
+        ]
+      ).toArray();
+    }
+
+
+    let comName = `Comunicador ${comId}`;
+    let partitionName = `partición ${parsedMessage.layer + 1}`;
+    let userName = `usuario ${payloadParsed.usuario}`;
+
+    if (partitionInfo) {
+      comName = partitionInfo[0].nombre;
+      partitionName = partitionInfo[0].particiones.nombre;
+
+      if (payloadParsed.tipoDisparo === "asalto") {
+        partitionInfo[0].particiones.usuariosAlarma.forEach(user => {
+          if (user.numero === payloadParsed.usuario)
+            userName = user.nombre;
+        });
+      }
+    }
+
+    let eventDescription = "";
+    let eventTimeStamp = new Date();
+
+    switch(payloadParsed.tipoDisparo) {
+      case "robo":
+        eventDescription = `Disparo por robo`;
+        break;  
+        
+      case "incendio":
+        eventDescription = `Disparo por incendio`;
+        break;
+
+      case "incendio_manual":
+        eventDescription = `Aviso de incendio manual`;
+        break;
+
+      case "tamper":
+        eventDescription = `Disparo por sabotaje`;
+        break;
+
+      case "emergencia_medica":
+        eventDescription = `Emergencia médica`;
+        break;
+
+      case "panico":
+        eventDescription = `Pedido de ayuda`;
+        break;
+    }
+    
+
+    // Se guarda el evento en la base de datos
+    await addEvent(db, comId, parsedMessage.layer, eventDescription, eventTimeStamp);
+
+    // Se avisa por el broker que hay una novedad para este equipo
+    await updateMqtt(iotdata, comId, parsedMessage.layer);
+
+
+    // Se envía la notificación push a todos los usuarios que tienen dado de alta al
+    // comunicador comId
+    await sendPushNotifications(
+      db,
+      sns,
+      comId,
+      `${comName} - ${partitionName}`,
+      eventDescription
+    );
+  }
+  catch (error) {
+    console.log("[IOT] " + error);
+  }
+
+  
+  return 0;
+}
+
+export const handler = iotEventDisparo;
