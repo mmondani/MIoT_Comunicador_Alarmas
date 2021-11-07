@@ -119,3 +119,16 @@ export const parseRegisterRed = (message) => {
     
     return payloadParsed;
 }
+
+
+export const parseRegisterBateria = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0b) {
+        payloadParsed.estadoBateria = EstadosBateria[message.payload[0]];
+    }
+    
+    return payloadParsed;
+}
+
+

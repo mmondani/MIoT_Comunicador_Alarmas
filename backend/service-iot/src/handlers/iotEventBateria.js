@@ -1,5 +1,5 @@
 import {IotData, SNS} from 'aws-sdk';
-import { parseHeader, parseRegisterRed } from "../lib/parser";
+import { parseHeader, parseRegisterBateria } from "../lib/parser";
 import {addEvent} from "../lib/addEvent";
 import {updateMqtt} from "../lib/updateMqtt";
 import {sendPushNotifications} from "../lib/sendPushNotifications";
@@ -26,7 +26,7 @@ async function connectToDatabase() {
     return db;
 }
 
-async function iotEventBateria(event, context) {
+async function iotEventRed(event, context) {
 
   context.callbackWaitsForEmptyEventLoop = false;
 
@@ -37,18 +37,18 @@ async function iotEventBateria(event, context) {
   let payloadBuffer = Buffer.from(payload, "hex");
 
   let parsedMessage = parseHeader(payloadBuffer);
-  let payloadParsed = parseRegisterRed(parsedMessage);
+  let payloadParsed = parseRegisterBateria(parsedMessage);
 
-  //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-  //console.log(JSON.stringify(parsedMessage));
-  //console.log(JSON.stringify(payloadParsed));
+  console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+  console.log(JSON.stringify(parsedMessage));
+  console.log(JSON.stringify(payloadParsed));
 
   try {
     // Se actualiza el estado de la partición
     await db.collection("devices").updateOne (
       {comId: comId},
       {$set:{
-        estadoRedElectrica: payloadParsed.estadoRedElectrica
+        estadoBateria: payloadParsed.estadoBateria
       }}
     );
 
@@ -66,10 +66,7 @@ async function iotEventBateria(event, context) {
     let eventDescription;
     let eventTimeStamp = new Date();
 
-    if (payloadParsed.estadoRedElectrica) 
-      eventDescription = `Red eléctrica restaurada`;
-    else 
-      eventDescription = `Corte de red eléctrica`;
+    eventDescription = `Estado de la batería de la alarma: ${payloadParsed.estadoBateria}`;
 
 
     // Se guarda el evento en la base de datos
@@ -97,4 +94,4 @@ async function iotEventBateria(event, context) {
   return 0;
 }
 
-export const handler = iotEventBateria;
+export const handler = iotEventRed;
