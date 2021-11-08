@@ -63,6 +63,15 @@ functions:
           authorizer: ${self:custom.Authorizer}
           cors: true
 
+  syncTime:
+    handler: src/handlers/command/syncTime.handler
+    events:
+      - http:
+          method: POST
+          path: /sync-time
+          authorizer: ${self:custom.Authorizer}
+          cors: true
+
 resources:
   Resources:
     GatewayResponse:

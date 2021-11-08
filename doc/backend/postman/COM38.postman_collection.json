@@ -201,7 +201,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"appId\": \"d2293293-db06-4a56-a837-ebe7c514202c\",\r\n    \"token\": \"d4xVkkFD0xM:APA91bH1FfX4RhJt1L8IKiyy4hlPk_4knv3SwFzbamJ4UhPmCAuK887dV_ro5sToZX9sw8oRuren-o-6xgpa_DxkInlb_rqRlm5mTBQVac5m5icZyNCvTutqpKSMUOqXcHI1V8cGfB_k\",\r\n    \"email\": \"mmondani89@gmail.com\"\r\n}",
+							"raw": "{\r\n    \"appId\": \"d2293293-db06-4a56-a837-ebe7c514202c\",\r\n    \"token\": \"fnfH8JF7uiM:APA91bE_yaBr4I-Wi9KeqUB4MEJwoLhJ4iXZFQkmG3J06QU_p6ExZtqHfpuWlWoQLnkFyzK2gUMApq71oPsJBWZwG4DP6nh3JVRCOzKjwodbXvJIUkq928S4p0egbRNegfaslpUPXav3\",\r\n    \"email\": \"mmondani89@gmail.com\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1223,7 +1223,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"estado\": \"activada\",\r\n    \"clave\": \"282829\"\r\n}",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"estado\": \"desactivada\",\r\n    \"clave\": \"282829\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1238,6 +1238,191 @@
 							"path": [
 								"command",
 								"arm-disarm"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change mode",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"modo\": \"estoy\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/mode",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"mode"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger alarm",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"causa\": \"panico\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/trigger",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"trigger"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Exclude/include zones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"zonas\": [\r\n        {\r\n            \"zona\": 1,\r\n            \"excluir\": true\r\n        },\r\n        {\r\n            \"zona\": 3,\r\n            \"excluir\": false\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/exclude",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"exclude"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Manage nodes",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"nodos\": [\r\n        {\r\n            \"nodo\": 1,\r\n            \"encender\": false\r\n        },\r\n        {\r\n            \"nodo\": 3,\r\n            \"encender\": true\r\n        },\r\n        {\r\n            \"nodo\": 125,\r\n            \"encender\": false\r\n        }\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/manage-nodes",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"manage-nodes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sync time",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"sincronizaHora\": true,\r\n    \"codigoRegion\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{API_URL}}/command/sync-time",
+							"host": [
+								"{{API_URL}}"
+							],
+							"path": [
+								"command",
+								"sync-time"
 							]
 						}
 					},

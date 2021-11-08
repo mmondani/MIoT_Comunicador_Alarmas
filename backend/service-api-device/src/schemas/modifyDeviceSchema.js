@@ -10,12 +10,6 @@ const schema = {
                 nombre: {
                     type: 'string',
                 },
-                sincronizaHora: {
-                    type: 'boolean',
-                },
-                codigoRegion: {
-                    type: 'number',
-                },
                 icono: {
                     type: 'string',
                 },

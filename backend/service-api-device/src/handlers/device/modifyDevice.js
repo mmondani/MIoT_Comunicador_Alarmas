@@ -31,12 +31,10 @@ async function modifyDevice(event, context) {
 
     const db = await connectToDatabase();
 
-    const {comId, nombre, sincronizaHora, codigoRegion, icono, clavem, claveh, celularAsalto, usaApp, monitreada} = event.body;
+    const {comId, nombre, icono, clavem, claveh, celularAsalto, usaApp, monitreada} = event.body;
 
     let params = {
         nombre,
-        sincronizaHora,
-        codigoRegion,
         icono,
         clavem,
         claveh,

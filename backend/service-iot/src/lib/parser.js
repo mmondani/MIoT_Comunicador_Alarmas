@@ -269,3 +269,15 @@ export const parseRegisterDisparo = (message) => {
     
     return payloadParsed;
 }
+
+
+export const parseRegisterConfigTiempo = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0a || message.comando == 0x0b) {
+        payloadParsed.sincronizaHora = (message.payload[0] === 0)? false : true;
+        payloadParsed.codigoRegion = message.payload[1];
+    }
+    
+    return payloadParsed;
+}
