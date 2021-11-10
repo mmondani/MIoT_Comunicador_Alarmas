@@ -1,0 +1,14 @@
+EventInclusionSqsTopicRule:
+  Type: AWS::IoT::TopicRule
+  Properties:
+    RuleName:  ${self:custom.eventInclusionSqsRule.name}
+    TopicRulePayload:
+      RuleDisabled: false
+      AwsIotSqlVersion: "2016-03-23"
+      # Si el contenido del mensaje de MQTT es solamente un string(no un JSON) se lo debe convertir a JSON ya que
+      # el statement SQL no es compatible con strings como inputs.
+      Sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/inclusion'"
+      Actions:
+        - Sqs:
+            QueueUrl: ${self:custom.eventInclusionSqsQueue.url}
+            RoleArn: ${self:custom.eventInclusionSqsQueuePublishRole.arn}

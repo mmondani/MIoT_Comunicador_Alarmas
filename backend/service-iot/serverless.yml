@@ -28,6 +28,10 @@ resources:
     EventEstadoSqsQueuePublishRole: ${file(resources/roles/EventEstadoSqsQueuePublishRole.yml):EventEstadoSqsQueuePublishRole}
     EventEstadoSqsQueue: ${file(resources/EventEstadoSqsQueue.yml):EventEstadoSqsQueue}
 
+    EventInclusionSqsTopicRule: ${file(resources/EventInclusionSqsTopicRule.yml):EventInclusionSqsTopicRule}
+    EventInclusionSqsQueuePublishRole: ${file(resources/roles/EventInclusionSqsQueuePublishRole.yml):EventInclusionSqsQueuePublishRole}
+    EventInclusionSqsQueue: ${file(resources/EventInclusionSqsQueue.yml):EventInclusionSqsQueue}
+
 
 functions:
   iotPedirFyH:
@@ -76,9 +80,10 @@ functions:
   iotEventInclusion:
     handler: src/handlers/iotEventInclusion.handler
     events:
-      - iot:
-          sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/inclusion'"
-          sqlVersion: "2016-03-23"
+      - sqs:
+          arn: ${self:custom.eventInclusionSqsQueue.arn}
+          batchSize: 5
+          maximumBatchingWindow: 5
 
   iotEventMemoria:
     handler: src/handlers/iotEventMemoria.handler
@@ -136,6 +141,16 @@ custom:
     url: !Ref EventEstadoSqsQueue
   eventEstadoSqsQueuePublishRole:
     arn: !GetAtt EventEstadoSqsQueuePublishRole.Arn
+
+  eventInclusionSqsRule:
+    name: EventInclusionSqsTopicRule_${self:provider.stage}
+    arn: !GetAtt EventInclusionSqsTopicRule.Arn
+  eventInclusionSqsQueue:
+    name: EventInclusionSqsQueue-${self:provider.stage}
+    arn: !GetAtt EventInclusionSqsQueue.Arn
+    url: !Ref EventInclusionSqsQueue
+  eventInclusionSqsQueuePublishRole:
+    arn: !GetAtt EventInclusionSqsQueuePublishRole.Arn
 
   bundle:
     linting: false

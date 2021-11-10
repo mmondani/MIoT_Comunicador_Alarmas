@@ -26,37 +26,42 @@ async function connectToDatabase() {
 
 async function iotEventInclusion(event, context) {
 
+  let records = event.Records;
+
   context.callbackWaitsForEmptyEventLoop = false;
 
   const db = await connectToDatabase();
 
-  let comId = event.clientId;
-  let payload = event.payload;
-  let payloadBuffer = Buffer.from(payload, "hex");
-
-  let parsedMessage = parseHeader(payloadBuffer);
-  let payloadParsed = parseRegisterInlusion(parsedMessage);
-
-  //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-  //console.log(JSON.stringify(parsedMessage));
-  //console.log(JSON.stringify(payloadParsed));
-
-  try {
-    // Se actualiza el estado de la partición
-    await db.collection("devices").updateOne (
-      {comId: comId, "particiones.numero": parsedMessage.layer + 1},
-      {$set:{
-        "particiones.$.zonasIncluidas": payloadParsed.zonasIncluidas,
-        "particiones.$.zonasCondicionales": payloadParsed.zonasCondicionales,
-      }}
-    );
-
-    // Se avisa por el broker que hay una novedad para este equipo
-    await updateMqtt(iotdata, comId, parsedMessage.layer);
-  }
-  catch (error) {
-    console.log("[IOT] " + error);
-  }
+  records.forEach(async function (record) {
+    let message = JSON.parse(record.body);
+    let comId = message.clientId;
+    let payload = message.payload;
+    let payloadBuffer = Buffer.from(payload, "hex");
+  
+    let parsedMessage = parseHeader(payloadBuffer);
+    let payloadParsed = parseRegisterInlusion(parsedMessage);
+  
+    //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+    //console.log(JSON.stringify(parsedMessage));
+    //console.log(JSON.stringify(payloadParsed));
+  
+    try {
+      // Se actualiza el estado de la partición
+      await db.collection("devices").updateOne (
+        {comId: comId, "particiones.numero": parsedMessage.layer + 1},
+        {$set:{
+          "particiones.$.zonasIncluidas": payloadParsed.zonasIncluidas,
+          "particiones.$.zonasCondicionales": payloadParsed.zonasCondicionales,
+        }}
+      );
+  
+      // Se avisa por el broker que hay una novedad para este equipo
+      await updateMqtt(iotdata, comId, parsedMessage.layer);
+    }
+    catch (error) {
+      console.log("[IOT] " + error);
+    }
+  });
 
   
   return 0;
