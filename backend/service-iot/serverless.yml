@@ -32,6 +32,10 @@ resources:
     EventInclusionSqsQueuePublishRole: ${file(resources/roles/EventInclusionSqsQueuePublishRole.yml):EventInclusionSqsQueuePublishRole}
     EventInclusionSqsQueue: ${file(resources/EventInclusionSqsQueue.yml):EventInclusionSqsQueue}
 
+    EventStatusSqsTopicRule: ${file(resources/EventStatusSqsTopicRule.yml):EventStatusSqsTopicRule}
+    EventStatusSqsQueuePublishRole: ${file(resources/roles/EventStatusSqsQueuePublishRole.yml):EventStatusSqsQueuePublishRole}
+    EventStatusSqsQueue: ${file(resources/EventStatusSqsQueue.yml):EventStatusSqsQueue}
+
 
 functions:
   iotPedirFyH:
@@ -120,6 +124,14 @@ functions:
           sql: "SELECT decode(encode(*, 'base64'), 'base64') AS payload, topic(1) AS clientId, timestamp() AS timestamp FROM '+/event/config_tiempo'"
           sqlVersion: "2016-03-23"
 
+  iotEventStatus:
+    handler: src/handlers/iotEventStatus.handler
+    events:
+      - sqs:
+          arn: ${self:custom.eventStatusSqsQueue.arn}
+          batchSize: 5
+          maximumBatchingWindow: 5
+
 custom:
   Iot:
     endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
@@ -151,6 +163,16 @@ custom:
     url: !Ref EventInclusionSqsQueue
   eventInclusionSqsQueuePublishRole:
     arn: !GetAtt EventInclusionSqsQueuePublishRole.Arn
+
+  eventStatusSqsRule:
+    name: EventStatusSqsTopicRule_${self:provider.stage}
+    arn: !GetAtt EventStatusSqsTopicRule.Arn
+  eventStatusSqsQueue:
+    name: EventStatusSqsQueue-${self:provider.stage}
+    arn: !GetAtt EventStatusSqsQueue.Arn
+    url: !Ref EventStatusSqsQueue
+  eventStatusSqsQueuePublishRole:
+    arn: !GetAtt EventStatusSqsQueuePublishRole.Arn
 
   bundle:
     linting: false

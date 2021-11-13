@@ -281,3 +281,11 @@ export const parseRegisterConfigTiempo = (message) => {
     
     return payloadParsed;
 }
+
+export const parseStatus = (message) => {
+    let payloadParsed = {};
+
+    payloadParsed.online = (message === "online")? true : false;
+
+    return payloadParsed;
+}
