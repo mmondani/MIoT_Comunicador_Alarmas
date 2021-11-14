@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-bundle
   - serverless-pseudo-parameters
+  - serverless-iam-roles-per-function
 
 provider:
   name: aws
@@ -14,6 +15,7 @@ provider:
     MONGODB_CONNECTION_STRING: ${self:custom.MongoDb.connectionString}
     MONGODB_DB_NAME: ${self:custom.MongoDb.dbName}
     API_BASE_URL: { "Fn::Join" : ["", [" https://", { "Ref" : "ApiGatewayRestApi" }, ".execute-api.${self:custom.region}.amazonaws.com/${self:custom.stage}" ] ]  }
+    IOT_ENDPOINT: ${self:custom.Iot.endpoint}
   stage: ${opt:stage, 'dev'}
   
 functions:
@@ -233,6 +235,9 @@ functions:
           path: /automation
           authorizer: ${self:custom.Authorizer}
           cors: true
+    iamRoleStatements:
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
 
   modifyAutomation:
     handler: src/handlers/device/modifyAutomation.handler
@@ -242,6 +247,9 @@ functions:
           path: /automation
           authorizer: ${self:custom.Authorizer}
           cors: true
+    iamRoleStatements:
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
     
   deleteAutomation:
     handler: src/handlers/device/deleteAutomation.handler
@@ -251,6 +259,9 @@ functions:
           path: /automation
           authorizer: ${self:custom.Authorizer}
           cors: true
+    iamRoleStatements:
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
 
   getEvents:
     handler: src/handlers/device/getEvents.handler
@@ -289,6 +300,9 @@ custom:
   MongoDb:
     connectionString: ${ssm:/db/atlas-connection-string~true}
     dbName: com38
+  Iot:
+    endpoint: a34024whcwieqd.iot.sa-east-1.amazonaws.com
+    arn: arn:aws:iot:${self:provider.region}:${aws:accountId}
   Authorizer: arn:aws:lambda:${self:provider.region}:${aws:accountId}:function:service-api-user-${self:provider.stage}-auth
   stage: ${opt:stage, self:provider.stage}
   region: ${opt:region, self:provider.region}

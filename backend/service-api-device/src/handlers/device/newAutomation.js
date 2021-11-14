@@ -1,10 +1,15 @@
 
 import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
+import {IotData} from 'aws-sdk';
 import newAutomationSchema from '../../schemas/newAutomationSchema';
 import {httpStatus} from '../../lib/httpStatus';
+import {BrokerMessage} from '../../lib/brokerMessage';
+import {BrokerCommands} from '../../lib/brokerCommands';
+import {BrokerRegisters} from '../../lib/brokerRegisters';
 
 
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
 const MongoClient = require("mongodb").MongoClient;
 
 // Se define la conexión a la base de datos por fuera del handler para que pueda ser reusada
@@ -43,17 +48,77 @@ async function newAutomation(event, context) {
         nodos: nodos
     }
 
-    try {
-        let response = await db.collection("devices").updateOne(
-            {comId: comId, "particiones.numero": particion},
-            {$push:{"particiones.$.automatizaciones": automation}}
-        );
+    console.log(JSON.stringify(automation));
 
-        if (response.modifiedCount === 0)
-            return httpStatus(409, {error: `Error al crear la automatización de la particion ${particion} en el comunicador ${comId}`})
+    let msg = new BrokerMessage(
+        BrokerCommands.SET,
+        BrokerRegisters.CONFIGURACIONES_NODOS,
+        parseInt(particion)-1
+    );
+
+    try {
+        msg.addByte(numero);
+        
+        switch(tipo) {
+            case "fototimer":
+                msg.addByte(2);
+                msg.addByte(particion);
+                msg.addByte(horas);
+
+                break;
+
+            case "programacion_horaria":
+                let horaInicioParsed = horaInicio.split(":");
+                let horaFinParsed = horaFin.split(":");
+
+                msg.addByte(1);
+                msg.addByte(particion);
+                msg.addByte(parseInt(horaInicioParsed[0]));
+                msg.addByte(parseInt(horaInicioParsed[1]));
+                msg.addByte(parseInt(horaFinParsed[0]));
+                msg.addByte(parseInt(horaFinParsed[1]));
+
+                break;
+
+            case "noche":
+                msg.addByte(3);
+                msg.addByte(particion);
+
+                break;
+
+            case "simulador":
+                msg.addByte(4);
+                msg.addByte(particion);
+
+                break;
+        }
+
+        for (let i = 0; i < 5; i ++) {
+            if (nodos[i])
+                msg.addByte(nodos[i]);
+            else
+                msg.addByte(0xff);
+        }
+
+        let msgBuffer = msg.getBufferToSend();
+
+        let params = {
+            topic: comId + "/cmd",
+            payload: msgBuffer.toString("hex"),
+            qos: 0
+        };
+        
+    
+        await iotdata.publish(params).promise();
+        
+
+        await db.collection("devices").updateOne(
+            {comId: comId, "particiones.numero": particion},
+            {$push:{"particiones.$.automatizaciones": {numero: automation.numero, nombre: automation.nombre, tipo: automation.tipo}}}
+        );
     }
     catch (error) {
-        console.log("[Atlas] " + error);
+        console.log(error);
         return httpStatus(500, error);
     }
 

@@ -1,0 +1,11 @@
+IoTConnectIAM:
+  Effect: Allow
+  Action:
+    - iot:Connect
+  Resource: "*"
+
+IoTPublishIAM:
+  Effect: Allow
+  Action:
+    - iot:Publish
+  Resource: ${self:custom.Iot.arn}

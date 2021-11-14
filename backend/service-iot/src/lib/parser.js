@@ -47,6 +47,7 @@ export const parseHeader = (message) => {
 let EstadosAlarma = ["null", "desactivada", "activada", "activada_estoy", "activada_me_voy", "activacion_parcial", "programacion"];
 let EstadosBateria = ["bien", "dudosa", "baja"];
 let TiposDisparo = ["null", "robo", "asalto", "incendio", "incendio_manual", "tamper", "emergencia_medica", "panico"];
+let TiposAutomatizacion = ["null", "programacion_horaria", "fototimer", "noche", "simulador"];
 
 
 export const parsePedirFyH = (message) => {
@@ -282,10 +283,51 @@ export const parseRegisterConfigTiempo = (message) => {
     return payloadParsed;
 }
 
+
 export const parseStatus = (message) => {
     let payloadParsed = {};
 
     payloadParsed.online = (message === "online")? true : false;
 
+    return payloadParsed;
+}
+
+
+export const parseRegisterConfigNodos = (message) => {
+    let payloadParsed = {};
+
+    if (message.comando == 0x0b) {
+        payloadParsed["numero"] = message.payload[0];
+        payloadParsed["tipo"] = TiposAutomatizacion[message.payload[1]];
+        payloadParsed["particion"] = message.payload[2];
+            
+        if (payloadParsed.tipo === "programacion_horaria") {
+            let inicioHora = message.payload[3];
+            let inicioMinutos = message.payload[4];
+            let finHora = message.payload[5];
+            let finMinutos = message.payload[6];
+
+            payloadParsed["horaInicio"] = `${inicioHora.toString(10).padStart(2,'0')}:${inicioMinutos.toString(10).padStart(2,'0')}`;
+            payloadParsed["horaFin"] = `${finHora.toString(10).padStart(2,'0')}:${finMinutos.toString(10).padStart(2,'0')}`;
+            
+            
+            payloadParsed.nodos = [];
+            for (let i = 0; i < 5; i++)
+                payloadParsed.nodos.push(message.payload[i + 7]);
+        }   
+        else if (payloadParsed.tipo === "fototimer") {
+            payloadParsed["horas"] = message.payload[3];
+
+            payloadParsed.nodos = [];
+            for (let i = 0; i < 5; i++)
+                payloadParsed.nodos.push(message.payload[i + 4]);
+        }
+        else if (payloadParsed.tipo === "noche" || payloadParsed.tipo === "simulador") {
+            payloadParsed.nodos = [];
+            for (let i = 0; i < 5; i++)
+                payloadParsed.nodos.push(message.payload[i + 3]);
+        }
+    }
+    
     return payloadParsed;
 }

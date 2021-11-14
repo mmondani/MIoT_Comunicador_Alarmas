@@ -42,8 +42,8 @@ async function iotEventStatus(event, context) {
 
     let payloadParsed = parseStatus(payload);
 
-    console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
-    console.log(JSON.stringify(payloadParsed));
+    //console.log (`Mensaje recibido de ${comId} con payload ${payload}`);
+    //console.log(JSON.stringify(payloadParsed));
 
     // Se actualiza el estado de la partición
     promises.push(db.collection("devices").updateOne (
