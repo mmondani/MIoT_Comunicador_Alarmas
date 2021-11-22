@@ -1,10 +1,15 @@
 
 import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
+import {IotData} from 'aws-sdk';
 import deleteAutomationSchema from '../../schemas/deleteAutomationSchema';
 import {httpStatus} from '../../lib/httpStatus';
+import {BrokerMessage} from '../../lib/brokerMessage';
+import {BrokerCommands} from '../../lib/brokerCommands';
+import {BrokerRegisters} from '../../lib/brokerRegisters';
 
 
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
 const MongoClient = require("mongodb").MongoClient;
 
 // Se define la conexión a la base de datos por fuera del handler para que pueda ser reusada
@@ -34,15 +39,42 @@ async function deleteAutomation(event, context) {
     const {comId, particion, numero, tipo} = event.body;
 
     try {
-        let response = await db.collection("devices")
-            .updateOne(
-                {comId: comId},
-                {$pull:{"particiones.$[p].automatizaciones":{numero: numero, tipo: tipo}}},
-                {arrayFilters: [{"p.numero": particion}]}
-            );
+        let msg = new BrokerMessage(
+            BrokerCommands.RESET,
+            BrokerRegisters.CONFIGURACIONES_NODOS,
+            parseInt(particion)-1
+        );
 
-        if (response.modifiedCount === 0)
-            return httpStatus(409, {error: `Error al eliminar la automatización de la partición ${particion} del comunicador ${comId}`})
+        msg.addByte(numero);
+
+        switch(tipo) {
+            case "fototimer":
+                msg.addByte(2);
+                break;
+
+            case "programacion_horaria":
+                msg.addByte(1);
+                break;
+
+            case "noche":
+                msg.addByte(3);
+                break;
+
+            case "simulador":
+                msg.addByte(4);
+                break;
+        }
+
+        let msgBuffer = msg.getBufferToSend();
+
+        let params = {
+            topic: comId + "/cmd",
+            payload: msgBuffer.toString("hex"),
+            qos: 0
+        };
+        
+    
+        await iotdata.publish(params).promise();
     }
     catch (error) {
         console.log("[Atlas] " + error);

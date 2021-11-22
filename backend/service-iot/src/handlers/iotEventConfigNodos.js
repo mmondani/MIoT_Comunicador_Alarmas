@@ -42,25 +42,36 @@ async function iotEventConfigNodos(event, context) {
   //console.log(JSON.stringify(payloadParsed));
 
   try {
-    // Se actualiza la automatización
-    let params = {
-      "particiones.$[p].automatizaciones.$[a].horaInicio": payloadParsed.horaInicio,
-      "particiones.$[p].automatizaciones.$[a].horaFin": payloadParsed.horaFin,
-      "particiones.$[p].automatizaciones.$[a].horas": payloadParsed.horas,
-      "particiones.$[p].automatizaciones.$[a].nodos": payloadParsed.nodos
-    };
-
-    for (let prop in params) {
-        if (!params[prop])
-            delete params[prop];
+    if (payloadParsed.particion === 0xFF) {
+      // Se está eliminando la automatización
+      await db.collection("devices")
+        .updateOne(
+            {comId: comId},
+            {$pull:{"particiones.$[p].automatizaciones":{numero: payloadParsed.numero, tipo: payloadParsed.tipo}}},
+            {arrayFilters: [{"p.numero": parsedMessage.layer + 1}]}
+        );
     }
+    else {
+      // Se actualiza la automatización
+      let params = {
+        "particiones.$[p].automatizaciones.$[a].horaInicio": payloadParsed.horaInicio,
+        "particiones.$[p].automatizaciones.$[a].horaFin": payloadParsed.horaFin,
+        "particiones.$[p].automatizaciones.$[a].horas": payloadParsed.horas,
+        "particiones.$[p].automatizaciones.$[a].nodos": payloadParsed.nodos
+      };
 
-    await db.collection("devices")
-          .updateOne(
-              {comId: comId},
-              {$set: params},
-              {arrayFilters: [{"p.numero": payloadParsed.particion}, {"a.numero": payloadParsed.numero, "a.tipo": payloadParsed.tipo}]});
+      for (let prop in params) {
+          if (!params[prop])
+              delete params[prop];
+      }
 
+      await db.collection("devices")
+            .updateOne(
+                {comId: comId},
+                {$set: params},
+                {arrayFilters: [{"p.numero": payloadParsed.particion}, {"a.numero": payloadParsed.numero, "a.tipo": payloadParsed.tipo}]});
+    }
+    
 
     // Se avisa por el broker que hay una novedad para este equipo
     await updateMqtt(iotdata, comId, parsedMessage.layer);

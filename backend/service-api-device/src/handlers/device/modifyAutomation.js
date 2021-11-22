@@ -1,10 +1,16 @@
 
 import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
+import {IotData} from 'aws-sdk';
 import modifyAutomationSchema from '../../schemas/modifyAutomationSchema';
 import {httpStatus} from '../../lib/httpStatus';
+import {BrokerMessage} from '../../lib/brokerMessage';
+import {BrokerCommands} from '../../lib/brokerCommands';
+import {BrokerRegisters} from '../../lib/brokerRegisters';
+import {updateMqtt} from "../../lib/updateMqtt";
 
 
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
 const MongoClient = require("mongodb").MongoClient;
 
 // Se define la conexión a la base de datos por fuera del handler para que pueda ser reusada
@@ -33,33 +39,92 @@ async function modifyAutomation(event, context) {
 
     const {comId, particion, numero, nombre, tipo, horaInicio, horaFin, horas, nodos} = event.body;
 
-    let params = {
-        "particiones.$[p].automatizaciones.$[a].nombre": nombre,
-        "particiones.$[p].automatizaciones.$[a].horaInicio": horaInicio,
-        "particiones.$[p].automatizaciones.$[a].horaFin": horaFin,
-        "particiones.$[p].automatizaciones.$[a].horas": horas,
-        "particiones.$[p].automatizaciones.$[a].nodos": nodos
-    };
-
-    for (let prop in params) {
-        if (!params[prop])
-            delete params[prop];
-    }
-
     try {
-        let response = await db.collection("devices")
-            .updateOne(
-                {comId: comId},
-                {$set: params},
-                {arrayFilters: [{"p.numero": particion}, {"a.numero": numero, "a.tipo": tipo}]});
+        if (tipo && nodos) {
+            // Solo si viene información del tipo de automatización se va a mandar un mensaje
+            // al COM38
 
-        if (response.modifiedCount === 0)
-            return httpStatus(409, {error: `Error al modificar la automatización de la partición ${particion} del comunicador ${comId}`});
+            let msg = new BrokerMessage(
+                BrokerCommands.SET,
+                BrokerRegisters.CONFIGURACIONES_NODOS,
+                parseInt(particion)-1
+            );
+
+            msg.addByte(numero);
+            
+            switch(tipo) {
+                case "fototimer":
+                    msg.addByte(2);
+                    msg.addByte(particion);
+                    msg.addByte(horas);
+
+                    break;
+
+                case "programacion_horaria":
+                    let horaInicioParsed = horaInicio.split(":");
+                    let horaFinParsed = horaFin.split(":");
+
+                    msg.addByte(1);
+                    msg.addByte(particion);
+                    msg.addByte(parseInt(horaInicioParsed[0]));
+                    msg.addByte(parseInt(horaInicioParsed[1]));
+                    msg.addByte(parseInt(horaFinParsed[0]));
+                    msg.addByte(parseInt(horaFinParsed[1]));
+
+                    break;
+
+                case "noche":
+                    msg.addByte(3);
+                    msg.addByte(particion);
+
+                    break;
+
+                case "simulador":
+                    msg.addByte(4);
+                    msg.addByte(particion);
+
+                    break;
+            }
+
+            for (let i = 0; i < 5; i ++) {
+                if (nodos[i])
+                    msg.addByte(nodos[i]);
+                else
+                    msg.addByte(0xff);
+            }
+
+            let msgBuffer = msg.getBufferToSend();
+
+            let params = {
+                topic: comId + "/cmd",
+                payload: msgBuffer.toString("hex"),
+                qos: 0
+            };
+            
+        
+            await iotdata.publish(params).promise();
+        }
+        
+        if (nombre) {
+            // Si viene el nombre, se lo actualiza en la base de datos directamente ya que 
+            // no se le informa al COM38
+
+            await db.collection("devices").updateOne(
+                {comId: comId},
+                {$set: {"particiones.$[p].automatizaciones.$[a].nombre": nombre}},
+                {arrayFilters: [{"p.numero": particion}, {"a.numero": numero, "a.tipo": tipo}]}
+            );
+
+            // Se avisa por el broker que hay una novedad para este equipo
+            await updateMqtt(iotdata, comId, particion - 1);
+        }
+
+
     }
     catch (error) {
-        console.log("[Atlas] " + error);
+        console.log(error);
         return httpStatus(500, error);
-    }
+    }   
 
     return httpStatus(200, {});
 }

@@ -48,7 +48,7 @@ async function newAutomation(event, context) {
         nodos: nodos
     }
 
-    console.log(JSON.stringify(automation));
+    //console.log(JSON.stringify(automation));
 
     let msg = new BrokerMessage(
         BrokerCommands.SET,
