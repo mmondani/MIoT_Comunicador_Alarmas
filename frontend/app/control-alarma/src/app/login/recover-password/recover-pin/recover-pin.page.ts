@@ -1,32 +1,33 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController } from '@ionic/angular';
-import { AuthService } from '../auth.service';
+import { LoadingController, AlertController } from '@ionic/angular';
+import { AuthService } from '../../auth.service';
 
 @Component({
-  selector: 'app-create-account',
-  templateUrl: './create-account.page.html',
-  styleUrls: ['./create-account.page.scss'],
+  selector: 'app-recover-pin',
+  templateUrl: './recover-pin.page.html',
+  styleUrls: ['./recover-pin.page.scss'],
 })
-export class CreateAccountPage implements OnInit {
+export class RecoverPinPage implements OnInit {
   form: FormGroup;
 
   constructor(
-    private router: Router, 
-    private alertController: AlertController,
-    private loadingController: LoadingController,
+    private loadingController: LoadingController, 
+    private alertController: AlertController, 
+    private router: Router,
     private authService: AuthService) { }
+    
 
   ngOnInit() {
     this.form = new FormGroup({
-      name: new FormControl(null, {
-        updateOn: 'change',
-        validators: [Validators.required]
-      }),
       email: new FormControl(null, {
         updateOn: 'change',
         validators: [Validators.required, Validators.email]
+      }),
+      pin: new FormControl(null, {
+        updateOn: 'change',
+        validators: [Validators.required]
       }),
       password: new FormControl(null, {
         updateOn: 'change',
@@ -36,43 +37,41 @@ export class CreateAccountPage implements OnInit {
         updateOn: 'change',
         validators: [Validators.required, Validators.minLength(6)]
       })
-    });
+    })
   }
 
 
-  async onCreateAccount() {
+  async onRecoverPassword() {
 
     if (this.form.value.password !== this.form.value.repeatPassword) {
       await this.showAlert("Error!", "Las contraseñas ingresadas no coinciden.");
     }
     else {
+      // Se hace un request al backend para completar el proceso de recuperación de la contraseña
       const loading = await this.loadingController.create({
         keyboardClose: true,
-        message: "Creando la cuenta..."
+        message: "Iniciando la recuperación..."
       });
-
+  
       loading.present();
 
-      // Request al backend para crear la cuenta
-      this.authService.createAccount(this.form.value.email, this.form.value.password)
+      this.authService.recoverPasswordPin(this.form.value.email, this.form.value.password, this.form.value.pin)
         .subscribe(
-          async () =>{
-            // Se creó la cuenta
+          async () => {
             loading.dismiss();
+  
+            await this.showAlert("Recuperación", "La contraseña fue modificada con éxito");
     
-            await this.showAlert("Cuenta creada", "Te envíamos un e-mail para confirmar tu dirección de correo electrónico.");
-
             this.form.reset();
             this.router.navigate(['/login']);
           },
           async () => {
             loading.dismiss();
-            await this.showAlert("Error!", "Ya existe una cuenta asociada a ese e-mail.");
+  
+            await this.showAlert("Error!", "E-mail o pin incorrectos");
           }
         )
     }
-
-    
   }
 
   private async showAlert (title: string, message: string) {

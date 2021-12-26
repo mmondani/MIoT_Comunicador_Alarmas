@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: RecoverPasswordPage
+  },
+  {
+    path: 'recover-pin',
+    loadChildren: () => import('./recover-pin/recover-pin.module').then( m => m.RecoverPinPageModule)
   }
 ];
 

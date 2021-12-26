@@ -1,0 +1,63 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login/recover-password"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Recuperar contraseña</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-label>
+          <h2>
+            Revisá tu correo electrónico. Ingresá el pin que te mandamos y tu nueva contraseña.
+          </h2>
+        </ion-label>
+      </ion-col>
+    </ion-row>
+
+    <ion-row style="margin-top: 20px;">
+      <ion-col size="12">
+        <form [formGroup]="form">
+          <ion-item class="ion-no-padding">
+            <ion-input type="number" placeholder="Pin" formControlName="pin"></ion-input>
+            <ion-icon *ngIf="!form.get('pin').valid && form.get('pin').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+          </ion-item>
+
+          <ion-item class="ion-no-padding">
+            <ion-input type="email" placeholder="E-mail" formControlName="email"></ion-input>
+            <ion-icon *ngIf="!form.get('email').valid && form.get('email').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+          </ion-item>
+      
+      
+          <ion-item class="ion-no-padding">
+            <ion-input type="text" placeholder="Contraseña" formControlName="password"></ion-input>
+            <ion-icon *ngIf="!form.get('password').valid && form.get('password').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+          </ion-item>
+          <ion-label *ngIf="!form.get('password').valid && form.get('password').touched" color="danger" style="font-size: 12px;">
+            El password debe tener más de 6 caracteres
+          </ion-label>
+      
+          <ion-item class="ion-no-padding">
+            <ion-input type="text" placeholder="Repetir contraseña" formControlName="repeatPassword"></ion-input>
+            <ion-icon *ngIf="!form.get('repeatPassword').valid && form.get('repeatPassword').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+          </ion-item>
+          <ion-label *ngIf="!form.get('repeatPassword').valid && form.get('repeatPassword').touched" color="danger" style="font-size: 12px;">
+            El password debe tener más de 6 caracteres
+          </ion-label>
+        </form>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-button class="ion-margin" (click)="onRecoverPassword()" expand="block" color="primary">
+    Confirmar
+  </ion-button>
+</ion-footer>
+
