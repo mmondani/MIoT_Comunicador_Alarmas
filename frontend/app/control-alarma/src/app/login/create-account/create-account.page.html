@@ -1,0 +1,46 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/login"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear una cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <form [formGroup]="form" class="ion-padding">
+    <ion-item>
+      <ion-input type="text" placeholder="Nombre y apellido" formControlName="name"></ion-input>
+      <ion-icon *ngIf="!form.get('name').valid && form.get('name').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+
+    <ion-item>
+      <ion-input type="email" placeholder="E-mail" formControlName="email"></ion-input>
+      <ion-icon *ngIf="!form.get('email').valid && form.get('email').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+
+
+    <ion-item>
+      <ion-input type="text" placeholder="Contraseña" formControlName="password"></ion-input>
+      <ion-icon *ngIf="!form.get('password').valid && form.get('password').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+    <ion-label *ngIf="!form.get('password').valid && form.get('password').touched" color="danger" style="font-size: 12px;">
+      El password debe tener más de 6 caracteres
+    </ion-label>
+
+    <ion-item>
+      <ion-input type="text" placeholder="Repetir contraseña" formControlName="repeatPassword"></ion-input>
+      <ion-icon *ngIf="!form.get('repeatPassword').valid && form.get('repeatPassword').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+    <ion-label *ngIf="!form.get('repeatPassword').valid && form.get('repeatPassword').touched" color="danger" style="font-size: 12px;">
+      El password debe tener más de 6 caracteres
+    </ion-label>
+
+  </form>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <ion-button class="ion-margin" (click)="onCreateAccount()" expand="block" color="primary" [disabled]="!form.valid">
+    Crear
+  </ion-button>
+</ion-footer>

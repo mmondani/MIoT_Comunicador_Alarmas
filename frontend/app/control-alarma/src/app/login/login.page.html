@@ -1,0 +1,42 @@
+<ion-content>
+  <ion-text color="primary">
+    <h2 class="ion-padding-start">Bienvenido a Control Alarma</h2>
+  </ion-text>
+  <ion-label class="ion-padding-start">Ingresá tus datos o crea una cuenta</ion-label>
+
+
+  <div class="ion-text-center ion-padding">
+    <img src="../../assets/img/login-logo.png"/>
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border">
+  <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
+
+    <form [formGroup]="form">
+      <ion-item>
+        <ion-input type="email" placeholder="E-mail" formControlName="email"></ion-input>
+        <ion-icon *ngIf="!form.get('email').valid && form.get('email').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+      </ion-item>
+    
+      <ion-item>
+        <ion-input type="password" placeholder="Password" formControlName="password"></ion-input>
+        <ion-icon *ngIf="!form.get('password').valid && form.get('password').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+      </ion-item>
+    </form>
+  
+    <ion-button (click)="onLogin()" expand="block" color="primary" style="margin-top: 30px;" [disabled]="!form.valid">
+      Ingresar
+    </ion-button>
+  
+    <ion-button fill="clear" color="primary" [routerLink]="['/login/recover-password']">
+      Olvide mi contraseña
+    </ion-button>
+
+    <hr class="ion-no-margin">
+
+    <ion-button fill="clear" color="primary" strong [routerLink]="['/login/create-account']" >
+      Crear una cuenta
+    </ion-button>
+  </div>
+</ion-footer>
