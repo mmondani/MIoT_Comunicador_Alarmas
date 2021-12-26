@@ -1,0 +1,7 @@
+{
+  "name": "Control Alarma",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
