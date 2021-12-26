@@ -1,10 +1,12 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from './login/auth.guard';
 
 const routes: Routes = [
   {
     path: 'alarm-list',
     loadChildren: () => import('./alarm-list/alarm-list.module').then( m => m.AlarmListPageModule),
+    canLoad: [AuthGuard]
   },
   {
     path: 'login',
@@ -12,8 +14,9 @@ const routes: Routes = [
   },
   {
     path: '',
-    loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule),
-    pathMatch: 'full'
+    loadChildren: () => import('./alarm-list/alarm-list.module').then( m => m.AlarmListPageModule),
+    pathMatch: 'full',
+    canLoad: [AuthGuard]
   }
 ];
 
