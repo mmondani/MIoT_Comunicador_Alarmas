@@ -20,8 +20,8 @@
       </ion-item>
     
       <ion-item>
-        <ion-input type="password" placeholder="Password" formControlName="password"></ion-input>
-        <ion-icon *ngIf="!form.get('password').valid && form.get('password').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+        <ion-input [type]="showPassword? 'text' : 'password'" placeholder="Password" formControlName="password"></ion-input>
+        <ion-icon [name]="passwordToggleIcon" slot="end" (click)="onTogglePassword()"></ion-icon>
       </ion-item>
     </form>
   

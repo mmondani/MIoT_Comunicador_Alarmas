@@ -11,6 +11,8 @@ import { AuthService } from './auth.service';
 })
 export class LoginPage implements OnInit {
   form: FormGroup;
+  showPassword = false;
+  passwordToggleIcon = "eye";
 
 
   constructor(
@@ -28,7 +30,7 @@ export class LoginPage implements OnInit {
       }),
       password: new FormControl(null, {
         updateOn: 'change',
-        validators: [Validators.required, Validators.minLength(6)]
+        validators: [Validators.required]
       })
     })
   }
@@ -61,6 +63,17 @@ export class LoginPage implements OnInit {
         }
       );
   }
+
+
+  onTogglePassword () {
+    this.showPassword = !this.showPassword;
+
+    if (this.passwordToggleIcon === "eye")
+      this.passwordToggleIcon = "eye-off";
+    else
+      this.passwordToggleIcon = "eye";
+  }
+
 
   private async showAlert (title: string, message: string) {
     const alert = await this.alertController.create ({
