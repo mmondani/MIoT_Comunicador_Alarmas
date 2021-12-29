@@ -5,7 +5,7 @@ import { map, tap } from 'rxjs/operators'
 import { Storage } from '@capacitor/storage'
 
 import { environment } from '../../environments/environment';
-import { User } from './user.model';
+import { User } from '../models/user.model';
 
 
 interface LoginResponse {

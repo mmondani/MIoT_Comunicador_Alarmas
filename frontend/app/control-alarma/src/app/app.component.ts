@@ -33,7 +33,9 @@ export class AppComponent implements OnInit, OnDestroy{
 
     // Se agrega un listener para chequear si hay que reloguear cuando se hace
     // un resume de la app
-    App.addListener('appStateChange', this.checkAuthOnResume.bind(this))
+    App.addListener('appStateChange', this.checkAuthOnResume.bind(this));
+
+    //App.addListener('appStateChange', this.getDevicesListOnResume.bind(this));
   } 
 
   ngOnDestroy(): void {
@@ -42,6 +44,7 @@ export class AppComponent implements OnInit, OnDestroy{
   }
 
   private checkAuthOnResume(state: AppState) {
+    console.log("resume 1");
     if (state.isActive) {
       this.authService
         .autoLogin()
@@ -54,4 +57,8 @@ export class AppComponent implements OnInit, OnDestroy{
         });
     }
   }
+
+  /*private getDevicesListOnResume () {
+    console.log("resume 2");
+  }*/
 }

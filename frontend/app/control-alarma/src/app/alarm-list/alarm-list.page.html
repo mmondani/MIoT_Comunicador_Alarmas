@@ -8,4 +8,10 @@
   <ion-button (click)="onLogout()" expand="block">
     Logout
   </ion-button>
+
+  <ion-list *ngIf="deviceList">
+    <ion-item *ngFor="let device of deviceList">
+      <ion-label>{{device.comId}}</ion-label>
+    </ion-item>
+  </ion-list>
 </ion-content>
