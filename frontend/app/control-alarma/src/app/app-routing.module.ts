@@ -13,6 +13,10 @@ const routes: Routes = [
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
+    path: 'alarm-detail/:id',
+    loadChildren: () => import('./alarm-detail/alarm-detail.module').then( m => m.AlarmDetailPageModule)
+  },
+  {
     path: '',
     loadChildren: () => import('./alarm-list/alarm-list.module').then( m => m.AlarmListPageModule),
     pathMatch: 'full',

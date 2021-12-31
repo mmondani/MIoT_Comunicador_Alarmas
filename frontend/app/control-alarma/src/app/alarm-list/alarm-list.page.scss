@@ -1,0 +1,26 @@
+ion-avatar img {
+    object-fit: scale-down; 
+    background-color: lightblue;
+}
+
+.alarm-name {
+    font-size: x-large;
+}
+
+.battery-power-div {
+    width: 100%;
+    display: flex;
+    justify-content: end;
+}
+
+.mains-power {
+    color: limegreen;
+    margin: 0px 10px;
+}
+
+.battery-img{
+    display: inline;
+    margin-left: 10px;
+    width: 30px ;
+    height: auto;
+}

@@ -45,7 +45,11 @@ export class AlarmListPage implements OnInit {
     });
   }
 
-  onLogout() {
-    this.authService.logout();
+  onAlarmMore(comId: string, event: Event) {
+    console.log("Alarm more: " + comId);
+
+    // Se evita que se propague el evento de click a la card
+    event.stopPropagation();
+    return false;
   }
 }
