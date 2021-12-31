@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Device } from '../models/device.model';
 import { environment } from '../../environments/environment';
 import { BehaviorSubject } from 'rxjs';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 
 @Injectable({
@@ -28,6 +28,24 @@ export class DeviceService {
           return [];
       })
     );
+  }
+
+  getDeviceItem(comId: string) {
+    return this._deviceList.asObservable().pipe(
+      map(deviceList => {
+        let ret: Device;
+
+        if (!deviceList)
+          ret = null;
+
+        deviceList.forEach(device => {
+          if (device.comId === comId)
+            ret = device;
+        })
+
+        return ret;
+      })
+    )
   }
 
 

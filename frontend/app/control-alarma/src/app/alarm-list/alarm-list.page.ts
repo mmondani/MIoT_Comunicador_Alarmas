@@ -3,7 +3,7 @@ import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
-import { ActionSheetController, LoadingController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-alarm-list',
@@ -18,7 +18,8 @@ export class AlarmListPage implements OnInit {
     private loadingController: LoadingController,
     private authService: AuthService,
     private deviceService: DeviceService,
-    private actionSheetController: ActionSheetController
+    private actionSheetController: ActionSheetController,
+    private navigationController: NavController
   ) { }
 
 
@@ -39,11 +40,11 @@ export class AlarmListPage implements OnInit {
 
     this.deviceService.deviceList.subscribe(deviceList => {
       this.deviceList = deviceList;
-
-      deviceList.forEach(device => {
-        console.log(device.comId);
-      })
     });
+  }
+
+  onItemClicked(comId: string) {
+    this.navigationController.navigateForward(['alarm-detail', comId], {animated: true});
   }
 
   onAlarmMore(comId: string, event: Event) {

@@ -1,4 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { Device } from '../models/device.model';
+import { DeviceService } from '../alarm-list/device.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-alarm-detail',
@@ -7,9 +10,18 @@ import { Component, OnInit } from '@angular/core';
 })
 export class AlarmDetailPage implements OnInit {
 
-  constructor() { }
+  device: Device;
+
+  constructor(
+    private activatedRoute: ActivatedRoute,
+    private deviceService: DeviceService
+  ) { }
 
   ngOnInit() {
+    this.deviceService.getDeviceItem(this.activatedRoute.snapshot.params["id"])
+      .subscribe(device => {
+        this.device = device;
+      })
   }
 
 }

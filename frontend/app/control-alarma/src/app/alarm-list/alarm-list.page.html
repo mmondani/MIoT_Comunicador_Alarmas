@@ -10,8 +10,8 @@
   </ion-button>
 
   <ion-list *ngIf="deviceList">
-    
-    <ion-card *ngFor="let device of deviceList" [routerLink]="['alarm-detail', device.comId]">
+
+    <ion-card *ngFor="let device of deviceList" (click)="onItemClicked(device.comId)">
       <ion-card-content>
         <ion-grid class="ion-no-padding">
           <ion-row>
