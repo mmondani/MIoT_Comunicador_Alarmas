@@ -3,7 +3,7 @@ import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
-import { LoadingController } from '@ionic/angular';
+import { ActionSheetController, LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-alarm-list',
@@ -17,7 +17,8 @@ export class AlarmListPage implements OnInit {
   constructor(
     private loadingController: LoadingController,
     private authService: AuthService,
-    private deviceService: DeviceService
+    private deviceService: DeviceService,
+    private actionSheetController: ActionSheetController
   ) { }
 
 
@@ -46,10 +47,44 @@ export class AlarmListPage implements OnInit {
   }
 
   onAlarmMore(comId: string, event: Event) {
-    console.log("Alarm more: " + comId);
+    this.showAlarmMoreActionSheet();
 
     // Se evita que se propague el evento de click a la card
     event.stopPropagation();
     return false;
+  }
+
+  private async showAlarmMoreActionSheet() {
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      buttons: [
+        {
+          text: "Configurar comunicador",
+          handler: () => {
+            console.log("configurar comunicador");
+          }
+        },
+        {
+          text: "Configurar red Wi-Fi",
+          handler: () => {
+            console.log("configurar wifi");
+          }
+        },
+        {
+          text: "Mostar QR",
+          handler: () => {
+            console.log("mostrar QR");
+          }
+        },
+        {
+          text: "Desvincular comunicador",
+          handler: () => {
+            console.log("desvincular comunicador");
+          }
+        }
+      ]
+    });
+
+    await actionSheet.present();
   }
 }
