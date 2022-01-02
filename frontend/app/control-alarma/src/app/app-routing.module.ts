@@ -13,7 +13,7 @@ const routes: Routes = [
     loadChildren: () => import('./login/login.module').then( m => m.LoginPageModule)
   },
   {
-    path: 'alarm-detail/:id',
+    path: 'alarm-detail/:id/:partition',
     loadChildren: () => import('./alarm-detail/alarm-detail.module').then( m => m.AlarmDetailPageModule)
   },
   {

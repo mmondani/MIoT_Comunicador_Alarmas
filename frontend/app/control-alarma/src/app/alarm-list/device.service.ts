@@ -5,12 +5,15 @@ import { environment } from '../../environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
+import { Particion } from '../models/particion.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DeviceService {
   private _deviceList = new BehaviorSubject<Device[]> (null) ;
+  private _currentDevice: Device;
+  private _currentPartition: Particion;
 
 
   constructor(
@@ -41,6 +44,90 @@ export class DeviceService {
         deviceList.forEach(device => {
           if (device.comId === comId)
             ret = device;
+        })
+
+        return ret;
+      })
+    )
+  }
+
+  getDeviceName(comId: string) {
+    return this._deviceList.asObservable().pipe(
+      map(deviceList => {
+        let ret: string;
+
+        if (!deviceList)
+          ret = "";
+
+        deviceList.forEach(device => {
+          if (device.comId === comId)
+            ret = device.nombre;
+        })
+
+        return ret;
+      })
+    )
+  }
+
+  getDevicePartitionNames(comId: string) {
+    return this._deviceList.asObservable().pipe(
+      map(deviceList => {
+        let ret: string[] = [];
+
+        if (!deviceList)
+          ret = [];
+
+        deviceList.forEach(device => {
+          if (device.comId === comId) {
+            device.particiones.forEach(particion => {
+              ret.push(particion.nombre);
+            })
+          }
+        })
+
+        return ret;
+      })
+    )
+  }
+
+  getDevicePartitionName(comId: string, partitionNumber: number) {
+    return this._deviceList.asObservable().pipe(
+      map(deviceList => {
+        let ret: string = "";
+
+        if (!deviceList)
+          ret = "";
+
+        deviceList.forEach(device => {
+          if (device.comId === comId) {
+            device.particiones.forEach(particion => {
+              if (particion.numero == partitionNumber) {
+                ret = particion.nombre;
+              }
+            })
+          }
+        })
+
+        return ret;
+      })
+    )
+  }
+
+
+  getDevicePartitionNumbers(comId: string) {
+    return this._deviceList.asObservable().pipe(
+      map(deviceList => {
+        let ret: number[] = [];
+
+        if (!deviceList)
+          ret = [];
+
+        deviceList.forEach(device => {
+          if (device.comId === comId) {
+            device.particiones.forEach(particion => {
+              ret.push(particion.numero);
+            })
+          }
         })
 
         return ret;

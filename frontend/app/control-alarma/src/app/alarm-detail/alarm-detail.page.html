@@ -1,9 +1,40 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title *ngIf="device">{{device.nombre}}</ion-title>
+    <ion-title *ngIf="deviceName">{{deviceName}}</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <ion-grid fixed style="height: 100%; display: flex; flex-flow: column;">
+    <ion-row>
+      <ion-col>
+        <ion-card *ngIf="partitionNumbers && partitionNumbers.length > 1"> 
+          <ion-card-content class="ion-no-padding">
+            <ion-grid class="ion-no-padding">
+              <ion-row style="align-items: center; text-align: center; margin-top: 5px;">
+                <ion-col size="1">
+                  <ion-icon name="chevron-back-outline" size="large" *ngIf="hasPrevious()" (click)="onPreviousClick()"></ion-icon>
+                </ion-col>
+                <ion-col size="10">
+                  <ion-label>{{currentPartitionName}}</ion-label>
+                </ion-col>
+                <ion-col size="1">
+                  <ion-icon name="chevron-forward-outline" size="large" *ngIf="hasNext()" (click)="onNextClick()"></ion-icon>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
 
+    <ion-row style="flex-grow: 1;">
+      <ion-col>
+        <app-alarm-tabs></app-alarm-tabs>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
 </ion-content>
+
+

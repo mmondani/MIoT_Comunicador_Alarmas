@@ -7,13 +7,15 @@ import { IonicModule } from '@ionic/angular';
 import { AlarmDetailPageRoutingModule } from './alarm-detail-routing.module';
 
 import { AlarmDetailPage } from './alarm-detail.page';
+import { AlarmTabsPageModule } from './alarm-tabs/alarm-tabs.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    AlarmDetailPageRoutingModule
+    AlarmDetailPageRoutingModule,
+    AlarmTabsPageModule
   ],
   declarations: [AlarmDetailPage]
 })

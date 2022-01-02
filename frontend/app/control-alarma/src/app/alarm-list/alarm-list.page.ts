@@ -44,7 +44,7 @@ export class AlarmListPage implements OnInit {
   }
 
   onItemClicked(comId: string) {
-    this.navigationController.navigateForward(['alarm-detail', comId], {animated: true});
+    this.navigationController.navigateForward(['alarm-detail', comId, 1], {animated: true});
   }
 
   onAlarmMore(comId: string, event: Event) {
