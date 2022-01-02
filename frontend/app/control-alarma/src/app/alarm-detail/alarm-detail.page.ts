@@ -25,10 +25,15 @@ export class AlarmDetailPage implements OnInit {
   ) { }
 
   ngOnInit() {
+
+  }
+
+  ionViewDidEnter() {
     this.deviceComId = this.activatedRoute.snapshot.params["id"];
     this.partitionNumber = parseInt(this.activatedRoute.snapshot.params["partition"]);
 
-    console.log("ngoninit")
+    this.deviceService.currentDeviceComId = this.deviceComId;
+    this.deviceService.currentPartitionNumber = this.partitionNumber;
 
     this.deviceService.getDeviceName(this.deviceComId)
       .subscribe(deviceName => {
@@ -39,17 +44,12 @@ export class AlarmDetailPage implements OnInit {
       .subscribe(partitionNumbers => {
         this.partitionNumbers = partitionNumbers;
         this.currentPartitionIndex = this.getCurrentPartitionIndex();
-        console.log(this.currentPartitionIndex);
       });
 
     this.deviceService.getDevicePartitionName(this.deviceComId, this.partitionNumber)
       .subscribe(partitionName => {
         this.currentPartitionName = partitionName;
       })
-  }
-
-  ionViewDidEnter() {
-
   }
 
 

@@ -4,19 +4,16 @@ import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
 
 @Component({
-  selector: 'app-alarm',
-  templateUrl: './alarm.page.html',
-  styleUrls: ['./alarm.page.scss'],
+  selector: 'app-zones',
+  templateUrl: './zones.page.html',
+  styleUrls: ['./zones.page.scss'],
 })
-export class AlarmPage implements OnInit, OnDestroy {
+export class ZonesPage implements OnInit, OnDestroy {
 
   partition: Particion;
   private partitionSubscription: Subscription;
 
-  constructor(
-    private deviceService: DeviceService
-  ) { }
-
+  constructor(private deviceService: DeviceService) { }
 
   ngOnInit() {
     this.partitionSubscription = this.deviceService.currentPartition.subscribe( partition => {
@@ -29,4 +26,5 @@ export class AlarmPage implements OnInit, OnDestroy {
     if (this.partitionSubscription)
       this.partitionSubscription.unsubscribe();
   }
+
 }

@@ -1,22 +1,19 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
 
 @Component({
-  selector: 'app-alarm',
-  templateUrl: './alarm.page.html',
-  styleUrls: ['./alarm.page.scss'],
+  selector: 'app-nodes',
+  templateUrl: './nodes.page.html',
+  styleUrls: ['./nodes.page.scss'],
 })
-export class AlarmPage implements OnInit, OnDestroy {
+export class NodesPage implements OnInit {
 
   partition: Particion;
   private partitionSubscription: Subscription;
 
-  constructor(
-    private deviceService: DeviceService
-  ) { }
-
+  constructor(private deviceService: DeviceService) { }
 
   ngOnInit() {
     this.partitionSubscription = this.deviceService.currentPartition.subscribe( partition => {
@@ -29,4 +26,5 @@ export class AlarmPage implements OnInit, OnDestroy {
     if (this.partitionSubscription)
       this.partitionSubscription.unsubscribe();
   }
+
 }

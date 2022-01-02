@@ -12,8 +12,10 @@ import { Particion } from '../models/particion.model';
 })
 export class DeviceService {
   private _deviceList = new BehaviorSubject<Device[]> (null) ;
-  private _currentDevice: Device;
-  private _currentPartition: Particion;
+  private _currentDevice = new BehaviorSubject<Device> (null);
+  private _currentPartition = new BehaviorSubject<Particion> (null);
+  private _currentDeviceComId: string;
+  private _currentPartitionNumber: number;
 
 
   constructor(
@@ -31,6 +33,65 @@ export class DeviceService {
           return [];
       })
     );
+  }
+
+  get currentDevice() {
+    return this._currentDevice.asObservable().pipe(
+      map(device => {
+        if(device)
+          return device;
+        else
+          return null;
+      })
+    );
+  }
+
+  get currentPartition() {
+    return this._currentPartition.asObservable().pipe(
+      map(partition => {
+        if(partition)
+          return partition;
+        else
+          return null;
+      })
+    );
+  }
+
+  set currentDeviceComId(comId: string) {
+    this._currentDeviceComId = comId;
+
+    
+    this.deviceList.subscribe(deviceList => {
+      let device;
+
+      deviceList.forEach(dev => {
+        if (dev.comId === comId)
+          device = dev;
+      })
+
+      if (device)
+        this._currentDevice.next(device);
+    })
+  }
+
+  set currentPartitionNumber(partitionNumber: number) {
+    this._currentPartitionNumber = partitionNumber;
+
+    this.deviceList.subscribe(deviceList => {
+      let partition;
+
+      deviceList.forEach(dev => {
+        if (dev.comId === this._currentDeviceComId) {
+          dev.particiones.forEach(part => {
+            if (part.numero === partitionNumber)
+              partition = part;
+          })
+        }
+      })
+
+      if (partition)
+        this._currentPartition.next(partition);
+    })
   }
 
   getDeviceItem(comId: string) {

@@ -1,0 +1,8 @@
+<ion-content>
+  <p>Tab Zonas</p>
+  <ion-list *ngIf="partition">
+    <ion-item *ngFor="let zone of partition.zonas">
+      <ion-label>{{zone.numero}} - {{zone.nombre}}</ion-label>
+    </ion-item>
+  </ion-list>
+</ion-content>
