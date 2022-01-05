@@ -1,4 +1,45 @@
-<ion-content>
-  <p>Tab Alarma</p>
-  <p *ngIf="partition">{{partition.nombre}}</p>
+<ion-content class="ion-padding" >
+  <ion-grid *ngIf="partition">
+    <ion-row style="align-items: center; text-align: center; justify-content: center;">
+      <ion-col size="2">
+        <img *ngIf="!partition.ready" src="../../../../assets/icon/lista_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">
+        <img *ngIf="partition.ready" src="../../../../assets/icon/lista_2.png" style="opacity: 70%; width: 50%; max-height: 35px;">
+      </ion-col>
+      <ion-col size="2">
+        <img *ngIf="partition.modo !== 'estoy'" src="../../../../assets/icon/estoy_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">
+        <img *ngIf="partition.modo === 'estoy'" src="../../../../assets/icon/estoy_2.png" style="opacity: 70%; width: 50%; max-height: 35px;">
+      </ion-col>
+      <ion-col size="2">
+        <img *ngIf="partition.modo !== 'me_voy'" src="../../../../assets/icon/me_voy_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">
+        <img *ngIf="partition.modo === 'me_voy'" src="../../../../assets/icon/me_voy_2.png" style="opacity: 70%; width: 50%; max-height: 35px;">
+      </ion-col>
+    </ion-row>
+
+    <ion-row style="align-items: center; text-align: center; justify-content: center;">
+      <ion-col size="2">
+        <div style="font-size: x-small;">LISTA</div>
+      </ion-col>
+      <ion-col size="2">
+        <div style="font-size: x-small;">ESTOY</div>
+      </ion-col>
+      <ion-col size="2">
+        <div style="font-size: x-small;">ME VOY</div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <div style="display: flex; justify-content: space-between; margin-top: 3vh;" *ngIf="partition && partitionState">
+    <img src="../../../../assets/buttons/modo.png" style="width: 70px;" [style.opacity]="partitionState === 'desactivada'? '100%' : '30%'" (click)="onModoClick()">
+    <img src="../../../../assets/buttons/eventos.png" style="width: 70px;" [style.opacity]="partitionState === 'desactivada'? '100%' : '30%'" (click)="onEventosClick()">
+  </div>
+
+  <div style="display: flex; justify-content: center; margin-top: 3vh;" *ngIf="partition && partitionState">
+    <img src="../../../../assets/buttons/{{partitionState}}.png" style="width: 200px;" (click)="onEstadoClick()">
+  </div>
+
+  <div style="display: flex; justify-content: space-around; margin-top: 10vh;" *ngIf="partition && partitionState">
+    <img src="../../../../assets/buttons/panico.png" style="width: 60px;" (click)="onPanicoClick()">
+    <img src="../../../../assets/buttons/incendio.png" style="width: 60px;" (click)="onIncendioClick()">
+    <img src="../../../../assets/buttons/medico.png" style="width: 60px;" (click)="onMedicoClick()">
+  </div>
 </ion-content>
