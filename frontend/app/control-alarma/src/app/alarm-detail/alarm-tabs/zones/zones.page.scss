@@ -1,0 +1,28 @@
+.icon-img{
+    display: inline;
+    margin-right: 10px;
+    width: 15px ;
+    height: auto;
+}
+
+.icon-text {
+    font-size: small;
+    margin-right: 10px;
+}
+
+.icons-div {
+    width: 100%;
+    opacity: 50%;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.zone-name {
+    font-size: large;
+}
+
+ion-item {
+    --inner-padding-end: 0px;
+}
