@@ -43,6 +43,10 @@ export class AppComponent implements OnInit, OnDestroy{
       this.authSubcription.unsubscribe();
   }
 
+  onLogout() {
+    this.authService.logout();
+  }
+
   private checkAuthOnResume(state: AppState) {
     console.log("resume 1");
     if (state.isActive) {
