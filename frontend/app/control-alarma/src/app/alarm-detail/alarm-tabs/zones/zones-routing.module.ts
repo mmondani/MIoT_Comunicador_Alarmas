@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: ZonesPage
+  },
+  {
+    path: 'zone-modal',
+    loadChildren: () => import('./zone-modal/zone-modal.module').then( m => m.ZoneModalPageModule)
   }
 ];
 

@@ -1,8 +1,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActionSheetController } from '@ionic/angular';
+import { ActionSheetController, ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
+import { ZoneModalPage } from './zone-modal/zone-modal.page';
 
 @Component({
   selector: 'app-zones',
@@ -16,7 +17,8 @@ export class ZonesPage implements OnInit, OnDestroy {
 
   constructor(
     private deviceService: DeviceService,
-    private actionSheetController:ActionSheetController
+    private actionSheetController:ActionSheetController,
+    private modalController: ModalController
   ) { }
 
 
@@ -56,6 +58,28 @@ export class ZonesPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.partitionSubscription)
       this.partitionSubscription.unsubscribe();
+  }
+
+
+  async onAddZone() {
+    const modal = await this.modalController.create({
+      component: ZoneModalPage,
+      initialBreakpoint: 0.3,
+      breakpoints: [0.3],
+      handle: false,
+      backdropDismiss: false,
+      componentProps: {
+        "number": "1",
+        "name": "hola"
+      }
+    });
+
+    modal.present();
+
+
+    const {data} = await modal.onWillDismiss()
+    console.log(data);
+    
   }
 
 
