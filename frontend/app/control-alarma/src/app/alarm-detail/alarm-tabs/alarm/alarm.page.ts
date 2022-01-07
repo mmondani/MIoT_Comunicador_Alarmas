@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActionSheetController } from '@ionic/angular';
 import { partition, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { DeviceService } from '../../../alarm-list/device.service';
@@ -16,7 +17,8 @@ export class AlarmPage implements OnInit, OnDestroy {
   private partitionSubscription: Subscription;
 
   constructor(
-    private deviceService: DeviceService
+    private deviceService: DeviceService,
+    private actionSheetController: ActionSheetController
   ) { }
 
 
@@ -52,9 +54,47 @@ export class AlarmPage implements OnInit, OnDestroy {
   }
 
 
-  onModoClick() {
+  async onModoClick() {
     if (this.partitionState === 'desactivada') {
-      console.log("onModoClick");
+      const actionModoEstoy = {
+          text: "Cambiar a modo Estoy",
+          handler: () => {
+            console.log("Cambiar a modo Estoy");
+          }
+        };
+
+      const actionModoMeVoy = {
+          text: "Cambiar a modo Me Voy",
+          handler: () => {
+            console.log("Cambiar a modo Me Voy");
+          }
+        };
+
+
+      let buttons = [];
+      if (this.partition.modo === 'estoy') {
+        buttons = [
+          actionModoMeVoy
+        ];
+      }
+      else if (this.partition.modo === "me_voy") {
+        buttons = [
+          actionModoEstoy
+        ];
+      }
+      else {
+        buttons = [
+          actionModoEstoy,
+          actionModoMeVoy
+        ];
+      }
+
+      const actionSheet = await this.actionSheetController.create({
+        cssClass: "action-sheet",
+        buttons: buttons
+      });
+
+      await actionSheet.present();
     }
   }
 
@@ -64,19 +104,102 @@ export class AlarmPage implements OnInit, OnDestroy {
     }
   }
 
-  onEstadoClick() {
-    console.log("onEstadoClick");
+  async onEstadoClick() {
+    const actionActivar = {
+        text: "Activar",
+        handler: () => {
+          console.log("Activar");
+        }
+      };
+
+    const actionActivarEstoy = {
+        text: "Activar en modo Estoy",
+        handler: () => {
+          console.log("Activar en modo Estoy");
+        }
+      };
+
+    const actionActivarMeVoy = {
+        text: "Activar en modo Me Voy",
+        handler: () => {
+          console.log("Activar en modo Me Voy");
+        }
+      };
+
+    const actionDesactivar = {
+        text: "Desactivar",
+        handler: () => {
+          console.log("Desactivar");
+        }
+      };
+
+    let buttons = [];
+    if (this.partitionState === 'desactivada') {
+      buttons = [
+        actionActivar,
+        actionActivarEstoy,
+        actionActivarMeVoy
+      ]
+    }
+    else if (this.partitionState === 'activada' || this.partitionState === 'activada_estoy' || this.partitionState === 'activada_me_voy' || this.partition.sonando) {
+      buttons = [
+        actionDesactivar
+      ]
+    }
+
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      buttons: buttons
+    });
+
+    await actionSheet.present();
   }
 
-  onPanicoClick() {
-    console.log("onPanicoClick");
+  async onPanicoClick() {
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      buttons: [
+        {
+          text: "Disparar por pánico",
+          handler: () => {
+            console.log("Disparar por pánico");
+          }
+        }
+      ]
+    });
+
+    await actionSheet.present();
   }
 
-  onIncendioClick() {
-    console.log("onIncendioClick");
+  async onIncendioClick() {
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      buttons: [
+        {
+          text: "Disparar por incendio",
+          handler: () => {
+            console.log("Disparar por incendio");
+          }
+        }
+      ]
+    });
+
+    await actionSheet.present();
   }
 
-  onMedicoClick() {
-    console.log("onMedicoClick");
+  async onMedicoClick() {
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      buttons: [
+        {
+          text: "Disparar emergencia médica",
+          handler: () => {
+            console.log("Disparar emergencia médica");
+          }
+        }
+      ]
+    });
+
+    await actionSheet.present();
   }
 }
