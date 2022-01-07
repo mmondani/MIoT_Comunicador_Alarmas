@@ -12,4 +12,11 @@ export class AdvancedPage implements OnInit {
   ngOnInit() {
   }
 
+  onUsersClick() {
+    console.log("Usuarios de la partición");
+  }
+
+  onConfiguationClick() {
+    console.log("Configuración de la partición");
+  }
 }
