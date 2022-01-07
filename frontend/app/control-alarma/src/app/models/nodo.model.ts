@@ -1,5 +1,6 @@
 export interface Nodo {
     numero: number,
     nombre: string,
-    icono: string
+    icono: string,
+    encendido: boolean
 }

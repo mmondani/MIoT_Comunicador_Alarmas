@@ -1,0 +1,13 @@
+.node-name {
+    font-size: large;
+}
+
+ion-item {
+    --inner-padding-end: 0px;
+}
+
+.node-row {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+}

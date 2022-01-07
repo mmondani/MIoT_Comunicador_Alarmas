@@ -1,8 +1,28 @@
-<ion-content>
-  <p>Tab Nodos</p>
-  <ion-list *ngIf="partition">
-    <ion-item *ngFor="let node of partition.nodos">
-      <ion-label>{{node.numero}} - {{node.nombre}}</ion-label>
+<ion-content class="ion-padding-horizontal">
+  <ion-button (click)="onAddNode()" expand="block">
+    Agregar nodo
+  </ion-button>
+
+  <ion-button (click)="onAddAutomation()" expand="block" style="margin-top: 10px;">
+    Agregar automatización
+  </ion-button>
+
+  <ion-list *ngIf="partition" style="margin-top: 20px;" class="ion-no-padding">
+    <ion-item *ngFor="let node of partition.nodos" class="ion-no-padding" (click)="onNodeClicked(node)">
+      <ion-grid class="ion-no-padding">
+        <ion-row class="node-row">
+          <ion-col >
+            <img src="../../assets/icon/nodo_on.png" *ngIf="node.encendido">
+            <img src="../../assets/icon/nodo_off.png" style="opacity: 60%;" *ngIf="!node.encendido">
+          </ion-col>
+          <ion-col size="10">
+            <ion-label class="node-name" style="margin-left: 10px;">{{node.numero}} - {{node.nombre}}</ion-label>
+          </ion-col>
+          <ion-col >
+            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onNodeMore(node, $event)">
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </ion-item>
   </ion-list>
 </ion-content>
