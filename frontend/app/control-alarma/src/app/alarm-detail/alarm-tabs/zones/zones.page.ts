@@ -75,6 +75,7 @@ export class ZonesPage implements OnInit, OnDestroy {
   private async showZoneMoreActionSheet() {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: [
         {
           text: "Editar zona",

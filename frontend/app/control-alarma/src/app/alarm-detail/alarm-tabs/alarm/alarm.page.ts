@@ -91,6 +91,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
       const actionSheet = await this.actionSheetController.create({
         cssClass: "action-sheet",
+        mode: "ios",
         buttons: buttons
       });
 
@@ -149,6 +150,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: buttons
     });
 
@@ -158,6 +160,7 @@ export class AlarmPage implements OnInit, OnDestroy {
   async onPanicoClick() {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: [
         {
           text: "Disparar por pánico",
@@ -174,6 +177,7 @@ export class AlarmPage implements OnInit, OnDestroy {
   async onIncendioClick() {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: [
         {
           text: "Disparar por incendio",
@@ -190,6 +194,7 @@ export class AlarmPage implements OnInit, OnDestroy {
   async onMedicoClick() {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: [
         {
           text: "Disparar emergencia médica",

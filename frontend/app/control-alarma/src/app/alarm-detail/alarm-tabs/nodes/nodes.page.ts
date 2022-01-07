@@ -78,6 +78,7 @@ export class NodesPage implements OnInit {
 
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: "ios",
       buttons: [
         {
           text: "Editar nodo",
