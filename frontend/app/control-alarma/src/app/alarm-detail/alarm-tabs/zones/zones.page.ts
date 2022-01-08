@@ -33,7 +33,10 @@ export class ZonesPage implements OnInit, OnDestroy {
         // El array availableZones tiene los números de zona que no están usados
         this.availableZones = Array.from({length: 32}, (x, i) => i+1);
 
-        // Se parsea la información de las zonas
+        // Se ordenan las zonas por número de zona
+        this.partition.zonas.sort((a, b) => {return a.numero-b.numero});
+
+        // Se parsea la información de las zonas (estado de la zona, inclusión, memorizada)
         this.partition.zonas.forEach(zona => {
           let index = 32 - zona.numero;
 
