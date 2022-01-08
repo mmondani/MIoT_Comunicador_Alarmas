@@ -2,10 +2,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Device } from '../models/device.model';
 import { environment } from '../../environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, partition } from 'rxjs';
 import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { Particion } from '../models/particion.model';
+import { Zona } from '../models/zona.model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,6 +62,10 @@ export class DeviceService {
     this._currentDeviceComId = comId;
 
     
+    /**
+     * Cuando se configura el device actual, se emite ese device
+     * en el subject currentDevice
+     */
     this.deviceList.subscribe(deviceList => {
       let device;
 
@@ -74,9 +79,17 @@ export class DeviceService {
     })
   }
 
+  get currentDeviceComId() {
+    return this._currentDeviceComId;
+  }
+
   set currentPartitionNumber(partitionNumber: number) {
     this._currentPartitionNumber = partitionNumber;
 
+    /**
+     * Cuando se configura la prtición actual, se emite esa partición
+     * en el subject currentDevice
+     */
     this.deviceList.subscribe(deviceList => {
       let partition;
 
@@ -211,7 +224,88 @@ export class DeviceService {
         this._deviceList.next(deviceList)
       })
     );
+  }
 
+  getDevice (comId: string) {
+    return this.authService.token.pipe(
+      switchMap(token => {
+        return this.http.get<Device>(environment.api_url + "/device/id/" + comId, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        })
+      })
+    ).pipe(
+      tap(device => {
+        /**
+         * Si es el dispositivo actual se emite el dispositivo y la partición actual,
+         * para actualizar la UI
+         */
+        if (device.comId === this._currentDeviceComId) {
+          this._currentDevice.next(device);
+
+          device.particiones.forEach(particion =>{
+            if (particion.numero === this._currentPartitionNumber)
+              this._currentPartition.next(particion);
+          })
+        }
+        
+      })
+    );
+  }
+
+  newZone (comId: string, partitionNumber: number, zoneNumber: number, zoneName: string, zoneIcon: string) {
+    return this.authService.token.pipe(
+      switchMap(token => {
+        return this.http.post<Zona>(environment.api_url + "/device/zone", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: zoneNumber,
+          nombre: zoneName,
+          icono: zoneIcon
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+
+  updateZone (comId: string, partitionNumber: number, zoneNumber: number, zoneName?: string, zoneIcon?: string) {
+    return this.authService.token.pipe(
+      switchMap(token => {
+        return this.http.patch<Zona>(environment.api_url + "/device/zone", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: zoneNumber,
+          nombre: zoneName,
+          icono: zoneIcon
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  removeZone (comId: string, partitionNumber: number, zoneNumber: number) {
+    return this.authService.token.pipe(
+      switchMap(token => {
+        return this.http.request('delete', environment.api_url + "/device/zone", {
+          body: {
+            comId: comId,
+            particion: partitionNumber,
+            numero: zoneNumber
+          },
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    );
   }
   
 }

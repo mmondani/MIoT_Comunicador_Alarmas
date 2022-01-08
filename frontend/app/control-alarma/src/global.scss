@@ -55,3 +55,12 @@ ion-modal.auto-height {
       }
   }
 }
+
+.custom-loading {
+  --background: none;
+ 
+  .loading-wrapper{
+      box-shadow: none !important;
+      -webkit-box-shadow: !important;
+  }
+}

@@ -5,7 +5,7 @@
 
   <ion-list *ngIf="partition" style="margin-top: 20px;" class="ion-no-padding">
     <ion-item *ngFor="let zone of partition.zonas" class="ion-no-padding" (click)="onZoneClicked(zone)">
-      <ion-grid class="ion-no-padding">
+      <ion-grid class="ion-no-padding" style="margin-top: 15px;">
         <ion-row>
           <ion-col size="11">
             <ion-label class="zone-name">{{zone.numero}} - {{zone.nombre}}</ion-label>

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActionSheetController, ModalController } from '@ionic/angular';
+import { ActionSheetController, ModalController, LoadingController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
@@ -21,7 +21,8 @@ export class ZonesPage implements OnInit, OnDestroy {
   constructor(
     private deviceService: DeviceService,
     private actionSheetController:ActionSheetController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private loadingController: LoadingController
   ) { }
 
 
@@ -37,7 +38,8 @@ export class ZonesPage implements OnInit, OnDestroy {
           let index = 32 - zona.numero;
 
           // Se elimina el número de zona de las disponibles
-          this.availableZones.splice(zona.numero - 1, 1);
+          let availableZoneIndex = this.availableZones.findIndex((zoneNumber) => zoneNumber === zona.numero)
+          this.availableZones.splice(availableZoneIndex, 1);
 
           if (this.partition.zonasAnormales.charAt(index) === "1")
             zona.estado = "anormal";
@@ -84,7 +86,28 @@ export class ZonesPage implements OnInit, OnDestroy {
     modal.present();
 
     const {data} = await modal.onWillDismiss()
-    console.log(data);
+    
+    if (data) {
+      // Se crea una nueva zona y una vez creada, se vuelve a pedir el dispositivo
+      const loading = await this.loadingController.create({
+        keyboardClose: true,
+        cssClass: 'custom-loading',
+      });
+  
+      loading.present();
+
+      this.deviceService.newZone(
+        this.deviceService.currentDeviceComId,
+        this.partition.numero,
+        data.number,
+        data.name,
+        ""
+      ).subscribe(
+        () => {
+          this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+        },
+        () => console.log("error al crear la zona"));
+    }
   }
 
 
@@ -118,21 +141,42 @@ export class ZonesPage implements OnInit, OnDestroy {
               componentProps: {
                 "number": zone.numero,
                 "availableZones": this.availableZones,
-                "name": ""
+                "name": zone.nombre
               }
             });
         
             modal.present();
         
             const {data} = await modal.onWillDismiss()
-            console.log(data);
+            
+            if (data) {
+              // Se modifica la zona y una vez modificada, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.updateZone(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                data.number,
+                data.name,
+                ""
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => console.log("error al modificar la zona"));
+            }
           }
         },
         {
           text: "Eliminar zona",
           handler: async () => {
             this.actionSheetController.dismiss();
-            
+
             const modal = await this.modalController.create({
               component: YesNoModalPage,
               cssClass: 'auto-height',
@@ -147,7 +191,26 @@ export class ZonesPage implements OnInit, OnDestroy {
             modal.present();
         
             const {data} = await modal.onWillDismiss()
-            console.log(data);
+            
+            if (data && data.result === "yes") {
+              // Se elimina la zona y una vez eliminada, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.removeZone(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                zone.numero
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => console.log("error al modificar la zona"));
+            }
           }
         },
         {
