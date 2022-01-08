@@ -1,7 +1,26 @@
 <ion-content class="ion-padding">
-  <ion-label>Hola mundo</ion-label>
+  <form [formGroup]="form">
+    <ion-item lines="none">
+      <ion-label style="font-size: large;">Número de la zona</ion-label>
+      <ion-select value="1" interface="popover" formControlName="number">
+        <ion-select-option value="1">1</ion-select-option>
+        <ion-select-option value="2">2</ion-select-option>
+        <ion-select-option value="3">3</ion-select-option>
+        <ion-select-option value="4">4</ion-select-option>
+      </ion-select>
+    </ion-item>
 
-  <ion-button (click)="onClick()" expand="block">
+    <ion-item>
+      <ion-input type="text" placeholder="Nombre de la zona" formControlName="name"></ion-input>
+      <ion-icon *ngIf="!form.get('name').valid && form.get('name').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+  </form>
+
+  <ion-button (click)="onOk()" expand="block" style="margin-top: 30px;" [disabled]="!form.valid">
     Aceptar
+  </ion-button>
+
+  <ion-button (click)="onCancel()" expand="block" fill="clear">
+    Cancelar
   </ion-button>
 </ion-content>

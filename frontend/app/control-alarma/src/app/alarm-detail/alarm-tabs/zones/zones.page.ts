@@ -67,10 +67,9 @@ export class ZonesPage implements OnInit, OnDestroy {
       initialBreakpoint: 0.3,
       breakpoints: [0.3],
       handle: false,
-      backdropDismiss: false,
       componentProps: {
         "number": "1",
-        "name": "hola"
+        "name": ""
       }
     });
 
@@ -79,7 +78,6 @@ export class ZonesPage implements OnInit, OnDestroy {
 
     const {data} = await modal.onWillDismiss()
     console.log(data);
-    
   }
 
 
