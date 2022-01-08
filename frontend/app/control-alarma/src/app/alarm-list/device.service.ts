@@ -212,6 +212,7 @@ export class DeviceService {
 
   getDevices (email: string) {
     return this.authService.token.pipe(
+      take(1),
       switchMap(token => {
         return this.http.get<Device[]>(environment.api_url + "/device/user/" + email, {
           headers: new HttpHeaders( {
@@ -228,6 +229,7 @@ export class DeviceService {
 
   getDevice (comId: string) {
     return this.authService.token.pipe(
+      take(1),
       switchMap(token => {
         return this.http.get<Device>(environment.api_url + "/device/id/" + comId, {
           headers: new HttpHeaders( {
@@ -242,8 +244,23 @@ export class DeviceService {
          * para actualizar la UI
          */
         if (device.comId === this._currentDeviceComId) {
+          // Se actualiza el registro local de los dispositivos
+          this.deviceList.pipe(
+            take(1)
+          ).subscribe(deviceList => {
+            deviceList.forEach( (dev, i) => {
+              if (dev.comId === device.comId) {
+                deviceList[i] = device;
+              }
+            });
+
+            this._deviceList.next(deviceList);
+          })
+
+          // Se emite la versión más nueva del device para actualizar la UI
           this._currentDevice.next(device);
 
+          // Se emite la partición de la versión más nueva del device para actualiza la UI
           device.particiones.forEach(particion =>{
             if (particion.numero === this._currentPartitionNumber)
               this._currentPartition.next(particion);
@@ -256,7 +273,9 @@ export class DeviceService {
 
   newZone (comId: string, partitionNumber: number, zoneNumber: number, zoneName: string, zoneIcon: string) {
     return this.authService.token.pipe(
+      take(1),
       switchMap(token => {
+        console.log("add zone");
         return this.http.post<Zona>(environment.api_url + "/device/zone", {
           comId: comId,
           particion: partitionNumber,
@@ -275,6 +294,7 @@ export class DeviceService {
 
   updateZone (comId: string, partitionNumber: number, zoneNumber: number, zoneName?: string, zoneIcon?: string) {
     return this.authService.token.pipe(
+      take(1),
       switchMap(token => {
         return this.http.patch<Zona>(environment.api_url + "/device/zone", {
           comId: comId,
@@ -293,6 +313,7 @@ export class DeviceService {
 
   removeZone (comId: string, partitionNumber: number, zoneNumber: number) {
     return this.authService.token.pipe(
+      take(1),
       switchMap(token => {
         return this.http.request('delete', environment.api_url + "/device/zone", {
           body: {

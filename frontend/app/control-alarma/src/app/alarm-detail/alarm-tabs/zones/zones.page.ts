@@ -88,7 +88,7 @@ export class ZonesPage implements OnInit, OnDestroy {
 
     modal.present();
 
-    const {data} = await modal.onWillDismiss()
+    const {data} = await modal.onWillDismiss();
     
     if (data) {
       // Se crea una nueva zona y una vez creada, se vuelve a pedir el dispositivo
@@ -212,7 +212,7 @@ export class ZonesPage implements OnInit, OnDestroy {
                 () => {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
-                () => console.log("error al modificar la zona"));
+                () => console.log("error al eliminar la zona"));
             }
           }
         },
