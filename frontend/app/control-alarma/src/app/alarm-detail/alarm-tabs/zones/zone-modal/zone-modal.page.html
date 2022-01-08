@@ -3,6 +3,7 @@
     <ion-item lines="none">
       <ion-label style="font-size: large;">Número de la zona</ion-label>
       <ion-select value="1" interface="popover" formControlName="number">
+        <ion-select-option *ngIf="number" [value]='number'>{{number}}</ion-select-option>
         <ion-select-option *ngFor="let zoneNumber of availableZones" [value]='zoneNumber'>{{zoneNumber}}</ion-select-option>
       </ion-select>
     </ion-item>

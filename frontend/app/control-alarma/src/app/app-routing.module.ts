@@ -21,6 +21,10 @@ const routes: Routes = [
     loadChildren: () => import('./alarm-list/alarm-list.module').then( m => m.AlarmListPageModule),
     pathMatch: 'full',
     canLoad: [AuthGuard]
+  },
+  {
+    path: 'yes-no-modal',
+    loadChildren: () => import('./yes-no-modal/yes-no-modal.module').then( m => m.YesNoModalPageModule)
   }
 ];
 

@@ -17,9 +17,16 @@ export class ZoneModalPage implements OnInit {
   constructor(private modalController: ModalController) { }
 
   ngOnInit() {
-    console.log(this.number? this.number : this.availableZones[0])
+    /**
+     * Si se provee el number, significa que es una edición de un elemento.
+     * En este caso no se puede editar el número.
+     * Si no se lo provee es una creación.
+     */
     this.form = new FormGroup({
-      number: new FormControl(this.number? this.number : this.availableZones[0], {
+      number: new FormControl({
+        value: this.number? this.number : this.availableZones[0],
+        disabled: this.number? true : false
+      }, {
         updateOn: "change",
         validators: [Validators.required]
       }),
@@ -34,7 +41,7 @@ export class ZoneModalPage implements OnInit {
 
   onOk() {
     this.modalController.dismiss({
-      number: this.form.value.number,
+      number: this.number? this.number : this.form.value.number,
       name: this.form.value.name
     });
   }

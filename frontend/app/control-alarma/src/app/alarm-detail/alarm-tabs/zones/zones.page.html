@@ -4,14 +4,14 @@
   </ion-button>
 
   <ion-list *ngIf="partition" style="margin-top: 20px;" class="ion-no-padding">
-    <ion-item *ngFor="let zone of partition.zonas" class="ion-no-padding" (click)="onZoneClicked(zone.numero)">
+    <ion-item *ngFor="let zone of partition.zonas" class="ion-no-padding" (click)="onZoneClicked(zone)">
       <ion-grid class="ion-no-padding">
         <ion-row>
           <ion-col size="11">
             <ion-label class="zone-name">{{zone.numero}} - {{zone.nombre}}</ion-label>
           </ion-col>
           <ion-col >
-            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onZoneMore(zone.numero, $event)">
+            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onZoneMore(zone, $event)">
           </ion-col>
         </ion-row>
         <ion-row>

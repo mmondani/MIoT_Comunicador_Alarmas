@@ -4,6 +4,8 @@ import { Subscription } from 'rxjs';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
 import { ZoneModalPage } from './zone-modal/zone-modal.page';
+import { Zona } from '../../../models/zona.model';
+import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
 
 @Component({
   selector: 'app-zones',
@@ -86,34 +88,66 @@ export class ZonesPage implements OnInit, OnDestroy {
   }
 
 
-  onZoneClicked(zoneNumber: number) {
-    console.log("zona clickeada - " + zoneNumber);
+  onZoneClicked(zone: Zona) {
+    console.log("zona clickeada - " + zone.numero);
   }
 
 
-  onZoneMore(zoneNumber: number, event: Event) {
-    this.showZoneMoreActionSheet();
+  onZoneMore(zone: Zona, event: Event) {
+    this.showZoneMoreActionSheet(zone);
 
     // Se evita que se propague el evento de click a la card
     event.stopPropagation();
     return false;
   }
 
-  private async showZoneMoreActionSheet() {
+  private async showZoneMoreActionSheet(zone: Zona) {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
       mode: "ios",
       buttons: [
         {
           text: "Editar zona",
-          handler: () => {
-            console.log("Editar zona");
+          handler: async () => {
+            this.actionSheetController.dismiss();
+
+            const modal = await this.modalController.create({
+              component: ZoneModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": zone.numero,
+                "availableZones": this.availableZones,
+                "name": ""
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss()
+            console.log(data);
           }
         },
         {
           text: "Eliminar zona",
-          handler: () => {
-            console.log("Eliminar zona");
+          handler: async () => {
+            this.actionSheetController.dismiss();
+            
+            const modal = await this.modalController.create({
+              component: YesNoModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "message": `¿Deseás eliminar la zona ${zone.nombre}?`,
+                "yesText": "Eliminar",
+                "noText": "Cancelar"
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss()
+            console.log(data);
           }
         },
         {
