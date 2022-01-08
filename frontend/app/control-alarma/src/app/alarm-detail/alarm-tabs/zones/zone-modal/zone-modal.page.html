@@ -1,12 +1,9 @@
-<ion-content class="ion-padding">
+<div class="inner-content ion-padding">
   <form [formGroup]="form">
     <ion-item lines="none">
       <ion-label style="font-size: large;">Número de la zona</ion-label>
       <ion-select value="1" interface="popover" formControlName="number">
-        <ion-select-option value="1">1</ion-select-option>
-        <ion-select-option value="2">2</ion-select-option>
-        <ion-select-option value="3">3</ion-select-option>
-        <ion-select-option value="4">4</ion-select-option>
+        <ion-select-option *ngFor="let zoneNumber of availableZones" [value]='zoneNumber'>{{zoneNumber}}</ion-select-option>
       </ion-select>
     </ion-item>
 
@@ -23,4 +20,4 @@
   <ion-button (click)="onCancel()" expand="block" fill="clear">
     Cancelar
   </ion-button>
-</ion-content>
+</div>

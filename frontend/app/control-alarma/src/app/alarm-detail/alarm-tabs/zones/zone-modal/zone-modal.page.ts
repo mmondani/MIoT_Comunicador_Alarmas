@@ -10,16 +10,16 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 export class ZoneModalPage implements OnInit {
 
   @Input() number: number;
-  @Input() name: string;
+  @Input() name?: string;
+  @Input() availableZones?: number[];
   form: FormGroup;
 
   constructor(private modalController: ModalController) { }
 
   ngOnInit() {
-    console.log(`${this.number} - ${this.name}`);
-
+    console.log(this.number? this.number : this.availableZones[0])
     this.form = new FormGroup({
-      number: new FormControl(this.number, {
+      number: new FormControl(this.number? this.number : this.availableZones[0], {
         updateOn: "change",
         validators: [Validators.required]
       }),

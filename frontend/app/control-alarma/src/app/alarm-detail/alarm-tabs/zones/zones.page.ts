@@ -14,6 +14,7 @@ export class ZonesPage implements OnInit, OnDestroy {
 
   partition: Particion;
   private partitionSubscription: Subscription;
+  private availableZones: number[];
 
   constructor(
     private deviceService: DeviceService,
@@ -26,9 +27,15 @@ export class ZonesPage implements OnInit, OnDestroy {
     this.partitionSubscription = this.deviceService.currentPartition.subscribe( partition => {
         this.partition = partition;
 
+        // El array availableZones tiene los números de zona que no están usados
+        this.availableZones = Array.from({length: 32}, (x, i) => i+1);
+
         // Se parsea la información de las zonas
         this.partition.zonas.forEach(zona => {
           let index = 32 - zona.numero;
+
+          // Se elimina el número de zona de las disponibles
+          this.availableZones.splice(zona.numero - 1, 1);
 
           if (this.partition.zonasAnormales.charAt(index) === "1")
             zona.estado = "anormal";
@@ -50,7 +57,7 @@ export class ZonesPage implements OnInit, OnDestroy {
             }
             else
               zona.inclusion = "excluida";
-        })
+        });
       }
     );
   }
@@ -64,17 +71,15 @@ export class ZonesPage implements OnInit, OnDestroy {
   async onAddZone() {
     const modal = await this.modalController.create({
       component: ZoneModalPage,
-      initialBreakpoint: 0.3,
-      breakpoints: [0.3],
+      cssClass: 'auto-height',
       handle: false,
       componentProps: {
-        "number": "1",
+        "availableZones": this.availableZones,
         "name": ""
       }
     });
 
     modal.present();
-
 
     const {data} = await modal.onWillDismiss()
     console.log(data);
