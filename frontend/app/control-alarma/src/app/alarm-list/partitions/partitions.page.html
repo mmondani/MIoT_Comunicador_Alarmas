@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title *ngIf="deviceName">{{deviceName}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-horizontal">
+
+  <ion-button (click)="onAddPartition()" expand="block" style="margin-top: 16px;">
+    Agregar partición
+  </ion-button>
+
+  <ion-list *ngIf="device" style="margin-top: 20px;" class="ion-no-padding">
+    <ion-item *ngFor="let partition of device.particiones" class="ion-no-padding">
+      <ion-grid class="ion-no-padding">
+        <ion-row class="node-row">
+          <ion-col size="11">
+            <ion-label class="partition-name" style="margin-left: 10px;">{{partition.numero}} - {{partition.nombre}}</ion-label>
+          </ion-col>
+          <ion-col >
+            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onPartitionMore(partition, $event)">
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

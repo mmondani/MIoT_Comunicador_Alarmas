@@ -48,21 +48,28 @@ export class AlarmListPage implements OnInit {
   }
 
   onAlarmMore(comId: string, event: Event) {
-    this.showAlarmMoreActionSheet();
+    this.showAlarmMoreActionSheet(comId);
 
     // Se evita que se propague el evento de click a la card
     event.stopPropagation();
     return false;
   }
 
-  private async showAlarmMoreActionSheet() {
+  private async showAlarmMoreActionSheet(comId: string) {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
+      mode: 'ios',
       buttons: [
         {
           text: "Configurar comunicador",
           handler: () => {
             console.log("configurar comunicador");
+          }
+        },
+        {
+          text: "Particiones",
+          handler: () => {
+            this.navigationController.navigateForward(['partitions', comId], {animated: true});
           }
         },
         {

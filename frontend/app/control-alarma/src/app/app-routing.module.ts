@@ -17,6 +17,10 @@ const routes: Routes = [
     loadChildren: () => import('./alarm-detail/alarm-detail.module').then( m => m.AlarmDetailPageModule)
   },
   {
+    path: 'partitions/:id',
+    loadChildren: () => import('./alarm-list/partitions/partitions.module').then( m => m.PartitionsPageModule)
+  },
+  {
     path: '',
     loadChildren: () => import('./alarm-list/alarm-list.module').then( m => m.AlarmListPageModule),
     pathMatch: 'full',

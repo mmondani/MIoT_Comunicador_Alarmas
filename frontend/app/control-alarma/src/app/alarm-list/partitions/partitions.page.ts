@@ -1,73 +1,76 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { Particion } from '../../../models/particion.model';
-import { DeviceService } from '../../../alarm-list/device.service';
-import { UsuarioAlarma } from '../../../models/usuario-alarma.model';
-import { ActionSheetController, ModalController, LoadingController } from '@ionic/angular';
-import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
-import { UserModalPage } from './user-modal/user-modal.page';
+import { DeviceService } from '../device.service';
+import { Particion } from '../../models/particion.model';
+import { Device } from '../../models/device.model';
+import { ModalController, LoadingController, ActionSheetController } from '@ionic/angular';
+import { PartitionModalPage } from './partition-modal/partition-modal.page';
+import { YesNoModalPage } from '../../yes-no-modal/yes-no-modal.page';
 
 @Component({
-  selector: 'app-advanced',
-  templateUrl: './advanced.page.html',
-  styleUrls: ['./advanced.page.scss'],
+  selector: 'app-partitions',
+  templateUrl: './partitions.page.html',
+  styleUrls: ['./partitions.page.scss'],
 })
-export class AdvancedPage implements OnInit, OnDestroy {
+export class PartitionsPage implements OnInit, OnDestroy {
 
-  showPassword = false;
-  passwordToggleIcon = "eye";
-  partition: Particion;
-  private partitionSubscription: Subscription;
-  private availableUsers: number[];
+  deviceComId: string;
+  deviceName: string;
+  device: Device;
+  private deviceSubscription: Subscription;
+  private availablePartitions: number[];
 
 
   constructor(
+    private activatedRoute: ActivatedRoute,
     private deviceService: DeviceService,
-    private actionSheetController: ActionSheetController,
     private modalController: ModalController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private actionSheetController: ActionSheetController
   ) { }
 
+
   ngOnInit() {
-    this.partitionSubscription = this.deviceService.currentPartition.subscribe( partition => {
-      this.partition = partition;
+    this.deviceComId = this.activatedRoute.snapshot.params["id"];
+
+    this.deviceService.currentDeviceComId = this.deviceComId;
+
+    this.deviceService.getDeviceName(this.deviceComId)
+      .subscribe(deviceName => {
+        this.deviceName = deviceName;
+      });
+
+    this.deviceSubscription = this.deviceService.currentDevice.subscribe( device => {
+      this.device = device;
 
       // El array availableUsers tiene los números de usuario que no están usados
-      this.availableUsers = Array.from({length: 32}, (x, i) => i+1);
+      this.availablePartitions = Array.from({length: 8}, (x, i) => i+1);
 
-      // Se ordenan los usuarios por número de usuario
-      this.partition.usuariosAlarma.sort((a, b) => {return a.numero-b.numero});
+      // Se ordenan las particiones por número de particion
+      this.device.particiones.sort((a, b) => {return a.numero-b.numero});
 
-      // Se eliminan los números de usuario que no están disponibles
-      this.partition.usuariosAlarma.forEach(usuarioAlarma => {
-        let availableZoneIndex = this.availableUsers.findIndex((zoneNumber) => zoneNumber === usuarioAlarma.numero)
-        this.availableUsers.splice(availableZoneIndex, 1);
+      // Se eliminan los números de partición que no están disponibles
+      this.device.particiones.forEach(particion => {
+        let availableZoneIndex = this.availablePartitions.findIndex((zoneNumber) => zoneNumber === particion.numero)
+        this.availablePartitions.splice(availableZoneIndex, 1);
       });
     });
   }
 
+
   ngOnDestroy(): void {
-    if (this.partitionSubscription)
-      this.partitionSubscription.unsubscribe();
+    if (this.deviceSubscription)
+      this.deviceSubscription.unsubscribe();
   }
 
-
-  onTogglePassword () {
-    this.showPassword = !this.showPassword;
-
-    if (this.passwordToggleIcon === "eye")
-      this.passwordToggleIcon = "eye-off";
-    else
-      this.passwordToggleIcon = "eye";
-  }
-
-  async onAddUser() {
+  async onAddPartition() {
     const modal = await this.modalController.create({
-      component: UserModalPage,
+      component: PartitionModalPage,
       cssClass: 'auto-height',
       handle: false,
       componentProps: {
-        "availableUsers": this.availableUsers,
+        "availablePartitions": this.availablePartitions,
         "name": ""
       }
     });
@@ -77,7 +80,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
     const {data} = await modal.onWillDismiss();
     
     if (data) {
-      // Se crea un nuevo usuario de la alarma y una vez creado, se vuelve a pedir el dispositivo
+      // Se crea una nueva partición y una vez creada, se vuelve a pedir el dispositivo
       const loading = await this.loadingController.create({
         keyboardClose: true,
         cssClass: 'custom-loading',
@@ -85,17 +88,16 @@ export class AdvancedPage implements OnInit, OnDestroy {
   
       loading.present();
 
-      this.deviceService.newAlarmUser(
-        this.deviceService.currentDeviceComId,
-        this.partition.numero,
+      this.deviceService.newPartition(
+        this.deviceComId,
         data.number,
         data.name
       ).subscribe(
         () => {
-          this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+          this.deviceService.getDevice(this.deviceComId).subscribe(() => loading.dismiss());
         },
         () => {
-          console.log("error al crear el usuario de la alarma");
+          console.log("error al crear la partición");
           loading.dismiss();
         }
       );
@@ -103,32 +105,32 @@ export class AdvancedPage implements OnInit, OnDestroy {
     }
   }
 
-  onUserMore(user: UsuarioAlarma, event: Event) {
-    this.showUserMoreActionSheet(user);
+  onPartitionMore(partition: Particion, event: Event) {
+    this.showPartitionMoreActionSheet(partition);
 
     // Se evita que se propague el evento de click a la card
     event.stopPropagation();
     return false;
   }
 
-  private async showUserMoreActionSheet(user: UsuarioAlarma) {
+  private async showPartitionMoreActionSheet(partition: Particion) {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
       mode: "ios",
       buttons: [
         {
-          text: "Editar Usuario",
+          text: "Editar partición",
           handler: async () => {
             this.actionSheetController.dismiss();
 
             const modal = await this.modalController.create({
-              component: UserModalPage,
+              component: PartitionModalPage,
               cssClass: 'auto-height',
               handle: false,
               componentProps: {
-                "number": user.numero,
-                "availableUsers": this.availableUsers,
-                "name": user.nombre
+                "number": partition.numero,
+                "availablePartitions": this.availablePartitions,
+                "name": partition.nombre
               }
             });
         
@@ -137,7 +139,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
             const {data} = await modal.onWillDismiss()
             
             if (data) {
-              // Se modifica el usuario de la alarma y una vez modificado, se vuelve a pedir el dispositivo
+              // Se modifica la partición y una vez modificada, se vuelve a pedir el dispositivo
               const loading = await this.loadingController.create({
                 keyboardClose: true,
                 cssClass: 'custom-loading',
@@ -145,9 +147,8 @@ export class AdvancedPage implements OnInit, OnDestroy {
           
               loading.present();
 
-              this.deviceService.updateAlarmUser(
+              this.deviceService.updatePartition(
                 this.deviceService.currentDeviceComId,
-                this.partition.numero,
                 data.number,
                 data.name
               ).subscribe(
@@ -155,7 +156,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
                 () => {
-                  console.log("error al modificar el usuario de la alarma");
+                  console.log("error al modificar la partición");
                   loading.dismiss();
                 }
               );
@@ -164,7 +165,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
           }
         },
         {
-          text: "Eliminar usuario",
+          text: "Eliminar partición",
           handler: async () => {
             this.actionSheetController.dismiss();
 
@@ -173,7 +174,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
               cssClass: 'auto-height',
               handle: false,
               componentProps: {
-                "message": `¿Deseás eliminar el usuario ${user.nombre}?`,
+                "message": `¿Deseás eliminar la partición ${partition.nombre}?`,
                 "yesText": "Eliminar",
                 "noText": "Cancelar"
               }
@@ -184,7 +185,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
             const {data} = await modal.onWillDismiss()
             
             if (data && data.result === "yes") {
-              // Se elimina el usuario de la alarma y una vez eliminado, se vuelve a pedir el dispositivo
+              // Se elimina la partición y una vez eliminada, se vuelve a pedir el dispositivo
               const loading = await this.loadingController.create({
                 keyboardClose: true,
                 cssClass: 'custom-loading',
@@ -192,16 +193,15 @@ export class AdvancedPage implements OnInit, OnDestroy {
           
               loading.present();
 
-              this.deviceService.removeAlarmUser(
+              this.deviceService.removePartition(
                 this.deviceService.currentDeviceComId,
-                this.partition.numero,
-                user.numero
+                partition.numero
               ).subscribe(
                 () => {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
                 () => {
-                  console.log("error al eliminar el usuario de la alarma");
+                  console.log("error al eliminar la partición");
                   loading.dismiss();
                 }
               );
@@ -214,4 +214,5 @@ export class AdvancedPage implements OnInit, OnDestroy {
 
     await actionSheet.present();
   }
+
 }

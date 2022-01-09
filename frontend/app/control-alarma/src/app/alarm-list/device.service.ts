@@ -165,6 +165,7 @@ export class DeviceService {
     )
   }
 
+
   getDevicePartitionName(comId: string, partitionNumber: number) {
     return this._deviceList.asObservable().pipe(
       map(deviceList => {
@@ -271,6 +272,58 @@ export class DeviceService {
       })
     );
   }
+
+  newPartition (comId: string, partitionNumber: number, partitionName: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post<Particion>(environment.api_url + "/device/partition", {
+          comId: comId,
+          numero: partitionNumber,
+          nombre: partitionName
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  updatePartition (comId: string, partitionNumber: number, partitionName: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.patch<Particion>(environment.api_url + "/device/partition", {
+          comId: comId,
+          numero: partitionNumber,
+          nombre: partitionName
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  removePartition (comId: string, partitionNumber: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.request('delete', environment.api_url + "/device/partition", {
+          body: {
+            comId: comId,
+            numero: partitionNumber
+          },
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    );
+  }
+
 
   newZone (comId: string, partitionNumber: number, zoneNumber: number, zoneName: string, zoneIcon: string) {
     return this.authService.token.pipe(
