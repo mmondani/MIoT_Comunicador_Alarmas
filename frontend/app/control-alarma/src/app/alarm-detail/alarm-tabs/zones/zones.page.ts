@@ -109,7 +109,11 @@ export class ZonesPage implements OnInit, OnDestroy {
         () => {
           this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
         },
-        () => console.log("error al crear la zona"));
+        () => {
+          console.log("error al crear la zona");
+          loading.dismiss();
+        }
+      );
     }
   }
 
@@ -171,7 +175,11 @@ export class ZonesPage implements OnInit, OnDestroy {
                 () => {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
-                () => console.log("error al modificar la zona"));
+                () => {
+                  console.log("error al modificar la zona");
+                  loading.dismiss();
+                }
+              );
             }
           }
         },
@@ -212,7 +220,11 @@ export class ZonesPage implements OnInit, OnDestroy {
                 () => {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
-                () => console.log("error al eliminar la zona"));
+                () => {
+                  console.log("error al eliminar la zona");
+                  loading.dismiss();
+                }
+              );
             }
           }
         },

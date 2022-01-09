@@ -7,6 +7,7 @@ import { filter, map, switchMap, take, tap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { Particion } from '../models/particion.model';
 import { Zona } from '../models/zona.model';
+import { Nodo } from '../models/nodo.model';
 
 @Injectable({
   providedIn: 'root'
@@ -275,7 +276,6 @@ export class DeviceService {
     return this.authService.token.pipe(
       take(1),
       switchMap(token => {
-        console.log("add zone");
         return this.http.post<Zona>(environment.api_url + "/device/zone", {
           comId: comId,
           particion: partitionNumber,
@@ -328,5 +328,62 @@ export class DeviceService {
       })
     );
   }
+
+
+  newNode (comId: string, partitionNumber: number, nodeNumber: number, nodeName: string, nodeIcon: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post<Nodo>(environment.api_url + "/device/node", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: nodeNumber,
+          nombre: nodeName,
+          icono: nodeIcon
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
   
+
+  updateNode (comId: string, partitionNumber: number, nodeNumber: number, nodeName?: string, nodeIcon?: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.patch<Nodo>(environment.api_url + "/device/node", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: nodeNumber,
+          nombre: nodeName,
+          icono: nodeIcon
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  removeNode (comId: string, partitionNumber: number, nodeNumber: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.request('delete', environment.api_url + "/device/node", {
+          body: {
+            comId: comId,
+            particion: partitionNumber,
+            numero: nodeNumber
+          },
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    );
+  }
 }

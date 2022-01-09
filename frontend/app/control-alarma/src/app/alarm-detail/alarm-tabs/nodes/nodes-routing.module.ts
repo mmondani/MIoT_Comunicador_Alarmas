@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: NodesPage
+  },
+  {
+    path: 'node-modal',
+    loadChildren: () => import('./node-modal/node-modal.module').then( m => m.NodeModalPageModule)
   }
 ];
 
