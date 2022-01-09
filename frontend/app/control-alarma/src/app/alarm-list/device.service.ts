@@ -386,4 +386,59 @@ export class DeviceService {
       })
     );
   }
+
+
+  newAlarmUser (comId: string, partitionNumber: number, userNumber: number, userName: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post<Nodo>(environment.api_url + "/device/alarm-user", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: userNumber,
+          nombre: userName
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  updateAlarmUser (comId: string, partitionNumber: number, userNumber: number, userName?: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.patch<Nodo>(environment.api_url + "/device/alarm-user", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: userNumber,
+          nombre: userName
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  removeAlarmUser (comId: string, partitionNumber: number, userNumber: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.request('delete', environment.api_url + "/device/alarm-user", {
+          body: {
+            comId: comId,
+            particion: partitionNumber,
+            numero: userNumber
+          },
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    );
+  }
 }

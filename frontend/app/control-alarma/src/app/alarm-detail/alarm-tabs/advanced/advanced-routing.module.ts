@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: AdvancedPage
+  },
+  {
+    path: 'user-modal',
+    loadChildren: () => import('./user-modal/user-modal.module').then( m => m.UserModalPageModule)
   }
 ];
 

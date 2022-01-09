@@ -1,0 +1,24 @@
+<div class="inner-content ion-padding">
+  <form [formGroup]="form">
+    <ion-item lines="none">
+      <ion-label style="font-size: large;">Número del usuario</ion-label>
+      <ion-select value="1" interface="popover" formControlName="number">
+        <ion-select-option *ngIf="number || number === 0" [value]='number'>{{number}}</ion-select-option>
+        <ion-select-option *ngFor="let userNumber of availableUsers" [value]='userNumber'>{{userNumber}}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-input type="text" placeholder="Nombre del usuario" formControlName="name"></ion-input>
+      <ion-icon *ngIf="!form.get('name').valid && form.get('name').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+  </form>
+
+  <ion-button (click)="onOk()" expand="block" style="margin-top: 30px;" [disabled]="!form.valid">
+    Aceptar
+  </ion-button>
+
+  <ion-button (click)="onCancel()" expand="block" fill="clear">
+    Cancelar
+  </ion-button>
+</div>
