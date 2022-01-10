@@ -1,7 +1,7 @@
 export const updateMqtt = async (iotdata, comId, layer) => {
     let params = {
         topic: comId + "/new",
-        payload: `{particion: ${layer + 1}}`,
+        payload: `{"particion": ${layer + 1}}`,
         qos: 0
     };
 

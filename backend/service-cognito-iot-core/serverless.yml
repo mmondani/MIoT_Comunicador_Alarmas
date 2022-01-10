@@ -1,0 +1,33 @@
+service:
+  name: service-cognito-iot-core
+
+plugins:
+  - serverless-bundle
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  memorySize: 256
+  region: sa-east-1
+  stage: ${opt:stage, 'dev'}
+  
+functions:
+  hello:
+    handler: src/handlers/hello.handler
+    events:
+      - http:
+          method: GET
+          path: /hello
+
+resources:
+  Resources:
+    UserPool: ${file(resources/CognitoResources.yml):UserPool}
+    UserPoolClient: ${file(resources/CognitoResources.yml):UserPoolClient}
+    IdentityPool: ${file(resources/CognitoResources.yml):IdentityPool}
+    CognitoUnAuthorizedRole: ${file(resources/CognitoResources.yml):CognitoUnAuthorizedRole}
+    IdentityPoolRoleMapping: ${file(resources/CognitoResources.yml):IdentityPoolRoleMapping}
+
+custom:
+  bundle:
+    linting: false

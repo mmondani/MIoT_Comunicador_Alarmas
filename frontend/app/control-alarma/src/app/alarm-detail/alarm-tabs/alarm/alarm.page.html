@@ -2,8 +2,8 @@
   <ion-grid *ngIf="partition">
     <ion-row style="align-items: center; text-align: center; justify-content: center;">
       <ion-col size="2">
-        <img *ngIf="!partition.ready" src="../../../../assets/icon/lista_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">
-        <img *ngIf="partition.ready" src="../../../../assets/icon/lista_2.png" style="opacity: 70%; width: 50%; max-height: 35px;">
+        <img *ngIf="!partition.lista" src="../../../../assets/icon/lista_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">
+        <img *ngIf="partition.lista" src="../../../../assets/icon/lista_2.png" style="opacity: 70%; width: 50%; max-height: 35px;">
       </ion-col>
       <ion-col size="2">
         <img *ngIf="partition.modo !== 'estoy'" src="../../../../assets/icon/estoy_1.png" style="opacity: 30%; width: 50%; max-height: 35px;">

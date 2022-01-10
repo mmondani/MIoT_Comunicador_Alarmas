@@ -3,6 +3,7 @@ import Amplify from 'aws-amplify';
 import { AWSIoTProvider } from '@aws-amplify/pubsub/lib/Providers'; 
 import awsexports from '../common/aws-exports' 
 import { Subject, Subscription } from 'rxjs';
+import { DeviceService } from '../alarm-list/device.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,11 @@ import { Subject, Subscription } from 'rxjs';
 export class MqttService {
 
   private deviceNewsSubscriptions = {};
+  private deviceNewsTimers = {};
 
-  constructor() { 
+  constructor(
+    private deviceService: DeviceService
+  ) { 
     Amplify.configure(awsexports);
     Amplify.addPluggable(new AWSIoTProvider({  
       aws_pubsub_region: 'sa-east-1',  
@@ -26,10 +30,21 @@ export class MqttService {
     if (!this.deviceNewsSubscriptions[comId]) {
       this.deviceNewsSubscriptions[comId] = Amplify.PubSub.subscribe(`${comId}/new`).subscribe({    
         next: data => {  
-          console.log('[MqttService] mensaje recibido:')                       
-          console.log(JSON.stringify(data));
+          console.log(`[MqttService] mensaje recibido (${comId}):`);                     
+          //console.log(JSON.stringify(data));
+
+          /**
+           * Si llega una novedad se vuelve a pedir la información al dispositivo
+           * con un tiempo de integración de eventos para evitar múltiples pedidos
+           */
+          if (this.deviceNewsTimers[comId])
+            clearTimeout(this.deviceNewsTimers[comId]);
+          
+          this.deviceNewsTimers[comId] = setTimeout(() => {
+            this.deviceService.getDevice(comId).subscribe(()=>{});
+          }, 4000);
         },    
-        error: error => console.error(error),    
+        error: error => console.error("[MqttService]" + error),    
         close: () => console.log('[MqttService] close'),  
       });
     }
@@ -39,6 +54,7 @@ export class MqttService {
     if (this.deviceNewsSubscriptions[comId]) {
       this.deviceNewsSubscriptions[comId].unsubscribe();
       delete this.deviceNewsSubscriptions[comId];
+      delete this.deviceNewsTimers[comId];
     }
     
   }

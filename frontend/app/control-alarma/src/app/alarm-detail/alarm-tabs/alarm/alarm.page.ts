@@ -29,18 +29,8 @@ export class AlarmPage implements OnInit, OnDestroy {
         if(partition) {
           if (partition.sonando)
             this.partitionState = "disparo"
-          else {
-            if (partition.estado === "desactivada")
-              this.partitionState = "desactivada";
-            else if (partition.estado === "activada") {
-              if (partition.modo === "estoy")
-                this.partitionState = "activada_estoy";
-              else if (partition.modo === "me_voy")
-                this.partitionState = "activada_me_voy"
-              else
-                this.partitionState = "activada";
-            }
-          }
+          else
+            this.partitionState = partition.estado;
 
           this.partition = partition;
         }   

@@ -49,16 +49,13 @@ export class AlarmListPage implements OnInit, OnDestroy {
     });
   }
 
-  ionViewDidEnter() {
-    console.log("ionViewDidEnter");
-  }
-
-  ionViewDidLeave() {
-    console.log("ionViewDidLeave");
-  }
-
   ngOnDestroy(): void {
     console.log("onDestroy");
+
+    // Se desuscribe a las novedades de cada comunicador que puedan venir desde el broker MQTT
+    this.deviceList.forEach(device => {
+      this.mqttService.unsubscribeToDeviceNews(device.comId);
+    })
   }
 
 

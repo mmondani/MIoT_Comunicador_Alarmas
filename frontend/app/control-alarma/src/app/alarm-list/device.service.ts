@@ -233,6 +233,7 @@ export class DeviceService {
     return this.authService.token.pipe(
       take(1),
       switchMap(token => {
+        console.log("solicitud de device " + comId);
         return this.http.get<Device>(environment.api_url + "/device/id/" + comId, {
           headers: new HttpHeaders( {
             Authorization: `Bearer ${token}`
