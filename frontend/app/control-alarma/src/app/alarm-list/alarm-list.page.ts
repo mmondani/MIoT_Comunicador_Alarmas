@@ -1,16 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
 import { ActionSheetController, LoadingController, NavController } from '@ionic/angular';
+import { MqttService } from '../services/mqtt.service';
 
 @Component({
   selector: 'app-alarm-list',
   templateUrl: './alarm-list.page.html',
   styleUrls: ['./alarm-list.page.scss'],
 })
-export class AlarmListPage implements OnInit {
+export class AlarmListPage implements OnInit, OnDestroy {
 
   deviceList: Device[];
 
@@ -19,9 +20,9 @@ export class AlarmListPage implements OnInit {
     private authService: AuthService,
     private deviceService: DeviceService,
     private actionSheetController: ActionSheetController,
-    private navigationController: NavController
+    private navigationController: NavController,
+    private mqttService: MqttService
   ) { }
-
 
   async ngOnInit() {
     // Request al backend de la lista de dispositivos
@@ -40,8 +41,26 @@ export class AlarmListPage implements OnInit {
 
     this.deviceService.deviceList.subscribe(deviceList => {
       this.deviceList = deviceList;
+
+      // Se suscribe a las novedades de cada comunicador que puedan venir desde el broker MQTT
+      this.deviceList.forEach(device => {
+        this.mqttService.subscribeToDeviceNews(device.comId);
+      })
     });
   }
+
+  ionViewDidEnter() {
+    console.log("ionViewDidEnter");
+  }
+
+  ionViewDidLeave() {
+    console.log("ionViewDidLeave");
+  }
+
+  ngOnDestroy(): void {
+    console.log("onDestroy");
+  }
+
 
   onItemClicked(comId: string) {
     this.navigationController.navigateForward(['alarm-detail', comId, 1], {animated: true});
