@@ -1,5 +1,5 @@
 {
-	"appId": "io.ionic.starter",
+	"appId": "com.x_28.control_alarma",
 	"appName": "Control Alarma",
 	"webDir": "www",
 	"bundledWebRuntime": false
