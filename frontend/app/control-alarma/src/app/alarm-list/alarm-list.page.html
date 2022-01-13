@@ -34,7 +34,8 @@
 
         <div class="battery-power-div">
           <ion-label>Red</ion-label>
-          <ion-label class="mains-power">220V</ion-label>
+          <ion-label *ngIf="device.estadoRedElectrica" class="mains-power-ok">220V</ion-label>
+          <ion-label *ngIf="!device.estadoRedElectrica" class="mains-power-bad">220V</ion-label>
           <ion-label>Bateria</ion-label>
           <img src='../../assets/icon/bateria_{{device.estadoBateria}}.png' class="battery-img"/>
         </div>
