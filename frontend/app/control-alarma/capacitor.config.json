@@ -2,5 +2,10 @@
 	"appId": "com.x_28.control_alarma",
 	"appName": "Control Alarma",
 	"webDir": "www",
-	"bundledWebRuntime": false
+	"bundledWebRuntime": false,
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": ["badge", "sound", "alert"]
+		}
+	}
 }

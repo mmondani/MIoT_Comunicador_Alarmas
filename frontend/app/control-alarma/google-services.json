@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "977392219079",
+    "project_id": "prueba-com38",
+    "storage_bucket": "prueba-com38.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977392219079:android:8392ca631f7ece65901fe2",
+        "android_client_info": {
+          "package_name": "com.x_28.control_alarma"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "977392219079-kft8en3av3ihriict97kaarcsmk8qbu1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYHQCiqWzoV9Dtk20iaTLNUX_ZdQoWWm8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "977392219079-kft8en3av3ihriict97kaarcsmk8qbu1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

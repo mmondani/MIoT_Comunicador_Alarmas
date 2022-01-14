@@ -3,6 +3,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { AuthService } from './auth.service';
+import { FcmService } from '../services/fcm.service';
 
 @Component({
   selector: 'app-login',
@@ -19,7 +20,8 @@ export class LoginPage implements OnInit {
     private router: Router, 
     private alertController: AlertController,
     private loadingController: LoadingController,
-    private authService: AuthService) { }
+    private authService: AuthService,
+    private fcmService: FcmService) { }
 
 
   ngOnInit() {
@@ -51,6 +53,9 @@ export class LoginPage implements OnInit {
           // Se pudo loguear
           loading.dismiss();
           this.form.reset();
+
+          // Se registra el servicio de push notifications
+          this.fcmService.initPush();
 
           this.router.navigate(['/alarm-list']);
         },
