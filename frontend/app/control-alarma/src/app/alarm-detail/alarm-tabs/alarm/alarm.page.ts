@@ -1,9 +1,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActionSheetController } from '@ionic/angular';
+import { ActionSheetController, LoadingController } from '@ionic/angular';
 import { partition, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
+import { CommandsService } from '../../../services/commands.service';
 
 @Component({
   selector: 'app-alarm',
@@ -18,7 +19,9 @@ export class AlarmPage implements OnInit, OnDestroy {
 
   constructor(
     private deviceService: DeviceService,
-    private actionSheetController: ActionSheetController
+    private commandsService: CommandsService,
+    private actionSheetController: ActionSheetController,
+    private loadingController: LoadingController
   ) { }
 
 
@@ -48,15 +51,39 @@ export class AlarmPage implements OnInit, OnDestroy {
     if (this.partitionState === 'desactivada') {
       const actionModoEstoy = {
           text: "Cambiar a modo Estoy",
-          handler: () => {
-            console.log("Cambiar a modo Estoy");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            this.commandsService.changeMode(
+              this.deviceService.currentDeviceComId,
+              this.partition.numero,
+              "estoy").subscribe(() => {
+                loading.dismiss();
+              });
           }
         };
 
       const actionModoMeVoy = {
           text: "Cambiar a modo Me Voy",
-          handler: () => {
-            console.log("Cambiar a modo Me Voy");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            this.commandsService.changeMode(
+              this.deviceService.currentDeviceComId,
+              this.partition.numero,
+              "me_voy").subscribe(() => {
+                loading.dismiss();
+              });
           }
         };
 
@@ -154,8 +181,20 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar por pánico",
-          handler: () => {
-            console.log("Disparar por pánico");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            this.commandsService.trigger(
+              this.deviceService.currentDeviceComId,
+              this.partition.numero,
+              "panico").subscribe(() => {
+                loading.dismiss();
+              });
           }
         }
       ]
@@ -171,8 +210,20 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar por incendio",
-          handler: () => {
-            console.log("Disparar por incendio");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            this.commandsService.trigger(
+              this.deviceService.currentDeviceComId,
+              this.partition.numero,
+              "incendio").subscribe(() => {
+                loading.dismiss();
+              });
           }
         }
       ]
@@ -188,8 +239,20 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar emergencia médica",
-          handler: () => {
-            console.log("Disparar emergencia médica");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            this.commandsService.trigger(
+              this.deviceService.currentDeviceComId,
+              this.partition.numero,
+              "medico").subscribe(() => {
+                loading.dismiss();
+              });
           }
         }
       ]
