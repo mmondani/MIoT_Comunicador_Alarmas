@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, from } from 'rxjs';
-import { map, tap } from 'rxjs/operators'
+import { map, take, tap } from 'rxjs/operators'
 import { Storage } from '@capacitor/storage'
 
 import { environment } from '../../environments/environment';
@@ -97,6 +97,7 @@ export class AuthService {
     // Devuelve true si hay información o false si no lo hay
     return from(Storage.get({key: "authData"})
     ).pipe(
+      take(1),
       map(storedData => {
         if (!storedData || !storedData.value)
           return null;

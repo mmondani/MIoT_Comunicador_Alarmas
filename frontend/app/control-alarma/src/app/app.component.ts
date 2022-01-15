@@ -3,7 +3,9 @@ import { Subscription } from 'rxjs';
 import { AuthService } from './login/auth.service';
 import { Router } from '@angular/router';
 import { App, AppState } from '@capacitor/app'
-import { take } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
+import { LoadingController } from '@ionic/angular';
+import { DeviceService } from './alarm-list/device.service';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +18,9 @@ export class AppComponent implements OnInit, OnDestroy{
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private loadingController: LoadingController,
+    private deviceService: DeviceService
   ) {}
 
 
@@ -36,6 +40,8 @@ export class AppComponent implements OnInit, OnDestroy{
     App.addListener('appStateChange', this.checkAuthOnResume.bind(this));
 
     //App.addListener('appStateChange', this.getDevicesListOnResume.bind(this));
+
+    //this.requestDevices();
   } 
 
   ngOnDestroy(): void {
@@ -53,16 +59,45 @@ export class AppComponent implements OnInit, OnDestroy{
       this.authService
         .autoLogin()
         .pipe(take(1))
-        .subscribe(success => {
+        .subscribe(async success => {
           if (!success) {
             console.log("Re-loguear!!!");
             this.authService.logout();
           }
+          else {
+            this.requestDevices();
+          }
         });
+
+      
     }
   }
 
   /*private getDevicesListOnResume () {
     console.log("resume 2");
   }*/
+
+  private async requestDevices() {
+    // Request al backend de la lista de dispositivos
+    let email = await this.authService.userEmail.pipe (
+        take(1)
+      ).toPromise();
+
+    if (email) {
+      const loading = await this.loadingController.create({
+        keyboardClose: true,
+        message: "Buscando dispositivos..."
+      });
+  
+      loading.present();
+  
+      this.authService.userEmail.pipe (
+        take(1),
+        switchMap(email => {
+          console.log("solicitando devices de: " + email);
+          return this.deviceService.getDevices(email);
+        })
+      ).subscribe(() => loading.dismiss());
+    }
+  }
 }
