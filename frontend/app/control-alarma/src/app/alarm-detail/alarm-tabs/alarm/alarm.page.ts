@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Storage } from '@capacitor/storage';
-import { ActionSheetController, LoadingController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, ModalController, NavController } from '@ionic/angular';
 import { partition, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { Particion } from '../../../models/particion.model';
 import { CommandsService } from '../../../services/commands.service';
+import { EventsPage } from './events/events.page';
 
 @Component({
   selector: 'app-alarm',
@@ -23,7 +24,8 @@ export class AlarmPage implements OnInit, OnDestroy {
     private deviceService: DeviceService,
     private commandsService: CommandsService,
     private actionSheetController: ActionSheetController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private modalController: ModalController
   ) { }
 
 
@@ -140,9 +142,16 @@ export class AlarmPage implements OnInit, OnDestroy {
     }
   }
 
-  onEventosClick() {
+  async onEventosClick() {
     if (this.partitionState === 'desactivada') {
-      console.log("onEventosClick");
+      const modal = await this.modalController.create({
+        component: EventsPage,
+        componentProps: {
+          "events": [...this.partition.eventosAlarma]
+        }
+      });
+  
+      await modal.present();
     }
   }
 
