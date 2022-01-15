@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Storage } from '@capacitor/storage';
 import { ActionSheetController, LoadingController } from '@ionic/angular';
 import { partition, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -15,6 +16,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
   partition: Particion;
   partitionState: string;
+  alarmCode: string = "";
   private partitionSubscription: Subscription;
 
   constructor(
@@ -44,6 +46,28 @@ export class AlarmPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.partitionSubscription)
       this.partitionSubscription.unsubscribe();
+  }
+
+  async ionViewDidEnter() {
+    /**
+     * Se recupera el código de la alarma para este equipo y esta partición
+     */
+    let storedData = await Storage.get({key: this.deviceService.currentDeviceComId});
+
+    if (!storedData || !storedData.value) {
+      // No hay ningún código
+      this.alarmCode = ""
+    }
+    else {
+      let codes: {particion:number, codigo: string}[];
+      codes = JSON.parse(storedData.value);
+
+      codes.forEach(code => {
+        if (code.particion === this.deviceService.currentPartitionNumber) {
+          this.alarmCode = code.codigo;
+        }
+      })
+    }
   }
 
 
@@ -125,29 +149,81 @@ export class AlarmPage implements OnInit, OnDestroy {
   async onEstadoClick() {
     const actionActivar = {
         text: "Activar",
-        handler: () => {
-          console.log("Activar");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.armDisarmAlarm(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            "activada",
+            this.alarmCode).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
 
     const actionActivarEstoy = {
         text: "Activar en modo Estoy",
-        handler: () => {
-          console.log("Activar en modo Estoy");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.armDisarmAlarm(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            "activada_estoy",
+            this.alarmCode).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
 
     const actionActivarMeVoy = {
         text: "Activar en modo Me Voy",
-        handler: () => {
-          console.log("Activar en modo Me Voy");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.armDisarmAlarm(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            "activada_me_voy",
+            this.alarmCode).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
 
     const actionDesactivar = {
         text: "Desactivar",
-        handler: () => {
-          console.log("Desactivar");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.armDisarmAlarm(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            "desactivada",
+            this.alarmCode).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
 

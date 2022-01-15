@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Subscription, partition } from 'rxjs';
 import { Particion } from '../../../models/particion.model';
 import { DeviceService } from '../../../alarm-list/device.service';
 import { UsuarioAlarma } from '../../../models/usuario-alarma.model';
 import { ActionSheetController, ModalController, LoadingController } from '@ionic/angular';
 import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
 import { UserModalPage } from './user-modal/user-modal.page';
+import { Storage } from '@capacitor/storage';
 
 @Component({
   selector: 'app-advanced',
@@ -17,6 +18,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
   showPassword = false;
   passwordToggleIcon = "eye";
   partition: Particion;
+  alarmCode: string = "";
   private partitionSubscription: Subscription;
   private availableUsers: number[];
 
@@ -49,6 +51,22 @@ export class AdvancedPage implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.partitionSubscription)
       this.partitionSubscription.unsubscribe();
+  }
+
+
+  async ionViewDidEnter() {
+    // Se busca si hay un código de la alarma cargado para este equipo y esta partición
+    let storedData = await Storage.get({key: this.deviceService.currentDeviceComId})
+    let codes: {particion: number, codigo: string}[];
+
+    if (storedData && storedData.value) {
+      codes = JSON.parse(storedData.value);
+      codes.forEach(code => {
+        if (code.particion === this.deviceService.currentPartitionNumber) {
+          this.alarmCode = code.codigo;
+        }
+      });
+    }
   }
 
 
@@ -213,5 +231,45 @@ export class AdvancedPage implements OnInit, OnDestroy {
     });
 
     await actionSheet.present();
+  }
+
+  async onSaveCodeClick() {
+    /**
+     * Se actualiza la información que hay en el localstorage
+     * Se la guarda usando como key el ID del comunicador
+     */
+    
+    let storedData = await Storage.get({key: this.deviceService.currentDeviceComId})
+    let codes: {particion: number, codigo: string}[];
+
+    if (!storedData || !storedData.value)
+      codes = [];
+    else
+      codes = JSON.parse(storedData.value);
+    
+    let modified = false;
+    codes.forEach(code => {
+      if (code.particion === this.deviceService.currentPartitionNumber) {
+        code.codigo = this.alarmCode;
+        modified = true;
+      }
+    });
+
+    if (!modified) {
+      codes.push({
+        particion: this.deviceService.currentPartitionNumber,
+        codigo: this.alarmCode 
+      });
+    }
+
+    console.log(JSON.stringify(codes));
+
+    /**
+     * Se guardan los códigos de este comunicador en el local storage
+     */
+    Storage.set({
+      key: this.deviceService.currentDeviceComId,
+      value: JSON.stringify(codes)
+    })
   }
 }

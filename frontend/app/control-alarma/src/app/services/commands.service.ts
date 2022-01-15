@@ -17,12 +17,23 @@ export class CommandsService {
     private http: HttpClient
   ) { }
 
-  armAlarm (comId: string, partition: number, state: Estado, code: string) {
-
-  }
-
-  disarmAlarm (comId: string, partition: number, state: Estado, code: string) {
-    
+  armDisarmAlarm (comId: string, partition: number, state: Estado, code: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post(environment.api_url + "/command/arm-disarm", {
+          comId: comId,
+          particion: partition,
+          estado: state,
+          clave: code
+        },
+        {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        })
+      })
+    );
   }
 
   changeMode (comId: string, partition: number, mode: Modo) {

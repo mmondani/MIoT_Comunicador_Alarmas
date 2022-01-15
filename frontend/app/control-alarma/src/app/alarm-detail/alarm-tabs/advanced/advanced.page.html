@@ -1,9 +1,13 @@
 <ion-content class="ion-padding-horizontal">
   <ion-label>Código para activar/desactivar</ion-label>
   <ion-item>
-    <ion-input [type]="showPassword? 'text' : 'password'" placeholder="código"></ion-input>
-        <ion-icon [name]="passwordToggleIcon" slot="end" (click)="onTogglePassword()"></ion-icon>
+    <ion-input [type]="showPassword? 'number' : 'password'" placeholder="código" [(ngModel)]="alarmCode"></ion-input>
+    <ion-icon [name]="passwordToggleIcon" slot="end" (click)="onTogglePassword()"></ion-icon>
   </ion-item>
+
+  <ion-button (click)="onSaveCodeClick()" expand="block" fill="clear" style="margin-top: 10px;" [disabled]="alarmCode === ''">
+    Guardar código
+  </ion-button>
 
   <ion-item lines="none" class="ion-no-padding" style="margin-top: 20px;">
     <ion-label>Usuarios de la partición</ion-label>

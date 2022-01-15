@@ -108,6 +108,10 @@ export class DeviceService {
     })
   }
 
+  get currentPartitionNumber() {
+    return this._currentPartitionNumber;
+  }
+
   getDeviceItem(comId: string) {
     return this._deviceList.asObservable().pipe(
       map(deviceList => {
