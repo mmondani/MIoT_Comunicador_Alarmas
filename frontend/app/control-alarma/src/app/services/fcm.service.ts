@@ -4,6 +4,9 @@ import { PushNotifications } from '@capacitor/push-notifications';
 import { AppService } from './app.service';
 import { AuthService } from '../login/auth.service';
 import { take } from 'rxjs/operators';
+import { Storage } from '@capacitor/storage';
+import { from } from 'rxjs';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
@@ -44,11 +47,33 @@ export class FcmService {
       // Se actualiza el token en la base de datos
       this.authService.token.pipe(take(1)).subscribe(token => {
           this.authService.userEmail.pipe(take(1)).subscribe(email => {
-            this.appService.updateAppToken(token, tokenPush.value, email).subscribe(
-              () => {console.log("ok update token")},
-              (error) => {console.log("error update token: " + error)}
-            );
-          })
+            /**
+             * Busca en el storage el appId que identifica a esta app
+             * Si no está, lo genera y lo envía al backend para asociar
+             * appId, token e email
+             */
+            from(Storage.get({key: "appIdData"})).subscribe(async storedData => {
+              let parsedData: {appId: string};
+
+              if (!storedData || !storedData.value) {
+                // No existe el appId en el storage, se lo genera
+                parsedData = {appId: uuidv4()};
+  
+                await Storage.set({
+                  key: "appIdData",
+                  value: JSON.stringify(parsedData)
+                });
+              }
+              else {
+                parsedData = JSON.parse(storedData.value) as {appId: string}
+              }
+
+              this.appService.updateAppToken(token, tokenPush.value, parsedData.appId, email).subscribe(
+                () => {console.log("ok update token")},
+                (error) => {console.log("error update token: " + error)}
+              );
+            });
+          });
         });
     });
   
