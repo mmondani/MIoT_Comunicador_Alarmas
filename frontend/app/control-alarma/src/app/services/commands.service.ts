@@ -96,4 +96,22 @@ export class CommandsService {
       })
     );
   }
+
+  syncTime (comId: string, syncTime: boolean, regionCode: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post(environment.api_url + "/command/sync-time", {
+          comId: comId,
+          sincronizaHora: syncTime,
+          codigoRegion: regionCode
+        },
+        {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        })
+      })
+    );
+  }
 }
