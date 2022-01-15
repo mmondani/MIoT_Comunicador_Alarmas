@@ -3,7 +3,7 @@ import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
-import { ActionSheetController, LoadingController, NavController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, NavController, AlertController } from '@ionic/angular';
 import { MqttService } from '../services/mqtt.service';
 
 @Component({
@@ -21,7 +21,8 @@ export class AlarmListPage implements OnInit, OnDestroy {
     private deviceService: DeviceService,
     private actionSheetController: ActionSheetController,
     private navigationController: NavController,
-    private mqttService: MqttService
+    private mqttService: MqttService,
+    private alertController: AlertController
   ) { }
 
   async ngOnInit() {
@@ -59,8 +60,20 @@ export class AlarmListPage implements OnInit, OnDestroy {
   }
 
 
-  onItemClicked(comId: string) {
-    this.navigationController.navigateForward(['alarm-detail', comId, 1], {animated: true});
+  async onItemClicked(device: Device) {
+    if (device.online)
+      this.navigationController.navigateForward(['alarm-detail', device.comId, 1], {animated: true});
+    else {
+      const alert = await this.alertController.create ({
+        header: "Comunicador offline",
+        message: "El comunicador de tu alarma no se encuentra conectado",
+        buttons: ["OK"],
+        keyboardClose: true,
+        mode: 'ios'
+      });
+  
+      await alert.present();
+    }
   }
 
   onAlarmMore(comId: string, event: Event) {

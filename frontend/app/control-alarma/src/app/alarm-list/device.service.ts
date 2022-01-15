@@ -242,24 +242,24 @@ export class DeviceService {
       })
     ).pipe(
       tap(device => {
+        // Se actualiza el registro local de los dispositivos
+        this.deviceList.pipe(
+          take(1)
+        ).subscribe(deviceList => {
+          deviceList.forEach( (dev, i) => {
+            if (dev.comId === device.comId) {
+              deviceList[i] = device;
+            }
+          });
+
+          this._deviceList.next(deviceList);
+        });
+        
         /**
          * Si es el dispositivo actual se emite el dispositivo y la partición actual,
          * para actualizar la UI
          */
         if (device.comId === this._currentDeviceComId) {
-          // Se actualiza el registro local de los dispositivos
-          this.deviceList.pipe(
-            take(1)
-          ).subscribe(deviceList => {
-            deviceList.forEach( (dev, i) => {
-              if (dev.comId === device.comId) {
-                deviceList[i] = device;
-              }
-            });
-
-            this._deviceList.next(deviceList);
-          })
-
           // Se emite la versión más nueva del device para actualizar la UI
           this._currentDevice.next(device);
 

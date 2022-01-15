@@ -14,7 +14,7 @@
 
   <ion-list *ngIf="deviceList">
 
-    <ion-card *ngFor="let device of deviceList" (click)="onItemClicked(device.comId)">
+    <ion-card *ngFor="let device of deviceList" (click)="onItemClicked(device)">
       <ion-card-content>
         <ion-grid class="ion-no-padding">
           <ion-row>
@@ -38,6 +38,10 @@
           <ion-label *ngIf="!device.estadoRedElectrica" class="mains-power-bad">220V</ion-label>
           <ion-label>Bateria</ion-label>
           <img src='../../assets/icon/bateria_{{device.estadoBateria}}.png' class="battery-img"/>
+          <ion-label *ngIf="device.online">Online</ion-label>
+          <img *ngIf="device.online" src='../../assets/icon/zona_normal.png' class="online-img"/>
+          <ion-label *ngIf="!device.online">Offline</ion-label>
+          <img *ngIf="!device.online" src='../../assets/icon/zona_anormal.png' class="online-img"/>
         </div>
       </ion-card-content>
     </ion-card>
