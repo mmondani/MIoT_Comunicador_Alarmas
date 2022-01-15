@@ -6,6 +6,7 @@ import { Particion } from '../../../models/particion.model';
 import { ZoneModalPage } from './zone-modal/zone-modal.page';
 import { Zona } from '../../../models/zona.model';
 import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
+import { CommandsService } from '../../../services/commands.service';
 
 @Component({
   selector: 'app-zones',
@@ -22,7 +23,8 @@ export class ZonesPage implements OnInit, OnDestroy {
     private deviceService: DeviceService,
     private actionSheetController:ActionSheetController,
     private modalController: ModalController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private commandsService: CommandsService
   ) { }
 
 
@@ -230,8 +232,22 @@ export class ZonesPage implements OnInit, OnDestroy {
         },
         {
           text: "Cambiar inclusión",
-          handler: () => {
-            console.log("Cambiar inclusión");
+          handler: async () => {
+            const loading = await this.loadingController.create({
+              keyboardClose: true,
+              message: "Enviando comando"
+            });
+        
+            loading.present();
+
+            if (zone.inclusion === "excluida") {
+              this.commandsService.includeExcludeZones(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                [{zona: zone.numero, excluir: false}]).subscribe(() => {
+                  loading.dismiss();
+                });
+            }
           }
         }
       ]

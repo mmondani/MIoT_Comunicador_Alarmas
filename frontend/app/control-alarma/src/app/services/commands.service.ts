@@ -4,6 +4,7 @@ import { Modo, Estado, CausaDisparo } from '../models/particion.model';
 import { switchMap, take } from 'rxjs/operators';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import { partition } from 'rxjs';
 
 
 @Injectable({
@@ -50,6 +51,42 @@ export class CommandsService {
           comId: comId,
           particion: partition,
           causa: cause
+        },
+        {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        })
+      })
+    );
+  }
+
+  includeExcludeZones (comId: string, partition: number, zones:{zona:number, excluir: boolean}[]) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post(environment.api_url + "/command/exclude", {
+          comId: comId,
+          particion: partition,
+          zonas: zones
+        },
+        {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        })
+      })
+    );
+  }
+
+  manageNodes (comId: string, partition: number, nodes: {nodo: number, encender: boolean}[]) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post(environment.api_url + "/command/manage-nodes", {
+          comId: comId,
+          particion: partition,
+          nodos: nodes
         },
         {
           headers: new HttpHeaders( {

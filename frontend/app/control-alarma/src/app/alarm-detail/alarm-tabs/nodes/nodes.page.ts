@@ -6,6 +6,7 @@ import { ActionSheetController, ModalController, LoadingController } from '@ioni
 import { Nodo } from '../../../models/nodo.model';
 import { NodeModalPage } from './node-modal/node-modal.page';
 import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
+import { CommandsService } from '../../../services/commands.service';
 
 @Component({
   selector: 'app-nodes',
@@ -22,7 +23,8 @@ export class NodesPage implements OnInit {
     private deviceService: DeviceService,
     private actionSheetController: ActionSheetController,
     private modalController: ModalController,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private commandsService: CommandsService
   ) { }
 
 
@@ -120,16 +122,40 @@ export class NodesPage implements OnInit {
     if (node.encendido) {
       actionOnOff = {
         text: "Apagar nodo",
-        handler: () => {
-          console.log("Apagar nodo");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.manageNodes(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            [{nodo: node.numero, encender: false}]).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
     }
     else {
       actionOnOff = {
         text: "Encender nodo",
-        handler: () => {
-          console.log("Encender nodo");
+        handler: async () => {
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            message: "Enviando comando"
+          });
+      
+          loading.present();
+
+          this.commandsService.manageNodes(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            [{nodo: node.numero, encender: true}]).subscribe(() => {
+              loading.dismiss();
+            });
         }
       };
     }
