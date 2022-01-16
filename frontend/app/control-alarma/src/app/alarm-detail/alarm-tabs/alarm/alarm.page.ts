@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Storage } from '@capacitor/storage';
-import { ActionSheetController, LoadingController, ModalController, NavController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, ModalController, NavController, AlertController } from '@ionic/angular';
 import { partition, Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { DeviceService } from '../../../alarm-list/device.service';
@@ -25,7 +25,8 @@ export class AlarmPage implements OnInit, OnDestroy {
     private commandsService: CommandsService,
     private actionSheetController: ActionSheetController,
     private loadingController: LoadingController,
-    private modalController: ModalController
+    private modalController: ModalController,
+    private alertController: AlertController
   ) { }
 
 
@@ -51,25 +52,7 @@ export class AlarmPage implements OnInit, OnDestroy {
   }
 
   async ionViewDidEnter() {
-    /**
-     * Se recupera el código de la alarma para este equipo y esta partición
-     */
-    let storedData = await Storage.get({key: this.deviceService.currentDeviceComId});
-
-    if (!storedData || !storedData.value) {
-      // No hay ningún código
-      this.alarmCode = ""
-    }
-    else {
-      let codes: {particion:number, codigo: string}[];
-      codes = JSON.parse(storedData.value);
-
-      codes.forEach(code => {
-        if (code.particion === this.deviceService.currentPartitionNumber) {
-          this.alarmCode = code.codigo;
-        }
-      })
-    }
+    
   }
 
 
@@ -156,6 +139,47 @@ export class AlarmPage implements OnInit, OnDestroy {
   }
 
   async onEstadoClick() {
+
+    /**
+     * Se recupera el código de la alarma para este equipo y esta partición
+     */
+    let storedData = await Storage.get({key: this.deviceService.currentDeviceComId});
+
+    if (!storedData || !storedData.value) {
+      // No hay ningún código
+      this.alarmCode = ""
+    }
+    else {
+      this.alarmCode = "";
+      let codes: {particion:number, codigo: string}[];
+      codes = JSON.parse(storedData.value);
+
+      codes.forEach(code => {
+        if (code.particion === this.deviceService.currentPartitionNumber) {
+          this.alarmCode = code.codigo;
+        }
+      })
+    }
+
+    /**
+     * Si no tiene configura un código para activar/desactivar, no se puede
+     * hacer ninguna de estas acciones
+     */
+    if (this.alarmCode === "") {
+
+      const alert = await this.alertController.create ({
+        header: "Falta código",
+        message: "Para podér activar/desactivar tu alarma, tenés que configurar tu código en la sección Avanzado",
+        buttons: ["OK"],
+        keyboardClose: true,
+        mode: 'ios'
+      });
+  
+      await alert.present();
+
+      return;
+    }
+
     const actionActivar = {
         text: "Activar",
         handler: async () => {
