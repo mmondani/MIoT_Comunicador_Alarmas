@@ -1,0 +1,33 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Agregar comunicador</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content 
+  [fullscreen]="true"
+  [style.--background]="scanActive?'#00000000':'#ffffff'"
+>
+  <div class="scan-box" [hidden]="!scanActive"></div>
+</ion-content>
+
+<ion-footer class="ion-no-border" style="background-color: white;">
+  <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
+
+    <ion-text color="primary" >
+      <h2 style="text-align: left;margin-bottom: 20px;">Leer el código QR</h2>
+    </ion-text>
+
+    <div class="ion-text-left ion-margin-bottom">
+      <ion-label  style="color: black;">Apuntá la cámara al código QR que se encuentra en el manual de tu comunicador. También podés agregarlo manualmente.</ion-label>
+    </div>
+    
+
+    <ion-button expand="block" color="primary" class="ion-margin-top" [routerLink]="['/alarm-list/scan-device/manual']">
+      Agregar manualmente
+    </ion-button>
+  </div>
+</ion-footer>

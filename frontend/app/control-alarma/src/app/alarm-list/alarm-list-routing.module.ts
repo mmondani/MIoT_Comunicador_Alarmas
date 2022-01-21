@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: AlarmListPage
+  },
+  {
+    path: 'scan-device',
+    loadChildren: () => import('./scan-device/scan-device.module').then( m => m.ScanDevicePageModule)
   }
 ];
 
