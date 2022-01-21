@@ -7,13 +7,21 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="ion-padding-horizontal">
+  <ion-text >
+    <p>Ingresá el identificador de tu comunicador. Se encuentra debojo del código QR</p>
+  </ion-text>
 
+  <form [formGroup]="form"> 
+    <ion-item>
+      <ion-input type="text" placeholder="Identificador" formControlName="deviceId"></ion-input>
+    </ion-item>
+  </form>
 </ion-content>
 
 <ion-footer class="ion-no-border" style="background-color: white;">
   <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
-    <ion-button expand="block" color="primary">
+    <ion-button expand="block" color="primary" (click)="onAddDevice()" [disabled]="!form.valid">
       Agregar
     </ion-button>
   </div>
