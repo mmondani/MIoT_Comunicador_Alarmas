@@ -10,11 +10,11 @@ const schema = {
                 email: {
                     type: 'string',
                 },
-                rol: {
+                clave: {
                     type: 'string',
                 }
             },
-            required: ['comId', 'email', 'rol'],
+            required: ['comId', 'email'],
         },
     },
     required: ['body'],

@@ -3,7 +3,7 @@ import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
 import modifyDeviceSchema from '../../schemas/modifyDeviceSchema';
 import {httpStatus} from '../../lib/httpStatus';
-
+const passwordUtilities = require("../../lib/passwordUtilities");
 
 const MongoClient = require("mongodb").MongoClient;
 
@@ -47,6 +47,14 @@ async function modifyDevice(event, context) {
         if (!params[prop])
             delete params[prop];
     }
+
+    // Se hashean las claves si están presentes
+    if (params.clavem)
+        params.clavem = passwordUtilities.hashPassword(params.clavem);
+
+    if (params.claveh)
+        params.claveh = passwordUtilities.hashPassword(params.claveh);
+
 
     try {
         let response = await db.collection("devices")

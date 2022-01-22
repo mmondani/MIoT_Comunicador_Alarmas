@@ -281,7 +281,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A135\",\r\n    \"rol\":\"master\"\r\n}",
+									"raw": "{\r\n    \"email\":\"mmondani89@gmail.com\",\r\n    \"comId\":\"5843A136\",\r\n    \"clave\": \"4321\"\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -1107,7 +1107,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"tipo\": \"fototimer\",\r\n    \"nombre\": \"Foto 1-1\"\r\n}",
+									"raw": "{\r\n    \"comId\": \"5843A135\",\r\n    \"particion\": 1,\r\n    \"numero\": 1,\r\n    \"tipo\": \"fototimer\",\r\n    \"horas\": 5,\r\n    \"nodos\": [2, 6, 101]\r\n}",
 									"options": {
 										"raw": {
 											"language": "json"

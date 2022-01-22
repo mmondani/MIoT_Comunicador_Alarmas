@@ -3,6 +3,7 @@ import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
 import linkUserDeviceSchema from '../../schemas/linkUserDeviceSchema';
 import {httpStatus} from '../../lib/httpStatus';
+const passwordUtilities = require("../../lib/passwordUtilities");
 
 
 const MongoClient = require("mongodb").MongoClient;
@@ -27,12 +28,14 @@ async function connectToDatabase() {
 
 
 async function linkUserDevice(event, context) {
+    let rol = "";
+
     context.callbackWaitsForEmptyEventLoop = false;
 
     const db = await connectToDatabase();
 
 
-    const {comId, email, rol} = event.body;
+    const {comId, email, clave} = event.body;
 
     try {
         let device = await db.collection("devices").findOne({comId: comId});
@@ -55,6 +58,25 @@ async function linkUserDevice(event, context) {
 
         if (alreadyLinked)
             return httpStatus(409, {error: `El usuario ${email} y el comunicador ${comId} ya están vinculados`});
+
+        // Se chequea si el dispositivo no tiene configurada una clave master/habitual
+        // Si no la tiene, ok. Si la tiene, se chequea lo que vino en el body
+        if (device.clavem !== "" && device.claveh !== "") {
+            // Tiene claves, se chequea lo que vino en el body
+            if (!clave)
+                return httpStatus(409, {error: "Clave requerida"});
+            
+            if (passwordUtilities.isPasswordCorrect(clave, device.clavem))
+                rol = "master";
+            else if (passwordUtilities.isPasswordCorrect(clave, device.claveh)) 
+                rol = "habitual";
+            else
+                return httpStatus(409, {error: "Clave incorrecta"});
+        }
+        else {
+            // No tiene claves, lo va a vincular con rol master sin necesidad de claves
+            rol = "master"
+        }
 
         // Si no están vinculados, se crea el vínculo
         let link = {
