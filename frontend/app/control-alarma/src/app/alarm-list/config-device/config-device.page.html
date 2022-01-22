@@ -7,6 +7,66 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="ion-padding-horizontal">
+
+  <form [formGroup]="form">
+    <ion-grid class="ion-no-padding" style="margin-top: 25px;">
+      <ion-row style="align-items: center;">
+        <ion-col size="3">
+          <ion-thumbnail class="ion-no-padding" style="margin: 0 auto;" (click)="onIconClicked()">
+            <img src='../../../assets/alarm-icons/{{icon}}.png' />
+          </ion-thumbnail>
+        </ion-col>
+
+        <ion-col offset="1">
+          <ion-text>
+            <p>Seleccioná un ícono para identificar tu comunicador</p>
+          </ion-text>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+
+    <div style="margin-top: 30px;">
+      <ion-label style="font-size: small;">Nombre del comunicador</ion-label>
+      <ion-item class="ion-no-padding">
+        <ion-input formControlName="name" type="text"></ion-input>
+      </ion-item>
+    </div>
+
+
+    <div style="margin-top: 20px;">
+      <ion-label style="font-size: small;">Clave master</ion-label>
+      <ion-item class="ion-no-padding">
+        <ion-input formControlName="codeM" [type]="showCodeM? 'text' : 'password'"></ion-input>
+        <ion-icon [name]="codeMToggleIcon" slot="end" (click)="onToggleCodeM()"></ion-icon>
+      </ion-item>
+    </div>
+    
+    <div style="margin-top: 20px;">
+      <ion-label style="font-size: small;">Clave habitual</ion-label>
+      <ion-item class="ion-no-padding">
+        <ion-input formControlName="codeH" [type]="showCodeH? 'text' : 'password'"></ion-input>
+        <ion-icon [name]="codeHToggleIcon" slot="end" (click)="onToggleCodeH()"></ion-icon>
+      </ion-item>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <ion-label style="font-size: small;">Ubicación del comunicador</ion-label>
+      <ion-item class="ion-no-padding">
+        <ion-select value="1" interface="popover" formControlName="timeZone" style="width: 100%;">
+          <ion-select-option *ngFor="let tz of timeZones" [value]='tz.code'>{{tz.name}}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+  </form>
 
 </ion-content>
+
+<ion-footer class="ion-no-border" style="background-color: white;">
+  <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
+    <ion-button expand="block" color="primary" (click)="onSaveConfig()" [disabled]="!form.valid">
+      Guardar
+    </ion-button>
+  </div>
+</ion-footer>

@@ -65,7 +65,7 @@ export class AskCodePage implements OnInit {
       loading.dismiss();
 
       this.deviceService.getDevices(userEmail).subscribe(deviceList => {
-        this.navController.navigateForward(['alarm-list', 'config-device', this.deviceId], {animated: true});
+        this.navController.navigateForward(['alarm-list'], {animated: true});
       })
     }, async (error) => {
       /**

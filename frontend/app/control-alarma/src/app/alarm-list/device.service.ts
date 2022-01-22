@@ -295,6 +295,25 @@ export class DeviceService {
     );
   }
 
+  patchDevice (comId: string, name?: string, icon?: string, codeM?: string, codeH?:string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.patch(environment.api_url + "/device", {
+          comId: comId,
+          nombre: name,
+          icono: icon,
+          clavem: codeM,
+          claveh: codeH
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
   newPartition (comId: string, partitionNumber: number, partitionName: string) {
     return this.authService.token.pipe(
       take(1),

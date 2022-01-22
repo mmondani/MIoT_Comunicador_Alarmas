@@ -5,6 +5,7 @@ import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
 import { ActionSheetController, LoadingController, NavController, AlertController } from '@ionic/angular';
 import { MqttService } from '../services/mqtt.service';
+import { NavigationExtras } from '@angular/router';
 
 @Component({
   selector: 'app-alarm-list',
@@ -76,15 +77,15 @@ export class AlarmListPage implements OnInit, OnDestroy {
     }
   }
 
-  onAlarmMore(comId: string, event: Event) {
-    this.showAlarmMoreActionSheet(comId);
+  onAlarmMore(device: Device, event: Event) {
+    this.showAlarmMoreActionSheet(device);
 
     // Se evita que se propague el evento de click a la card
     event.stopPropagation();
     return false;
   }
 
-  private async showAlarmMoreActionSheet(comId: string) {
+  private async showAlarmMoreActionSheet(device: Device) {
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
       mode: 'ios',
@@ -92,13 +93,21 @@ export class AlarmListPage implements OnInit, OnDestroy {
         {
           text: "Configurar comunicador",
           handler: () => {
-            this.navigationController.navigateForward(['alarm-list', 'config-device', comId], {animated: true});
+            let navExtras: NavigationExtras = {
+              state: {
+                icon: device.icono,
+                name: device.nombre,
+                timeZone: device.codigoRegion
+              }
+            };
+
+            this.navigationController.navigateForward(['alarm-list', 'config-device', device.comId], navExtras);
           }
         },
         {
           text: "Particiones",
           handler: () => {
-            this.navigationController.navigateForward(['partitions', comId], {animated: true});
+            this.navigationController.navigateForward(['partitions', device.comId], {animated: true});
           }
         },
         {

@@ -7,6 +7,10 @@ const routes: Routes = [
   {
     path: '',
     component: ConfigDevicePage
+  },
+  {
+    path: 'icon-modal',
+    loadChildren: () => import('./icon-modal/icon-modal.module').then( m => m.IconModalPageModule)
   }
 ];
 
