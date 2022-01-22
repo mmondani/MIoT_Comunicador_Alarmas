@@ -295,7 +295,7 @@ export class DeviceService {
     );
   }
 
-  patchDevice (comId: string, name?: string, icon?: string, codeM?: string, codeH?:string) {
+  patchDevice (comId: string, name?: string, icon?: string, codeM?: string, codeH?:string, syncTime?: boolean, timeZone?: number) {
     return this.authService.token.pipe(
       take(1),
       switchMap(token => {
@@ -304,7 +304,9 @@ export class DeviceService {
           nombre: name,
           icono: icon,
           clavem: codeM,
-          claveh: codeH
+          claveh: codeH,
+          sincronizaHora: syncTime,
+          codigoRegion: timeZone
         }, {
           headers: new HttpHeaders( {
             Authorization: `Bearer ${token}`

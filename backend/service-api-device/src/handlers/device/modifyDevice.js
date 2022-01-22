@@ -1,10 +1,16 @@
 
 import commonMiddleware from '../../lib/commonMiddleware';
 import validator from '@middy/validator';
+import {IotData} from 'aws-sdk';
 import modifyDeviceSchema from '../../schemas/modifyDeviceSchema';
 import {httpStatus} from '../../lib/httpStatus';
+import {BrokerMessage} from '../../lib/brokerMessage';
+import {BrokerCommands} from '../../lib/brokerCommands';
+import {BrokerRegisters} from '../../lib/brokerRegisters';
 const passwordUtilities = require("../../lib/passwordUtilities");
 
+
+const iotdata = new IotData({endpoint: process.env.IOT_ENDPOINT});
 const MongoClient = require("mongodb").MongoClient;
 
 // Se define la conexión a la base de datos por fuera del handler para que pueda ser reusada
@@ -31,7 +37,7 @@ async function modifyDevice(event, context) {
 
     const db = await connectToDatabase();
 
-    const {comId, nombre, icono, clavem, claveh, celularAsalto, usaApp, monitreada} = event.body;
+    const {comId, nombre, icono, clavem, claveh, celularAsalto, usaApp, monitreada, sincronizaHora, codigoRegion} = event.body;
 
     let params = {
         nombre,
@@ -40,7 +46,9 @@ async function modifyDevice(event, context) {
         claveh,
         celularAsalto,
         usaApp,
-        monitreada
+        monitreada,
+        sincronizaHora,
+        codigoRegion
     };
 
     for (let prop in params) {
@@ -62,8 +70,30 @@ async function modifyDevice(event, context) {
                 {comId: comId},
                 {$set: params});
 
-        if (response.modifiedCount === 0)
-            return httpStatus(409, {error: "Error al modificar el comunicador " + comId})
+        // Si vienen los parámetros sincronizaHora y codigoRegion,
+        // se envía el comando al broker para cambiar el timezone del comunicador
+        if (sincronizaHora && codigoRegion) {
+            let msg = new BrokerMessage(
+                BrokerCommands.SET,
+                BrokerRegisters.CONFIGURACION_TIEMPO,
+                0
+            );
+
+            let sincroniza = (sincronizaHora)? 1 : 0;
+            msg.addByte(sincroniza);
+            msg.addByte(codigoRegion);
+            
+
+            let msgBuffer = msg.getBufferToSend();
+
+            let params = {
+                topic: comId + "/cmd",
+                payload: msgBuffer.toString("hex"),
+                qos: 0
+            };
+
+            await iotdata.publish(params).promise();
+        }
     }
     catch (error) {
         console.log("[Atlas] " + error);

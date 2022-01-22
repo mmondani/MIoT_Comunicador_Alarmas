@@ -54,6 +54,9 @@ functions:
           path: /
           authorizer: ${self:custom.Authorizer}
           cors: true
+    iamRoleStatements:
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTConnectIAM}
+      - ${file(iam/IoTConnectPublishIAM.yml):IoTPublishIAM}
 
   getDevicesByEmail:
     handler: src/handlers/device/getDevicesByEmail.handler

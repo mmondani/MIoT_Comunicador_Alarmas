@@ -27,6 +27,12 @@ const schema = {
                 },
                 monitoreada: {
                     type: 'boolean',
+                },
+                sincronizaHora: {
+                    type: 'boolean',
+                },
+                codigoRegion: {
+                    type: 'number',
                 }
             },
             required: ['comId'],

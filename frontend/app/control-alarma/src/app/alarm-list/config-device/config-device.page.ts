@@ -151,7 +151,9 @@ export class ConfigDevicePage implements OnInit {
       this.form.value.name,
       this.form.value.icon,
       this.form.value.codeM? this.form.value.codeM : undefined,
-      this.form.value.codeH? this.form.value.codeH : undefined
+      this.form.value.codeH? this.form.value.codeH : undefined,
+      true,
+      this.form.value.timeZone? this.form.value.timeZone : undefined,
     ).subscribe(async () => {
       loading.dismiss();
 
