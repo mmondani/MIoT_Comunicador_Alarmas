@@ -7,6 +7,22 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content class="ion-padding-horizontal">
+  <ion-text >
+    <p>Ingresá la clave del comunicador para poder vincularlo a tu usuario.</p>
+  </ion-text>
 
+  <form [formGroup]="form"> 
+    <ion-item>
+      <ion-input type="text" placeholder="Clave" formControlName="deviceCode"></ion-input>
+    </ion-item>
+  </form>
 </ion-content>
+
+<ion-footer class="ion-no-border" style="background-color: white;">
+  <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
+    <ion-button expand="block" color="primary" (click)="onAddDevice()" [disabled]="!form.valid">
+      Agregar
+    </ion-button>
+  </div>
+</ion-footer>

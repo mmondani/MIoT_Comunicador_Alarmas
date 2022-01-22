@@ -13,7 +13,7 @@ const routes: Routes = [
     loadChildren: () => import('./manual/manual.module').then( m => m.ManualPageModule)
   },
   {
-    path: 'ask-code',
+    path: 'ask-code/:id',
     loadChildren: () => import('./ask-code/ask-code.module').then( m => m.AskCodePageModule)
   }
 ];

@@ -215,14 +215,14 @@ export class DeviceService {
     )
   }
 
-  linkUserAndDevice (email: string, comId: string, role: 'master' | 'habitual') {
+  linkUserAndDevice (email: string, comId: string, code?: string) {
     return this.authService.token.pipe(
       take(1),
       switchMap(token => {
         return this.http.post<Particion>(environment.api_url + "/device/link", {
           email: email,
           comId: comId,
-          rol: role
+          clave: code
         }, {
           headers: new HttpHeaders( {
             Authorization: `Bearer ${token}`

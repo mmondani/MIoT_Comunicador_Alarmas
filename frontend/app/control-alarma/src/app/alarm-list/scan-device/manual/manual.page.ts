@@ -49,47 +49,43 @@ export class ManualPage implements OnInit {
         
         return this.deviceService.linkUserAndDevice(
           email,
-          this.form.value.deviceId,
-          "master"
+          this.form.value.deviceId
         );
       })
     ).subscribe(() => {
       /**
        * Se pudo linkear el usuario y el dispositivo
        * Se piden todos los dispositivos asociados al usuario
-       * y se determina si el dispositivo tiene clave master y habitual o no
        */
       loading.dismiss();
 
       this.deviceService.getDevices(userEmail).subscribe(deviceList => {
-        deviceList.forEach(device => {
-          if (device.comId === this.form.value.deviceId) {
-            if (device.clavem !== "" && device.claveh !== "") {
-              // Tiene definidas claves, se las tiene que preguntar
-              this.navController.navigateForward(['alarm-list', 'scan-device', 'ask-code'], {animated: true});
-            }
-            else {
-              // No tiene definidas las claves, se lo pasa configurar
-              this.navController.navigateForward(['alarm-list', 'config-device', this.form.value.deviceId], {animated: true});
-            }
-          }
-        })
+        this.navController.navigateForward(['alarm-list', 'config-device', this.form.value.deviceId], {animated: true});
       })
     }, async (error) => {
-      // No se pudo linkear el usuario y el disposivo
+      /**
+       * No se pudo linkear el usuario y el disposivo.
+       * Se determina si es porque se necesita una clave o es otro motivo
+       */
+      let errorCause = error.error.error;
+
       loading.dismiss();
 
-      console.log(JSON.stringify(error));
-
-      const alert = await this.alertController.create ({
-        header: "Agregar comunicador",
-        message: error.error.error,
-        buttons: ["OK"],
-        keyboardClose: true,
-        mode: 'ios'
-      });
-  
-      await alert.present();
+      if (errorCause === "Clave requerida") {
+        // Se necesita una clave para linkear. Se va a la pantalla para ingresar la clave
+        this.navController.navigateForward(['alarm-list', 'scan-device', 'ask-code', this.form.value.deviceId], {animated: true});
+      }
+      else {
+        const alert = await this.alertController.create ({
+          header: "Agregar comunicador",
+          message: errorCause,
+          buttons: ["OK"],
+          keyboardClose: true,
+          mode: 'ios'
+        });
+    
+        await alert.present();
+      }
     })
 
   }

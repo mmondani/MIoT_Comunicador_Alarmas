@@ -92,7 +92,7 @@ export class AlarmListPage implements OnInit, OnDestroy {
         {
           text: "Configurar comunicador",
           handler: () => {
-            console.log("configurar comunicador");
+            this.navigationController.navigateForward(['alarm-list', 'config-device', comId], {animated: true});
           }
         },
         {
