@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../login/auth.service';
 import { DeviceService } from './device.service';
 import { Device } from '../models/device.model';
-import { ActionSheetController, LoadingController, NavController, AlertController } from '@ionic/angular';
+import { ActionSheetController, LoadingController, NavController, AlertController, ModalController } from '@ionic/angular';
 import { MqttService } from '../services/mqtt.service';
 import { NavigationExtras } from '@angular/router';
+import { YesNoModalPage } from '../yes-no-modal/yes-no-modal.page';
 
 @Component({
   selector: 'app-alarm-list',
@@ -23,7 +24,8 @@ export class AlarmListPage implements OnInit, OnDestroy {
     private actionSheetController: ActionSheetController,
     private navigationController: NavController,
     private mqttService: MqttService,
-    private alertController: AlertController
+    private alertController: AlertController,
+    private modalController: ModalController
   ) { }
 
   async ngOnInit() {
@@ -124,8 +126,56 @@ export class AlarmListPage implements OnInit, OnDestroy {
         },
         {
           text: "Desvincular comunicador",
-          handler: () => {
-            console.log("desvincular comunicador");
+          handler: async () => {
+            this.actionSheetController.dismiss();
+
+            const modal = await this.modalController.create({
+              component: YesNoModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "message": `¿Deseás desvinuclar el comunicador ${device.nombre}?`,
+                "yesText": "Desvincular",
+                "noText": "Cancelar"
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss()
+            
+            if (data && data.result === "yes") {
+              // Se desvincula el comunicador y se vuelven a pedir los comunicadores asociados al email
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                message: "Desvinculando"
+              });
+          
+              loading.present();
+
+              let userEmail;
+
+              this.authService.userEmail.pipe(
+                take(1),
+                switchMap(email => {
+                  userEmail = email;
+
+                  return this.deviceService.unlinkUserAndDevice(
+                    userEmail,
+                    device.comId
+                  );
+                })
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevices(userEmail).subscribe(() => loading.dismiss());
+                },
+                () => {
+                  console.log("error al desvincular el comunicador");
+                  loading.dismiss();
+                }
+              );
+              
+            }
           }
         }
       ]

@@ -232,6 +232,21 @@ export class DeviceService {
     )
   }
 
+  unlinkUserAndDevice (email: string, comId: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post<Particion>(environment.api_url + "/device/unlink", {
+          email: email,
+          comId: comId
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    )
+  }
 
   getDevices (email: string) {
     return this.authService.token.pipe(
