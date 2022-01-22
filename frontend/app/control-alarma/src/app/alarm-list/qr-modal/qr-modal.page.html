@@ -1,0 +1,14 @@
+<div class="inner-content ion-padding">
+  <qrcode [qrdata]="comId" [width]="230" [errorCorrectionLevel]="'H'" [elementType]="img" [margin]="2" style="text-align: center;"></qrcode>
+
+  <div style="text-align: center; margin-bottom: 20px;">
+    <ion-label style="color: black; font-size: x-large;">
+      {{comId}}
+    </ion-label>
+  </div>
+
+
+  <ion-button (click)="onClick()" expand="block" style="margin-bottom: 20px;">
+    Aceptar
+  </ion-button>
+</div>

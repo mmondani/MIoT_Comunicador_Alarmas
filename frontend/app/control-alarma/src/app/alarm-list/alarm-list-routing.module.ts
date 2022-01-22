@@ -15,6 +15,10 @@ const routes: Routes = [
   {
     path: 'config-device/:id',
     loadChildren: () => import('./config-device/config-device.module').then( m => m.ConfigDevicePageModule)
+  },
+  {
+    path: 'qr-modal',
+    loadChildren: () => import('./qr-modal/qr-modal.module').then( m => m.QrModalPageModule)
   }
 ];
 

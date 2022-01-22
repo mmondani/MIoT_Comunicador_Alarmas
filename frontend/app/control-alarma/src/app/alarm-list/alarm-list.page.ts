@@ -7,6 +7,7 @@ import { ActionSheetController, LoadingController, NavController, AlertControlle
 import { MqttService } from '../services/mqtt.service';
 import { NavigationExtras } from '@angular/router';
 import { YesNoModalPage } from '../yes-no-modal/yes-no-modal.page';
+import { QrModalPage } from './qr-modal/qr-modal.page';
 
 @Component({
   selector: 'app-alarm-list',
@@ -120,8 +121,17 @@ export class AlarmListPage implements OnInit, OnDestroy {
         },
         {
           text: "Mostar QR",
-          handler: () => {
-            console.log("mostrar QR");
+          handler: async () => {
+            const modal = await this.modalController.create({
+              component: QrModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "comId": device.comId
+              }
+            });
+
+            await modal.present();
           }
         },
         {
