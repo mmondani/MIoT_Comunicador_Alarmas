@@ -1,8 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { ModalController, LoadingController } from '@ionic/angular';
+import { ModalController, LoadingController, NavController } from '@ionic/angular';
 import { IconModalPage } from './icon-modal/icon-modal.page';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, UrlSegment } from '@angular/router';
 import { DeviceService } from '../device.service';
 import { CommandsService } from '../../services/commands.service';
 
@@ -21,6 +21,7 @@ export class ConfigDevicePage implements OnInit {
   timeZone: number;
   timeZoneName: string;
 
+  configNewDevice: boolean;
   form: FormGroup;
   showCodeM = false;
   codeMToggleIcon = "eye";
@@ -42,8 +43,15 @@ export class ConfigDevicePage implements OnInit {
     private modalController: ModalController,
     private deviceService: DeviceService,
     private commandsService: CommandsService,
-    private loadingController: LoadingController
+    private loadingController: LoadingController,
+    private navController: NavController
   ) { 
+    /**
+     * Si se está configurando un nuevo dispositivo no se tiene que mostrar el back en el toolbar
+     * Se determina si es un nuevo dispositivo, si la url actual contiene el string 'scan-device'
+     */
+    this.configNewDevice = this.router.url.includes("scan-device");
+
     /**
      * Se recuperan los parámetros que se pasan, si los hay
      */
@@ -170,7 +178,14 @@ export class ConfigDevicePage implements OnInit {
       this.deviceService.getDevice(this.comId).subscribe(() => {
         loading2.dismiss();
 
-        this.router.navigateByUrl("/");
+        /**
+         * Si estoy configurando un nuevo comunicador, tengo que ir a la pantalla para configurar el Wi-Fi
+         * Si no, voy a root
+         */
+        if (this.configNewDevice) 
+          this.navController.navigateForward(['alarm-list', 'scan-device', 'config-wifi']);
+        else 
+          this.router.navigateByUrl("/");
       }, () => {
         loading2.dismiss();
       });

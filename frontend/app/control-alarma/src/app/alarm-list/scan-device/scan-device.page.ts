@@ -81,7 +81,7 @@ export class ScanDevicePage implements OnInit {
           loading.dismiss();
     
           this.deviceService.getDevices(userEmail).subscribe(deviceList => {
-            this.navController.navigateForward(['alarm-list', 'config-device', result.content], {animated: true});
+            this.navController.navigateForward(['alarm-list', 'scan-device', 'config-device', result.content], {animated: true});
           })
         }, async (error) => {
           /**

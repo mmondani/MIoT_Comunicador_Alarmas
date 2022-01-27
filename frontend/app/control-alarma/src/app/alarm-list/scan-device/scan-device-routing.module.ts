@@ -15,6 +15,14 @@ const routes: Routes = [
   {
     path: 'ask-code/:id',
     loadChildren: () => import('./ask-code/ask-code.module').then( m => m.AskCodePageModule)
+  },
+  {
+    path: 'config-device/:id',
+    loadChildren: () => import('../config-device/config-device.module').then( m => m.ConfigDevicePageModule)
+  },
+  {
+    path: 'config-wifi',
+    loadChildren: () => import('../config-wifi/config-wifi.module').then( m => m.ConfigWifiPageModule)
   }
 ];
 

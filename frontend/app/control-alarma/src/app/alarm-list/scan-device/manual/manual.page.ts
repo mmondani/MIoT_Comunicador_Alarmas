@@ -60,7 +60,7 @@ export class ManualPage implements OnInit {
       loading.dismiss();
 
       this.deviceService.getDevices(userEmail).subscribe(deviceList => {
-        this.navController.navigateForward(['alarm-list', 'config-device', this.form.value.deviceId], {animated: true});
+        this.navController.navigateForward(['alarm-list', 'scan-device', 'config-device', this.form.value.deviceId], {animated: true});
       })
     }, async (error) => {
       /**

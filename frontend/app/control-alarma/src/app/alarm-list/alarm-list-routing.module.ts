@@ -19,6 +19,10 @@ const routes: Routes = [
   {
     path: 'qr-modal',
     loadChildren: () => import('./qr-modal/qr-modal.module').then( m => m.QrModalPageModule)
+  },
+  {
+    path: 'config-wifi',
+    loadChildren: () => import('./config-wifi/config-wifi.module').then( m => m.ConfigWifiPageModule)
   }
 ];
 

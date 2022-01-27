@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start" *ngIf="!configNewDevice">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Configurar Wi-Fi</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding-horizontal">
+
+</ion-content>
+
+<ion-footer class="ion-no-border" style="background-color: white;">
+  <div class="ion-margin-start ion-margin-end ion-margin-bottom ion-text-center">
+    <ion-button expand="block" color="primary" (click)="onContinue()">
+      Continuar
+    </ion-button>
+
+    <ion-button expand="block" color="primary" fill="clear" (click)="onCancel()">
+      Ya está conectado
+    </ion-button>
+  </div>
+</ion-footer>

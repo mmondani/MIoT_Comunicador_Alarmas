@@ -116,7 +116,7 @@ export class AlarmListPage implements OnInit, OnDestroy {
         {
           text: "Configurar red Wi-Fi",
           handler: () => {
-            console.log("configurar wifi");
+            this.navigationController.navigateForward(['alarm-list', 'config-wifi']);
           }
         },
         {
