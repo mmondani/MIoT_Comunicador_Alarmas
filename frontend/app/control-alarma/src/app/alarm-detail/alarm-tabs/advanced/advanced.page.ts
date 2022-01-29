@@ -136,6 +136,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Editar Usuario",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 
@@ -183,6 +184,7 @@ export class AdvancedPage implements OnInit, OnDestroy {
         },
         {
           text: "Eliminar usuario",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 

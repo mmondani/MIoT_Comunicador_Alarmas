@@ -140,6 +140,7 @@ export class ZonesPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Editar zona",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 
@@ -187,6 +188,7 @@ export class ZonesPage implements OnInit, OnDestroy {
         },
         {
           text: "Eliminar zona",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 
@@ -232,6 +234,7 @@ export class ZonesPage implements OnInit, OnDestroy {
         },
         {
           text: "Cambiar inclusión",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,

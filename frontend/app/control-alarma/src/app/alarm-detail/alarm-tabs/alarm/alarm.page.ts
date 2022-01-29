@@ -60,6 +60,7 @@ export class AlarmPage implements OnInit, OnDestroy {
     if (this.partitionState === 'desactivada') {
       const actionModoEstoy = {
           text: "Cambiar a modo Estoy",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,
@@ -79,6 +80,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
       const actionModoMeVoy = {
           text: "Cambiar a modo Me Voy",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,
@@ -182,6 +184,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
     const actionActivar = {
         text: "Activar",
+        cssClass: 'custom-action-sheet',
         handler: async () => {
           const loading = await this.loadingController.create({
             keyboardClose: true,
@@ -202,6 +205,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
     const actionActivarEstoy = {
         text: "Activar en modo Estoy",
+        cssClass: 'custom-action-sheet',
         handler: async () => {
           const loading = await this.loadingController.create({
             keyboardClose: true,
@@ -222,6 +226,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
     const actionActivarMeVoy = {
         text: "Activar en modo Me Voy",
+        cssClass: 'custom-action-sheet',
         handler: async () => {
           const loading = await this.loadingController.create({
             keyboardClose: true,
@@ -242,6 +247,7 @@ export class AlarmPage implements OnInit, OnDestroy {
 
     const actionDesactivar = {
         text: "Desactivar",
+        cssClass: 'custom-action-sheet',
         handler: async () => {
           const loading = await this.loadingController.create({
             keyboardClose: true,
@@ -290,6 +296,7 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar por pánico",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,
@@ -319,6 +326,7 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar por incendio",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,
@@ -348,6 +356,7 @@ export class AlarmPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Disparar emergencia médica",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const loading = await this.loadingController.create({
               keyboardClose: true,

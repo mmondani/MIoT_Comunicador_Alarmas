@@ -95,6 +95,7 @@ export class AlarmListPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Configurar comunicador",
+          cssClass: 'custom-action-sheet',
           handler: () => {
             let navExtras: NavigationExtras = {
               state: {
@@ -109,18 +110,21 @@ export class AlarmListPage implements OnInit, OnDestroy {
         },
         {
           text: "Particiones",
+          cssClass: 'custom-action-sheet',
           handler: () => {
             this.navigationController.navigateForward(['partitions', device.comId], {animated: true});
           }
         },
         {
           text: "Configurar red Wi-Fi",
+          cssClass: 'custom-action-sheet',
           handler: () => {
             this.navigationController.navigateForward(['alarm-list', 'config-wifi']);
           }
         },
         {
           text: "Mostar QR",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             const modal = await this.modalController.create({
               component: QrModalPage,
@@ -136,6 +140,7 @@ export class AlarmListPage implements OnInit, OnDestroy {
         },
         {
           text: "Desvincular comunicador",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 

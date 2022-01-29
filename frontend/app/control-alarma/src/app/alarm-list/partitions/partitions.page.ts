@@ -120,6 +120,7 @@ export class PartitionsPage implements OnInit, OnDestroy {
       buttons: [
         {
           text: "Editar partición",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 
@@ -166,6 +167,7 @@ export class PartitionsPage implements OnInit, OnDestroy {
         },
         {
           text: "Eliminar partición",
+          cssClass: 'custom-action-sheet',
           handler: async () => {
             this.actionSheetController.dismiss();
 

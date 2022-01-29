@@ -108,6 +108,45 @@ export class NodesPage implements OnInit {
     }
   }
 
+  async onAddAutomation() {
+    const actionSheet = await this.actionSheetController.create({
+      cssClass: "action-sheet",
+      mode: "ios",
+      buttons: [
+        {
+          text: "Modo noche",
+          cssClass: 'custom-action-sheet',
+          handler: async () => {
+            console.log("modo noche")
+          }
+        },
+        {
+          text: "Foto-timer",
+          cssClass: 'custom-action-sheet',
+          handler: async () => {
+            console.log("foto-timer")
+          }
+        },
+        {
+          text: "Programación horaria",
+          cssClass: 'custom-action-sheet',
+          handler: async () => {
+            console.log("programación horaria")
+          }
+        },
+        {
+          text: "Simulador",
+          cssClass: 'custom-action-sheet',
+          handler: async () => {
+            console.log("simulador")
+          }
+        }
+      ]
+    });
+
+    await actionSheet.present();
+  }
+
   onNodeMore(node: Nodo, event: Event) {
     this.showNodeMoreActionSheet(node);
 
