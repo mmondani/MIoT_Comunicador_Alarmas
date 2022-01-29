@@ -127,6 +127,7 @@ export class AuthService {
     this._user.next(null);
 
     Storage.remove({key: "authData"});
+    Storage.remove({key: "user"});
   }
 
   private storeLoginData (email: string, token: string) {

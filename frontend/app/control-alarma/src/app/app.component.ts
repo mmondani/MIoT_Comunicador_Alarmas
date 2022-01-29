@@ -6,6 +6,8 @@ import { App, AppState } from '@capacitor/app'
 import { switchMap, take } from 'rxjs/operators';
 import { LoadingController } from '@ionic/angular';
 import { DeviceService } from './alarm-list/device.service';
+import { Storage } from '@capacitor/storage';
+import { FcmService } from './services/fcm.service';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +22,8 @@ export class AppComponent implements OnInit, OnDestroy{
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
-    private deviceService: DeviceService
+    private deviceService: DeviceService,
+    private fcmService: FcmService
   ) {}
 
 
@@ -62,7 +65,28 @@ export class AppComponent implements OnInit, OnDestroy{
         .subscribe(async success => {
           if (!success) {
             console.log("Re-loguear!!!");
-            this.authService.logout();
+
+            let storedData = await Storage.get({key: 'user'})
+            let user: {email: string, password: string};
+
+            if (!storedData || !storedData.value)
+              user = {email: "", password: ""};
+            else
+              user = JSON.parse(storedData.value);
+
+            this.authService.login(user.email, user.password)
+              .subscribe(
+                responseData => {
+                  // Se pudo re-loguear
+
+                  // Se registra el servicio de push notifications
+                  this.fcmService.initPush();
+                },
+                errorData => {
+                  // No se pudo loguear
+                  this.authService.logout();
+                }
+              );
           }
           else {
             this.requestDevices();

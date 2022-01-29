@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AlertController, LoadingController } from '@ionic/angular';
 import { AuthService } from './auth.service';
 import { FcmService } from '../services/fcm.service';
+import { Storage } from '@capacitor/storage';
 
 @Component({
   selector: 'app-login',
@@ -52,6 +53,17 @@ export class LoginPage implements OnInit {
         responseData => {
           // Se pudo loguear
           loading.dismiss();
+
+          let user = {
+            email: this.form.value.email,
+            password: this.form.value.password
+          };
+
+          Storage.set({
+            key: 'user',
+            value: JSON.stringify(user)
+          });
+
           this.form.reset();
 
           // Se registra el servicio de push notifications
