@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import * as Socket from '@vendus/sockets-for-cordova';
+import { AlertController, LoadingController, NavController } from '@ionic/angular';
 
 @Component({
   selector: 'app-wifi-credentials',
@@ -12,6 +13,7 @@ export class WifiCredentialsPage implements OnInit {
   form: FormGroup;
   showPassword = false;
   passwordToggleIcon = "eye";
+  private configTimeout;
 
   security = [
     {code: 0, text: "Sin seguridad"},
@@ -19,7 +21,11 @@ export class WifiCredentialsPage implements OnInit {
     {code: 2, text: "WPA/WPA2 Personal"}
   ];
 
-  constructor() { }
+  constructor(
+    private alertController: AlertController,
+    private loadingController: LoadingController,
+    private navController: NavController
+  ) { }
 
   ngOnInit() {
     this.form = new FormGroup({
@@ -38,29 +44,66 @@ export class WifiCredentialsPage implements OnInit {
     })
   }
 
-  onConfigure() {
+  async onConfigure() {
     let dataToSend = `${this.form.value.ssid}&${this.form.value.password}&${this.form.value.security}\0`;
 
     let socket =new Socket();
 
-    socket.onData = (data) => {
+    const loading = await this.loadingController.create({
+      keyboardClose: true,
+      message: "Configurando"
+    });
+
+    loading.present();
+
+    this.configTimeout = setTimeout(async () => {
+      loading.dismiss();
+      
+      await this.showAlert(
+        "Error de configuración",
+        "Ocurrió un error al intentar configurar la red Wi-Fi en tu comunicador. Volvé a intentarlo.");
+    }, 10000);
+
+    socket.onData = async (data) => {
       // Se recibió data en el socket
       let dataString = this.arrayBuffer2str(data);
       console.log("Data received: " + dataString);
 
+      loading.dismiss();
+      clearTimeout(this.configTimeout);
+
       if (dataString === dataToSend) {
-        console.log("todo igual!");
+        await this.showAlert(
+          "Configuración exitosa",
+          "Se logró configurar exitósamente la red Wi-Fi en tu comunicador");
+      }
+      else {
+        await this.showAlert(
+          "Error de configuración",
+          "Ocurrió un error al intentar configurar la red Wi-Fi en tu comunicador. Volvé a intentarlo.");
       }
     };
 
-    socket.onError = (errorMessage) => {
+    socket.onError = async (errorMessage) => {
       // Hubo un error
-      console.log("error: " + errorMessage);
+      loading.dismiss();
+      clearTimeout(this.configTimeout);
+      
+      await this.showAlert(
+        "Error de configuración",
+        "Ocurrió un error al intentar configurar la red Wi-Fi en tu comunicador. Volvé a intentarlo.");
     };
 
-    socket.onClose = (hasError) => {
+    socket.onClose = async (hasError) => {
       // Se cerró la conexión
+      loading.dismiss();
+      clearTimeout(this.configTimeout);
+
       console.log("se cerró");
+
+      await this.showAlert(
+        "Error de configuración",
+        "Ocurrió un error al intentar configurar la red Wi-Fi en tu comunicador. Volvé a intentarlo.");
     };
 
     socket.open("192.168.1.101", 6666, 
@@ -99,4 +142,18 @@ export class WifiCredentialsPage implements OnInit {
 		}
 		return str;
 	}
+
+  private async showAlert (tilte: string, message: string) {
+    const alert = await this.alertController.create ({
+      header: tilte,
+      message: message,
+      buttons: ["OK"],
+      keyboardClose: true,
+      mode: 'ios'
+    });
+
+    await alert.present();
+
+    this.navController.navigateForward(["/"], {animated: true});
+  }
 }
