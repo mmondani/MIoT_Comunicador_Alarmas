@@ -8,6 +8,7 @@ import { NodeModalPage } from './node-modal/node-modal.page';
 import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
 import { CommandsService } from '../../../services/commands.service';
 import { NodoAutomatizacion } from '../../../models/nodoAutomatizacion.model';
+import { NocheModalPage } from './noche-modal/noche-modal.page';
 
 @Component({
   selector: 'app-nodes',
@@ -20,6 +21,10 @@ export class NodesPage implements OnInit {
   nodesAutomations: NodoAutomatizacion[] = [];
   private partitionSubscription: Subscription;
   private availableNodes: number[];
+  private availableNoches: number[];
+  private availableFotoTimers: number[];
+  private availableProgramacionHorarias: number[];
+  private availableSimulador: number[];
 
   constructor(
     private deviceService: DeviceService,
@@ -37,6 +42,14 @@ export class NodesPage implements OnInit {
 
         // El array availableNodes tiene los números de nodo que no están usados
         this.availableNodes = Array.from({length: 128}, (x, i) => i);
+
+        // Los arrays availableNoches, availableFotoTimers, availableProgramacionHorarias y availableSimulador
+        // contienen los números de automatizaciones disponibles. Puede haber hasta 16
+        this.availableNoches = Array.from({length: 16}, (x, i) => i+1);
+        this.availableFotoTimers = Array.from({length: 16}, (x, i) => i+1);
+        this.availableProgramacionHorarias = Array.from({length: 16}, (x, i) => i+1);
+        this.availableSimulador = Array.from({length: 16}, (x, i) => i+1);
+
 
         // Se ordenan los nodos por número de nodo
         this.partition.nodos.sort((a, b) => {return a.numero-b.numero});
@@ -63,6 +76,31 @@ export class NodesPage implements OnInit {
         });
 
         this.partition.automatizaciones.forEach(automation => {
+          let availableIndex;
+
+          switch(automation.tipo) {
+            case "fototimer":
+              availableIndex = this.availableFotoTimers.findIndex((automationNumber) => automationNumber === automation.numero)
+              this.availableFotoTimers.splice(availableIndex, 1);
+              break;
+
+            case "noche":
+              availableIndex = this.availableNoches.findIndex((automationNumber) => automationNumber === automation.numero)
+              this.availableNoches.splice(availableIndex, 1);
+              break;
+
+            case "programacion_horaria":
+              availableIndex = this.availableProgramacionHorarias.findIndex((automationNumber) => automationNumber === automation.numero)
+              this.availableProgramacionHorarias.splice(availableIndex, 1);
+              break;  
+
+            case "simulador":
+              availableIndex = this.availableSimulador.findIndex((automationNumber) => automationNumber === automation.numero)
+              this.availableSimulador.splice(availableIndex, 1);
+              break;
+          }
+          
+
           this.nodesAutomations.push(new NodoAutomatizacion(automation.numero, automation.nombre, automation.tipo, null, automation.horaInicio, automation.horaFin, automation.horas, automation.nodos));
         })
       }
@@ -129,16 +167,18 @@ export class NodesPage implements OnInit {
           text: "Modo noche",
           cssClass: 'custom-action-sheet',
           handler: async () => {
-            /*this.actionSheetController.dismiss();
+            this.actionSheetController.dismiss();
+
+            if (this.availableNoches.length === 0)
+              return;
 
             const modal = await this.modalController.create({
-              component: NodeModalPage,
+              component: NocheModalPage,
               cssClass: 'auto-height',
               handle: false,
               componentProps: {
-                "number": node.numero,
-                "availableNodes": this.availableNodes,
-                "name": node.nombre
+                "number": this.availableNoches[0],
+                "availableNodes": this.partition.nodos
               }
             });
         
@@ -146,10 +186,12 @@ export class NodesPage implements OnInit {
         
             const {data} = await modal.onWillDismiss();
 
-            console.log(data);
-            
             if (data) {
-              // Se modifica el nodo y una vez modificado, se vuelve a pedir el dispositivo
+              /**
+               * El modal retorna number, name y selectedNodes
+               */
+              
+              // Se crea la automatización y una vez creada, se vuelve a pedir el dispositivo
               const loading = await this.loadingController.create({
                 keyboardClose: true,
                 cssClass: 'custom-loading',
@@ -157,22 +199,23 @@ export class NodesPage implements OnInit {
           
               loading.present();
 
-              this.deviceService.updateNode(
+              this.deviceService.newAutomation(
                 this.deviceService.currentDeviceComId,
                 this.partition.numero,
                 data.number,
                 data.name,
-                ""
+                "noche",
+                data.selectedNodes
               ).subscribe(
                 () => {
                   this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
                 },
                 () => {
-                  console.log("error al modificar el nodo");
+                  console.log("error al crear el modo noche");
                   loading.dismiss();
                 }
               );
-            }*/
+            }
           }
         },
         {
@@ -350,6 +393,116 @@ export class NodesPage implements OnInit {
       }
     };
 
+
+    let actionEditAutomation = {
+      text: "Editar automatización",
+      handler: async () => {
+        this.actionSheetController.dismiss();
+
+        const modal = await this.modalController.create({
+          component: NocheModalPage,
+          cssClass: 'auto-height',
+          handle: false,
+          componentProps: {
+            "number": node.numero,
+            "name": node.nombre,
+            "availableNodes": this.partition.nodos,
+            "nodes": node.nodos
+          }
+        });
+    
+        modal.present();
+    
+        const {data} = await modal.onWillDismiss();
+
+        console.log(data);
+        
+        if (data) {
+          /**
+           * El modal retorna number, name, selectedNodes, type y [timeStart], [timeEnd] y [hours]
+           */
+          
+          // Se modifica la automatización y una vez modificada, se vuelve a pedir el dispositivo
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            cssClass: 'custom-loading',
+          });
+      
+          loading.present();
+
+          this.deviceService.updateAutomation(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            data.number,
+            data.name,
+            data.type,
+            data.selectedNodes,
+            data.timeStart,
+            data.timeEnd,
+            data.hours
+          ).subscribe(
+            () => {
+              this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+            },
+            () => {
+              console.log("error al modificar la automatización");
+              loading.dismiss();
+            }
+          );
+        }
+      }
+    };
+
+
+    let actionDeleteAutomation = {
+      text: "Eliminar automatización",
+      handler: async () => {
+        this.actionSheetController.dismiss();
+
+        const modal = await this.modalController.create({
+          component: YesNoModalPage,
+          cssClass: 'auto-height',
+          handle: false,
+          componentProps: {
+            "message": `¿Deseás eliminar la automatización ${node.nombre}?`,
+            "yesText": "Eliminar",
+            "noText": "Cancelar"
+          }
+        });
+    
+        modal.present();
+    
+        const {data} = await modal.onWillDismiss();
+        
+        if (data && data.result === "yes") {
+          // Se elimina la automatizacion y una vez eliminada, se vuelve a pedir el dispositivo
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            cssClass: 'custom-loading',
+          });
+      
+          loading.present();
+
+          this.deviceService.removeAutomation(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            node.numero,
+            node.tipo
+          ).subscribe(
+            () => {
+              this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+            },
+            () => {
+              console.log("error al eliminar la automatización");
+              loading.dismiss();
+            }
+          );
+        }
+      }
+    };
+
+
+
     let buttons = [];
 
     if (node.tipo === "nodo") {
@@ -361,8 +514,8 @@ export class NodesPage implements OnInit {
     }
     else {
       buttons = [
-        actionEditNode,
-        actionDeleteNode
+        actionEditAutomation,
+        actionDeleteAutomation
       ];
     }
 

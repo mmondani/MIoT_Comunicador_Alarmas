@@ -552,4 +552,70 @@ export class DeviceService {
       })
     );
   }
+
+
+  newAutomation (comId: string, partitionNumber: number, number: number, name: string, type: string, nodes: number[], timeStart?: string, timeEnd?: string, hours?: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.post(environment.api_url + "/device/automation", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: number,
+          nombre: name,
+          tipo: type,
+          nodos: nodes,
+          horaInicio: timeStart,
+          horaFin: timeEnd,
+          horas: hours
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  updateAutomation (comId: string, partitionNumber: number, number: number, name: string, type: string, nodes: number[], timeStart?: string, timeEnd?: string, hours?: number) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.patch(environment.api_url + "/device/automation", {
+          comId: comId,
+          particion: partitionNumber,
+          numero: number,
+          nombre: name,
+          tipo: type,
+          nodos: nodes,
+          horaInicio: timeStart,
+          horaFin: timeEnd,
+          horas: hours
+        }, {
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      }),
+    );
+  }
+
+  removeAutomation (comId: string, partitionNumber: number, number: number, type: string) {
+    return this.authService.token.pipe(
+      take(1),
+      switchMap(token => {
+        return this.http.request('delete', environment.api_url + "/device/automation", {
+          body: {
+            comId: comId,
+            particion: partitionNumber,
+            numero: number,
+            tipo: type
+          },
+          headers: new HttpHeaders( {
+            Authorization: `Bearer ${token}`
+          })
+        });
+      })
+    );
+  }
 }
