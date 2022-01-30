@@ -9,6 +9,7 @@ import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
 import { CommandsService } from '../../../services/commands.service';
 import { NodoAutomatizacion } from '../../../models/nodoAutomatizacion.model';
 import { NocheModalPage } from './noche-modal/noche-modal.page';
+import { FototimerModalPage } from './fototimer-modal/fototimer-modal.page';
 
 @Component({
   selector: 'app-nodes',
@@ -222,7 +223,61 @@ export class NodesPage implements OnInit {
           text: "Foto-timer",
           cssClass: 'custom-action-sheet',
           handler: async () => {
-            console.log("foto-timer")
+            this.actionSheetController.dismiss();
+
+            if (this.availableFotoTimers.length === 0)
+              return;
+
+            const modal = await this.modalController.create({
+              component: FototimerModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": this.availableFotoTimers[0],
+                "availableNodes": this.partition.nodos,
+                "hours": 5
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss();
+
+            console.log(data);
+
+            if (data) {
+              /**
+               * El modal retorna number, name, selectedNodes y hours
+               */
+              
+              // Se crea la automatización y una vez creada, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.newAutomation(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                data.number,
+                data.name,
+                "fototimer",
+                data.selectedNodes,
+                null,
+                null,
+                data.hours
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => {
+                  console.log("error al crear el fototimer");
+                  loading.dismiss();
+                }
+              );
+            }
           }
         },
         {
@@ -399,17 +454,76 @@ export class NodesPage implements OnInit {
       handler: async () => {
         this.actionSheetController.dismiss();
 
-        const modal = await this.modalController.create({
-          component: NocheModalPage,
-          cssClass: 'auto-height',
-          handle: false,
-          componentProps: {
-            "number": node.numero,
-            "name": node.nombre,
-            "availableNodes": this.partition.nodos,
-            "nodes": node.nodos
-          }
-        });
+        let modal;
+        switch(node.tipo) {
+          case "noche":
+            modal = await this.modalController.create({
+              component: NocheModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": node.numero,
+                "name": node.nombre,
+                "availableNodes": this.partition.nodos,
+                "nodes": node.nodos
+              }
+            });
+
+            break;
+
+          case "fototimer":
+            modal = await this.modalController.create({
+              component: FototimerModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": node.numero,
+                "name": node.nombre,
+                "availableNodes": this.partition.nodos,
+                "nodes": node.nodos,
+                "hours": node.horas
+              }
+            });
+
+            break;
+
+          case "programacion_horaria":
+              modal = await this.modalController.create({
+                component: FototimerModalPage,
+                cssClass: 'auto-height',
+                handle: false,
+                componentProps: {
+                  "number": node.numero,
+                  "name": node.nombre,
+                  "availableNodes": this.partition.nodos,
+                  "nodes": node.nodos,
+                  "hours": node.horas,
+                  "timeStart": node.horaInicio,
+                  "timeEnd": node.horaFin
+                }
+              });
+  
+              break;
+
+          case "simulador":
+            modal = await this.modalController.create({
+              component: FototimerModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": node.numero,
+                "name": node.nombre,
+                "availableNodes": this.partition.nodos,
+                "nodes": node.nodos,
+                "hours": node.horas,
+                "timeStart": node.horaInicio,
+                "timeEnd": node.horaFin
+              }
+            });
+
+            break;
+        }
+        
     
         modal.present();
     

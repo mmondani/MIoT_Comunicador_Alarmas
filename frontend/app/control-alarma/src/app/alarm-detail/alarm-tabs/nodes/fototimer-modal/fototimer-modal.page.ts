@@ -1,0 +1,83 @@
+import { Component, Input, OnInit } from '@angular/core';
+import { Nodo } from '../../../../models/nodo.model';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
+
+@Component({
+  selector: 'app-fototimer-modal',
+  templateUrl: './fototimer-modal.page.html',
+  styleUrls: ['./fototimer-modal.page.scss'],
+})
+export class FototimerModalPage implements OnInit {
+  
+  @Input() number: number;
+  @Input() name?: string;
+  @Input() nodes?: number[];
+  @Input() hours?: number;
+  @Input() availableNodes: Nodo[];
+  form: FormGroup;
+  availableHours = Array.from({length: 12}, (x, i) => i+1);
+
+  selectedNodes: number[];
+  noMoreNodes: boolean;
+
+  constructor(
+    private modalController: ModalController
+  ) { }
+
+  ngOnInit() {
+    /**
+     * Si se provee el number, significa que es una edición de un elemento.
+     * Si no se lo provee es una creación.
+     */
+    this.form = new FormGroup({
+      name: new FormControl(this.name, {
+        updateOn: "change",
+        validators: [Validators.required]
+      }),
+      hours: new FormControl(this.hours, {
+        updateOn: "change",
+        validators: [Validators.required]
+      })
+    });
+
+    if (!this.nodes)
+      this.selectedNodes = [];
+    else
+      this.selectedNodes = [...this.nodes];
+  }
+
+
+  onNodeCheboxClick(node: Nodo, event) {
+
+    // Solo puede haber un máximo de 5 nodos seleccionados a la vez
+
+    if (event.currentTarget.checked) {
+      if (this.selectedNodes.length < 5)
+        this.selectedNodes.push(node.numero);
+      else
+        event.currentTarget.checked = false;
+    }
+    else {
+      let index = this.selectedNodes.indexOf(node.numero);
+
+      if (index >= 0)
+        this.selectedNodes.splice(index, 1);
+    }
+  }
+
+
+  onOk() {
+    this.modalController.dismiss({
+      number: this.number,
+      name: this.form.value.name,
+      selectedNodes: this.selectedNodes,
+      hours: this.form.value.hours,
+      type: "fototimer"
+    });
+  }
+
+  onCancel() {
+    this.modalController.dismiss();
+  }
+}

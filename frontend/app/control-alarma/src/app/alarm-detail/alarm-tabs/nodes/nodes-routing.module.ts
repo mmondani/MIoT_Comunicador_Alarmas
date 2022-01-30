@@ -15,6 +15,10 @@ const routes: Routes = [
   {
     path: 'noche-modal',
     loadChildren: () => import('./noche-modal/noche-modal.module').then( m => m.NocheModalPageModule)
+  },
+  {
+    path: 'fototimer-modal',
+    loadChildren: () => import('./fototimer-modal/fototimer-modal.module').then( m => m.FototimerModalPageModule)
   }
 ];
 
