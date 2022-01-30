@@ -37,8 +37,12 @@ export class NocheModalPage implements OnInit {
 
     if (!this.nodes)
       this.selectedNodes = [];
-    else
+    else {
       this.selectedNodes = [...this.nodes];
+      
+      // Si en los nodos hay 255, se los borra
+      this.selectedNodes = this.selectedNodes.filter(node => node != 255);
+    }
   }
 
 

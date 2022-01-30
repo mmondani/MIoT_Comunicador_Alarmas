@@ -1,22 +1,25 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Nodo } from '../../../../models/nodo.model';
-import { FormGroup, Validators, FormControl } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
+import { format, formatISO, parseISO } from 'date-fns';
 
 @Component({
-  selector: 'app-fototimer-modal',
-  templateUrl: './fototimer-modal.page.html',
-  styleUrls: ['./fototimer-modal.page.scss'],
+  selector: 'app-programacion-horaria-modal',
+  templateUrl: './programacion-horaria-modal.page.html',
+  styleUrls: ['./programacion-horaria-modal.page.scss'],
 })
-export class FototimerModalPage implements OnInit {
-  
+export class ProgramacionHorariaModalPage implements OnInit {
+
   @Input() number: number;
   @Input() name?: string;
   @Input() nodes?: number[];
-  @Input() hours?: number;
+  @Input() timeStart?: string;
+  @Input() timeEnd?: string;
   @Input() availableNodes: Nodo[];
   form: FormGroup;
-  availableHours = Array.from({length: 12}, (x, i) => i+1);
+  timeStartISO: string;
+  timeEndISO: string;
 
   selectedNodes: number[];
   noMoreNodes: boolean;
@@ -34,21 +37,27 @@ export class FototimerModalPage implements OnInit {
       name: new FormControl(this.name, {
         updateOn: "change",
         validators: [Validators.required]
-      }),
-      hours: new FormControl(this.hours, {
-        updateOn: "change",
-        validators: [Validators.required]
       })
     });
 
     if (!this.nodes)
       this.selectedNodes = [];
-      else {
-        this.selectedNodes = [...this.nodes];
-        
-        // Si en los nodos hay 255, se los borra
-        this.selectedNodes = this.selectedNodes.filter(node => node != 255);
-      }
+    else {
+      this.selectedNodes = [...this.nodes];
+
+      // Si en los nodos hay 255, se los borra
+      this.selectedNodes = this.selectedNodes.filter(node => node != 255);
+    }
+      
+
+    // Se convierten las horas al formato ISO
+    let timeStartElements = this.timeStart.split(":");
+    this.timeStartISO = formatISO(new Date(2022, 1, 1, parseInt(timeStartElements[0]), parseInt(timeStartElements[1])));
+
+    let timeEndElements = this.timeEnd.split(":");
+    this.timeEndISO = formatISO(new Date(2022, 1, 1, parseInt(timeEndElements[0]), parseInt(timeEndElements[1])));
+
+    console.log(this.timeStartISO);
   }
 
 
@@ -76,12 +85,23 @@ export class FototimerModalPage implements OnInit {
       number: this.number,
       name: this.form.value.name,
       selectedNodes: this.selectedNodes,
-      hours: this.form.value.hours,
-      type: "fototimer"
+      timeStart: this.timeStart,
+      timeEnd: this.timeEnd,
+      type: "programacion_horaria"
     });
   }
 
   onCancel() {
     this.modalController.dismiss();
+  }
+
+  formatTimeStart(value: string) {
+    this.timeStartISO = value;
+    this.timeStart = format(parseISO(value), 'HH:mm'); 
+  }
+
+  formatTimeEnd(value: string) {
+    this.timeEndISO = value;
+    this.timeEnd = format(parseISO(value), 'HH:mm'); 
   }
 }

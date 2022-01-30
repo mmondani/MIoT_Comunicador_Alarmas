@@ -6,7 +6,7 @@
 
   <form [formGroup]="form" style="margin-top: 20px;">
     <ion-item>
-      <ion-input type="text" placeholder="Nombre del nodo" formControlName="name"></ion-input>
+      <ion-input type="text" placeholder="Nombre" formControlName="name"></ion-input>
       <ion-icon *ngIf="!form.get('name').valid && form.get('name').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
     </ion-item>
 

@@ -10,6 +10,7 @@ import { CommandsService } from '../../../services/commands.service';
 import { NodoAutomatizacion } from '../../../models/nodoAutomatizacion.model';
 import { NocheModalPage } from './noche-modal/noche-modal.page';
 import { FototimerModalPage } from './fototimer-modal/fototimer-modal.page';
+import { ProgramacionHorariaModalPage } from './programacion-horaria-modal/programacion-horaria-modal.page';
 
 @Component({
   selector: 'app-nodes',
@@ -284,7 +285,61 @@ export class NodesPage implements OnInit {
           text: "Programación horaria",
           cssClass: 'custom-action-sheet',
           handler: async () => {
-            console.log("programación horaria")
+            this.actionSheetController.dismiss();
+
+            if (this.availableFotoTimers.length === 0)
+              return;
+
+            const modal = await this.modalController.create({
+              component: ProgramacionHorariaModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": this.availableFotoTimers[0],
+                "availableNodes": this.partition.nodos,
+                "timeStart": "01:00",
+                "timeEnd": "14:00"
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss();
+
+            console.log(data);
+
+            if (data) {
+              /**
+               * El modal retorna number, name, selectedNodes, timeStart y timeEnd
+               */
+              
+              // Se crea la automatización y una vez creada, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.newAutomation(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                data.number,
+                data.name,
+                "programacion_horaria",
+                data.selectedNodes,
+                data.timeStart,
+                data.timeEnd
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => {
+                  console.log("error al crear la programación horaria");
+                  loading.dismiss();
+                }
+              );
+            }
           }
         },
         {
@@ -489,7 +544,7 @@ export class NodesPage implements OnInit {
 
           case "programacion_horaria":
               modal = await this.modalController.create({
-                component: FototimerModalPage,
+                component: ProgramacionHorariaModalPage,
                 cssClass: 'auto-height',
                 handle: false,
                 componentProps: {
@@ -497,7 +552,6 @@ export class NodesPage implements OnInit {
                   "name": node.nombre,
                   "availableNodes": this.partition.nodos,
                   "nodes": node.nodos,
-                  "hours": node.horas,
                   "timeStart": node.horaInicio,
                   "timeEnd": node.horaFin
                 }
