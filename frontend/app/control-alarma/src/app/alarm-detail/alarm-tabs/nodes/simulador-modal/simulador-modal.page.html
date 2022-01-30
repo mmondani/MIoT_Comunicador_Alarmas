@@ -1,0 +1,28 @@
+<div class="inner-content ion-padding">
+  <div style="text-align: center;">
+    <ion-label color="primary" style="font-size: large; font-weight: bold;">Simulador</ion-label>
+  </div>
+  
+
+  <form [formGroup]="form" style="margin-top: 20px;">
+    <ion-item>
+      <ion-input type="text" placeholder="Nombre" formControlName="name"></ion-input>
+      <ion-icon *ngIf="!form.get('name').valid && form.get('name').touched" name="alert-circle-outline" color="danger" slot="end"></ion-icon>
+    </ion-item>
+
+    <ion-list>
+      <ion-item *ngFor="let node of availableNodes" lines="none" class="ion-no-padding">
+        <ion-checkbox color="primary" class="ion-no-margin" (ionChange)="onNodeCheboxClick(node, $event)" [checked]="selectedNodes.includes(node.numero)"></ion-checkbox>
+        <ion-label class="ion-no-margin" style="margin-left: 15px;">{{node.nombre}}</ion-label>
+      </ion-item>
+    </ion-list>
+  </form>
+
+  <ion-button (click)="onOk()" expand="block" style="margin-top: 30px;" [disabled]="!form.valid || selectedNodes.length === 0">
+    Aceptar
+  </ion-button>
+
+  <ion-button (click)="onCancel()" expand="block" fill="clear">
+    Cancelar
+  </ion-button>
+</div>

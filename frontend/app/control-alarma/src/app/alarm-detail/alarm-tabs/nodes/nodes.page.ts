@@ -11,6 +11,7 @@ import { NodoAutomatizacion } from '../../../models/nodoAutomatizacion.model';
 import { NocheModalPage } from './noche-modal/noche-modal.page';
 import { FototimerModalPage } from './fototimer-modal/fototimer-modal.page';
 import { ProgramacionHorariaModalPage } from './programacion-horaria-modal/programacion-horaria-modal.page';
+import { SimuladorModalPage } from './simulador-modal/simulador-modal.page';
 
 @Component({
   selector: 'app-nodes',
@@ -287,7 +288,7 @@ export class NodesPage implements OnInit {
           handler: async () => {
             this.actionSheetController.dismiss();
 
-            if (this.availableFotoTimers.length === 0)
+            if (this.availableProgramacionHorarias.length === 0)
               return;
 
             const modal = await this.modalController.create({
@@ -295,7 +296,7 @@ export class NodesPage implements OnInit {
               cssClass: 'auto-height',
               handle: false,
               componentProps: {
-                "number": this.availableFotoTimers[0],
+                "number": this.availableProgramacionHorarias[0],
                 "availableNodes": this.partition.nodos,
                 "timeStart": "01:00",
                 "timeEnd": "14:00"
@@ -305,8 +306,6 @@ export class NodesPage implements OnInit {
             modal.present();
         
             const {data} = await modal.onWillDismiss();
-
-            console.log(data);
 
             if (data) {
               /**
@@ -346,7 +345,55 @@ export class NodesPage implements OnInit {
           text: "Simulador",
           cssClass: 'custom-action-sheet',
           handler: async () => {
-            console.log("simulador")
+            this.actionSheetController.dismiss();
+
+            if (this.availableSimulador.length === 0)
+              return;
+
+            const modal = await this.modalController.create({
+              component: SimuladorModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": this.availableSimulador[0],
+                "availableNodes": this.partition.nodos
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss();
+
+            if (data) {
+              /**
+               * El modal retorna number, name y selectedNodes
+               */
+              
+              // Se crea la automatización y una vez creada, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.newAutomation(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                data.number,
+                data.name,
+                "simulador",
+                data.selectedNodes
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => {
+                  console.log("error al crear el simulador");
+                  loading.dismiss();
+                }
+              );
+            }
           }
         }
       ]
@@ -561,17 +608,14 @@ export class NodesPage implements OnInit {
 
           case "simulador":
             modal = await this.modalController.create({
-              component: FototimerModalPage,
+              component: SimuladorModalPage,
               cssClass: 'auto-height',
               handle: false,
               componentProps: {
                 "number": node.numero,
                 "name": node.nombre,
                 "availableNodes": this.partition.nodos,
-                "nodes": node.nodos,
-                "hours": node.horas,
-                "timeStart": node.horaInicio,
-                "timeEnd": node.horaFin
+                "nodes": node.nodos
               }
             });
 

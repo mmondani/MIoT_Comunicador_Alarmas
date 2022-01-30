@@ -23,6 +23,10 @@ const routes: Routes = [
   {
     path: 'programacion-horaria-modal',
     loadChildren: () => import('./programacion-horaria-modal/programacion-horaria-modal.module').then( m => m.ProgramacionHorariaModalPageModule)
+  },
+  {
+    path: 'simulador-modal',
+    loadChildren: () => import('./simulador-modal/simulador-modal.module').then( m => m.SimuladorModalPageModule)
   }
 ];
 

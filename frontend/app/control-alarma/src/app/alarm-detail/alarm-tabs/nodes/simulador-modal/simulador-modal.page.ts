@@ -1,25 +1,20 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { Nodo } from '../../../../models/nodo.model';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
-import { format, formatISO, parseISO } from 'date-fns';
 
 @Component({
-  selector: 'app-programacion-horaria-modal',
-  templateUrl: './programacion-horaria-modal.page.html',
-  styleUrls: ['./programacion-horaria-modal.page.scss'],
+  selector: 'app-simulador-modal',
+  templateUrl: './simulador-modal.page.html',
+  styleUrls: ['./simulador-modal.page.scss'],
 })
-export class ProgramacionHorariaModalPage implements OnInit {
+export class SimuladorModalPage implements OnInit {
 
   @Input() number: number;
   @Input() name?: string;
   @Input() nodes?: number[];
-  @Input() timeStart?: string;
-  @Input() timeEnd?: string;
   @Input() availableNodes: Nodo[];
   form: FormGroup;
-  timeStartISO: string;
-  timeEndISO: string;
 
   selectedNodes: number[];
   noMoreNodes: boolean;
@@ -37,25 +32,17 @@ export class ProgramacionHorariaModalPage implements OnInit {
       name: new FormControl(this.name, {
         updateOn: "change",
         validators: [Validators.required]
-      })
+      }),
     });
 
     if (!this.nodes)
       this.selectedNodes = [];
     else {
       this.selectedNodes = [...this.nodes];
-
+      
       // Si en los nodos hay 255, se los borra
       this.selectedNodes = this.selectedNodes.filter(node => node != 255);
     }
-      
-
-    // Se convierten las horas al formato ISO
-    let timeStartElements = this.timeStart.split(":");
-    this.timeStartISO = formatISO(new Date(2022, 1, 1, parseInt(timeStartElements[0]), parseInt(timeStartElements[1])));
-
-    let timeEndElements = this.timeEnd.split(":");
-    this.timeEndISO = formatISO(new Date(2022, 1, 1, parseInt(timeEndElements[0]), parseInt(timeEndElements[1])));
   }
 
 
@@ -83,23 +70,11 @@ export class ProgramacionHorariaModalPage implements OnInit {
       number: this.number,
       name: this.form.value.name,
       selectedNodes: this.selectedNodes,
-      timeStart: this.timeStart,
-      timeEnd: this.timeEnd,
-      type: "programacion_horaria"
+      type: "simulador"
     });
   }
 
   onCancel() {
     this.modalController.dismiss();
-  }
-
-  formatTimeStart(value: string) {
-    this.timeStartISO = value;
-    this.timeStart = format(parseISO(value), 'HH:mm'); 
-  }
-
-  formatTimeEnd(value: string) {
-    this.timeEndISO = value;
-    this.timeEnd = format(parseISO(value), 'HH:mm'); 
   }
 }
