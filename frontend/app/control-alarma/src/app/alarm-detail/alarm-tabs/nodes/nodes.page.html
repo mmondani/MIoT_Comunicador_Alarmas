@@ -8,18 +8,33 @@
   </ion-button>
 
   <ion-list *ngIf="partition" style="margin-top: 20px;" class="ion-no-padding">
-    <ion-item *ngFor="let node of partition.nodos" class="ion-no-padding" (click)="onNodeClicked(node)">
+    <ion-item *ngFor="let nodeAutomation of nodesAutomations" class="ion-no-padding" (click)="onNodeClicked(nodeAutomation)">
       <ion-grid class="ion-no-padding">
-        <ion-row class="node-row">
+        <ion-row class="node-row" *ngIf="nodeAutomation.tipo === 'nodo'">
           <ion-col >
-            <img src="../../assets/icon/nodo_on.png" *ngIf="node.encendido">
-            <img src="../../assets/icon/nodo_off.png" style="opacity: 60%;" *ngIf="!node.encendido">
+            <img src="../../assets/icon/nodo_on.png" *ngIf="nodeAutomation.encendido">
+            <img src="../../assets/icon/nodo_off.png" style="opacity: 60%;" *ngIf="!nodeAutomation.encendido">
           </ion-col>
           <ion-col size="10">
-            <ion-label class="node-name" style="margin-left: 10px;">{{node.numero}} - {{node.nombre}}</ion-label>
+            <ion-label class="node-name" style="margin-left: 10px;">{{nodeAutomation.numero}} - {{nodeAutomation.nombre}}</ion-label>
           </ion-col>
           <ion-col >
-            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onNodeMore(node, $event)">
+            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onNodeMore(nodeAutomation, $event)">
+          </ion-col>
+        </ion-row>
+
+        <ion-row class="node-row" *ngIf="nodeAutomation.tipo !== 'nodo'">
+          <ion-col [ngSwitch]="nodeAutomation.tipo">
+            <img *ngSwitchCase="'fototimer'" src="../../assets/icon/clock.png">
+            <img *ngSwitchCase="'programacion_horaria'" src="../../assets/icon/reloj_arena.png">
+            <img *ngSwitchCase="'noche'" src="../../assets/icon/moon.png">
+            <img *ngSwitchCase="'simulador'" src="../../assets/icon/moon.png">
+          </ion-col>
+          <ion-col size="10">
+            <ion-label class="node-name" style="margin-left: 10px;">{{nodeAutomation.nombre}}</ion-label>
+          </ion-col>
+          <ion-col >
+            <img src="../../assets/icon/edit.png" style="opacity: 40%;" (click)="onNodeMore(nodeAutomation, $event)">
           </ion-col>
         </ion-row>
       </ion-grid>

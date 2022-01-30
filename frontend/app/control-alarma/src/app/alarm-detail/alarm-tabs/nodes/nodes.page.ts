@@ -7,6 +7,7 @@ import { Nodo } from '../../../models/nodo.model';
 import { NodeModalPage } from './node-modal/node-modal.page';
 import { YesNoModalPage } from '../../../yes-no-modal/yes-no-modal.page';
 import { CommandsService } from '../../../services/commands.service';
+import { NodoAutomatizacion } from '../../../models/nodoAutomatizacion.model';
 
 @Component({
   selector: 'app-nodes',
@@ -16,6 +17,7 @@ import { CommandsService } from '../../../services/commands.service';
 export class NodesPage implements OnInit {
 
   partition: Particion;
+  nodesAutomations: NodoAutomatizacion[] = [];
   private partitionSubscription: Subscription;
   private availableNodes: number[];
 
@@ -31,8 +33,9 @@ export class NodesPage implements OnInit {
   ngOnInit() {
     this.partitionSubscription = this.deviceService.currentPartition.subscribe( partition => {
         this.partition = partition;
+        this.nodesAutomations = [];
 
-        // El array availableZones tiene los números de nodo que no están usados
+        // El array availableNodes tiene los números de nodo que no están usados
         this.availableNodes = Array.from({length: 128}, (x, i) => i);
 
         // Se ordenan los nodos por número de nodo
@@ -53,6 +56,15 @@ export class NodesPage implements OnInit {
           else
             nodo.encendido = false;
         });
+
+        // Se juntan los nodos y las automatizaciones en un mismo array para mostrarlo en la lsit
+        this.partition.nodos.forEach(node => {
+          this.nodesAutomations.push(new NodoAutomatizacion(node.numero, node.nombre, "nodo", node.encendido));
+        });
+
+        this.partition.automatizaciones.forEach(automation => {
+          this.nodesAutomations.push(new NodoAutomatizacion(automation.numero, automation.nombre, automation.tipo, null, automation.horaInicio, automation.horaFin, automation.horas, automation.nodos));
+        })
       }
     );
   }
@@ -63,7 +75,7 @@ export class NodesPage implements OnInit {
   }
 
 
-  onNodeClicked(node: Nodo) {
+  onNodeClicked(node: NodoAutomatizacion) {
 
   }
 
@@ -117,7 +129,50 @@ export class NodesPage implements OnInit {
           text: "Modo noche",
           cssClass: 'custom-action-sheet',
           handler: async () => {
-            console.log("modo noche")
+            /*this.actionSheetController.dismiss();
+
+            const modal = await this.modalController.create({
+              component: NodeModalPage,
+              cssClass: 'auto-height',
+              handle: false,
+              componentProps: {
+                "number": node.numero,
+                "availableNodes": this.availableNodes,
+                "name": node.nombre
+              }
+            });
+        
+            modal.present();
+        
+            const {data} = await modal.onWillDismiss();
+
+            console.log(data);
+            
+            if (data) {
+              // Se modifica el nodo y una vez modificado, se vuelve a pedir el dispositivo
+              const loading = await this.loadingController.create({
+                keyboardClose: true,
+                cssClass: 'custom-loading',
+              });
+          
+              loading.present();
+
+              this.deviceService.updateNode(
+                this.deviceService.currentDeviceComId,
+                this.partition.numero,
+                data.number,
+                data.name,
+                ""
+              ).subscribe(
+                () => {
+                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+                },
+                () => {
+                  console.log("error al modificar el nodo");
+                  loading.dismiss();
+                }
+              );
+            }*/
           }
         },
         {
@@ -147,7 +202,7 @@ export class NodesPage implements OnInit {
     await actionSheet.present();
   }
 
-  onNodeMore(node: Nodo, event: Event) {
+  onNodeMore(node: NodoAutomatizacion, event: Event) {
     this.showNodeMoreActionSheet(node);
 
     // Se evita que se propague el evento de click al item
@@ -155,7 +210,7 @@ export class NodesPage implements OnInit {
     return false;
   }
 
-  private async showNodeMoreActionSheet(node: Nodo) {
+  private async showNodeMoreActionSheet(node: NodoAutomatizacion) {
 
     let actionOnOff = {};
     if (node.encendido) {
@@ -199,106 +254,122 @@ export class NodesPage implements OnInit {
       };
     }
 
+    let actionEditNode = {
+      text: "Editar nodo",
+      handler: async () => {
+        this.actionSheetController.dismiss();
+
+        const modal = await this.modalController.create({
+          component: NodeModalPage,
+          cssClass: 'auto-height',
+          handle: false,
+          componentProps: {
+            "number": node.numero,
+            "availableNodes": this.availableNodes,
+            "name": node.nombre
+          }
+        });
+    
+        modal.present();
+    
+        const {data} = await modal.onWillDismiss();
+
+        console.log(data);
+        
+        if (data) {
+          // Se modifica el nodo y una vez modificado, se vuelve a pedir el dispositivo
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            cssClass: 'custom-loading',
+          });
+      
+          loading.present();
+
+          this.deviceService.updateNode(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            data.number,
+            data.name,
+            ""
+          ).subscribe(
+            () => {
+              this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+            },
+            () => {
+              console.log("error al modificar el nodo");
+              loading.dismiss();
+            }
+          );
+        }
+      }
+    };
+
+    let actionDeleteNode = {
+      text: "Eliminar nodo",
+      handler: async () => {
+        this.actionSheetController.dismiss();
+
+        const modal = await this.modalController.create({
+          component: YesNoModalPage,
+          cssClass: 'auto-height',
+          handle: false,
+          componentProps: {
+            "message": `¿Deseás eliminar el nodo ${node.nombre}?`,
+            "yesText": "Eliminar",
+            "noText": "Cancelar"
+          }
+        });
+    
+        modal.present();
+    
+        const {data} = await modal.onWillDismiss();
+        
+        if (data && data.result === "yes") {
+          // Se elimina el nodo y una vez eliminado, se vuelve a pedir el dispositivo
+          const loading = await this.loadingController.create({
+            keyboardClose: true,
+            cssClass: 'custom-loading',
+          });
+      
+          loading.present();
+
+          this.deviceService.removeNode(
+            this.deviceService.currentDeviceComId,
+            this.partition.numero,
+            node.numero
+          ).subscribe(
+            () => {
+              this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
+            },
+            () => {
+              console.log("error al eliminar el nodo");
+              loading.dismiss();
+            }
+          );
+        }
+      }
+    };
+
+    let buttons = [];
+
+    if (node.tipo === "nodo") {
+      buttons = [
+        actionEditNode,
+        actionDeleteNode,
+        actionOnOff
+      ];
+    }
+    else {
+      buttons = [
+        actionEditNode,
+        actionDeleteNode
+      ];
+    }
+
     const actionSheet = await this.actionSheetController.create({
       cssClass: "action-sheet",
       mode: "ios",
-      buttons: [
-        {
-          text: "Editar nodo",
-          handler: async () => {
-            this.actionSheetController.dismiss();
-
-            const modal = await this.modalController.create({
-              component: NodeModalPage,
-              cssClass: 'auto-height',
-              handle: false,
-              componentProps: {
-                "number": node.numero,
-                "availableNodes": this.availableNodes,
-                "name": node.nombre
-              }
-            });
-        
-            modal.present();
-        
-            const {data} = await modal.onWillDismiss();
-
-            console.log(data);
-            
-            if (data) {
-              // Se modifica el nodo y una vez modificado, se vuelve a pedir el dispositivo
-              const loading = await this.loadingController.create({
-                keyboardClose: true,
-                cssClass: 'custom-loading',
-              });
-          
-              loading.present();
-
-              this.deviceService.updateNode(
-                this.deviceService.currentDeviceComId,
-                this.partition.numero,
-                data.number,
-                data.name,
-                ""
-              ).subscribe(
-                () => {
-                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
-                },
-                () => {
-                  console.log("error al modificar el nodo");
-                  loading.dismiss();
-                }
-              );
-            }
-          }
-        },
-        {
-          text: "Eliminar nodo",
-          handler: async () => {
-            this.actionSheetController.dismiss();
-
-            const modal = await this.modalController.create({
-              component: YesNoModalPage,
-              cssClass: 'auto-height',
-              handle: false,
-              componentProps: {
-                "message": `¿Deseás eliminar el nodo ${node.nombre}?`,
-                "yesText": "Eliminar",
-                "noText": "Cancelar"
-              }
-            });
-        
-            modal.present();
-        
-            const {data} = await modal.onWillDismiss();
-            
-            if (data && data.result === "yes") {
-              // Se elimina el nodo y una vez eliminado, se vuelve a pedir el dispositivo
-              const loading = await this.loadingController.create({
-                keyboardClose: true,
-                cssClass: 'custom-loading',
-              });
-          
-              loading.present();
-
-              this.deviceService.removeNode(
-                this.deviceService.currentDeviceComId,
-                this.partition.numero,
-                node.numero
-              ).subscribe(
-                () => {
-                  this.deviceService.getDevice(this.deviceService.currentDeviceComId).subscribe(() => loading.dismiss());
-                },
-                () => {
-                  console.log("error al eliminar el nodo");
-                  loading.dismiss();
-                }
-              );
-            }
-          }
-        },
-        actionOnOff
-      ]
+      buttons: buttons
     });
 
     await actionSheet.present();
