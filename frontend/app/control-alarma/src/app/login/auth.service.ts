@@ -18,7 +18,9 @@ interface LoginResponse {
 export class AuthService {
   private _user = new BehaviorSubject<User>(null);
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient
+  ) { }
 
   get userIsAuthenticated() {
     return this._user.asObservable().pipe(map(user => {
@@ -124,10 +126,10 @@ export class AuthService {
   }
 
   logout() {
-    this._user.next(null);
-
     Storage.remove({key: "authData"});
     Storage.remove({key: "user"});
+    
+    this._user.next(null);
   }
 
   private storeLoginData (email: string, token: string) {

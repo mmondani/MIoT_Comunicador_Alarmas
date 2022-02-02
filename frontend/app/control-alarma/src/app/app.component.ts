@@ -31,8 +31,8 @@ export class AppComponent implements OnInit, OnDestroy{
     // Detecto cuando el login ya no es válido
     this.authSubcription = this.authService.userIsAuthenticated.subscribe(isAuthenticated => {
       if (!isAuthenticated && this.previousAuthState !== isAuthenticated) {
-        console.log("Re-loguear!!!");
-        this.router.navigate(['/login']);
+        // Se intenta volver a loguear
+        this.loginAgain();
       }
 
       this.previousAuthState = isAuthenticated;
@@ -66,29 +66,11 @@ export class AppComponent implements OnInit, OnDestroy{
           if (!success) {
             console.log("Re-loguear!!!");
 
-            let storedData = await Storage.get({key: 'user'})
-            let user: {email: string, password: string};
-
-            if (!storedData || !storedData.value)
-              user = {email: "", password: ""};
-            else
-              user = JSON.parse(storedData.value);
-
-            this.authService.login(user.email, user.password)
-              .subscribe(
-                responseData => {
-                  // Se pudo re-loguear
-
-                  // Se registra el servicio de push notifications
-                  this.fcmService.initPush();
-                },
-                errorData => {
-                  // No se pudo loguear
-                  this.authService.logout();
-                }
-              );
+            this.loginAgain()
           }
           else {
+            console.log("no es necesario re-loguear");
+            
             this.requestDevices();
           }
         });
@@ -97,9 +79,43 @@ export class AppComponent implements OnInit, OnDestroy{
     }
   }
 
-  /*private getDevicesListOnResume () {
-    console.log("resume 2");
-  }*/
+  private async loginAgain() {
+    let storedData = await Storage.get({key: 'user'})
+    let user: {email: string, password: string};
+
+    if (!storedData || !storedData.value) {
+      // No se pudo loguear
+      console.log("no tiene data para reloguear");
+
+      this.authService.logout();
+      this.router.navigate(['/login']);
+    }
+    else {
+      user = JSON.parse(storedData.value);
+
+      this.authService.login(user.email, user.password)
+        .subscribe(
+          responseData => {
+            // Se pudo re-loguear
+            console.log("se pudo reloguear");
+
+            this.router.navigateByUrl("/");
+
+            // Se registra el servicio de push notifications
+            this.fcmService.initPush();
+          },
+          errorData => {
+            // No se pudo loguear
+            console.log("no se pudo reloguear 3");
+
+            this.authService.logout();
+            this.router.navigate(['/login']);
+          }
+        );
+    }
+
+  }
+
 
   private async requestDevices() {
     // Request al backend de la lista de dispositivos
