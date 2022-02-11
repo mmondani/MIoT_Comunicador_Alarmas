@@ -21,11 +21,6 @@
               <ion-label *ngIf="zone.estado === 'normal'" class="icon-text">Normal</ion-label>
               <ion-label *ngIf="zone.estado === 'anormal'" class="icon-text">Anormal</ion-label>
       
-              <img src='../../../../assets/icon/zona_{{zone.inclusion}}.png' class="icon-img"/>
-              <ion-label *ngIf="zone.inclusion === 'incluida'" class="icon-text">Incluida</ion-label>
-              <ion-label *ngIf="zone.inclusion === 'excluida'" class="icon-text">Excluida</ion-label>
-              <ion-label *ngIf="zone.inclusion === 'temporizada'" class="icon-text">Temporizada</ion-label>
-      
               <img src='../../../../assets/icon/zona_memorizada.png' class="icon-img" *ngIf="zone.memorizada"/>
               <ion-label *ngIf="zone.memorizada" class="icon-text">Memorizada</ion-label>
             </div>

@@ -126,7 +126,7 @@ export class AppComponent implements OnInit, OnDestroy{
     if (email) {
       const loading = await this.loadingController.create({
         keyboardClose: true,
-        message: "Buscando dispositivos..."
+        cssClass: 'custom-loading',
       });
   
       loading.present();
